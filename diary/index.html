@@ -250,6 +250,36 @@ textarea.inp{min-height:38vh;line-height:1.75;resize:vertical}
 .set-note{font-size:12px;line-height:1.7;color:var(--ink-faint);padding:14px 0 0}
 .danger-zone{padding-top:18px;margin-top:6px;border-top:1px solid var(--line)}
 
+/* ============ 锁屏 ============ */
+.lock{position:fixed;inset:0;z-index:100;display:none;background:var(--bg);overflow:auto;
+  -webkit-overflow-scrolling:touch}
+.lock.on{display:flex;align-items:center;justify-content:center;padding:22px}
+.lock-inner{width:100%;max-width:330px;margin:auto;text-align:center}
+.lock-brand{font-family:var(--serif);font-size:27px;letter-spacing:.22em;color:var(--ink)}
+.lock-sub{margin-top:9px;font-size:12px;letter-spacing:.16em;color:var(--ink-faint)}
+.lock-dots{display:flex;justify-content:center;gap:13px;margin:30px 0 10px}
+.lock-dots .dot{width:11px;height:11px;border-radius:50%;border:1px solid var(--line-strong);
+  transition:background .12s ease,transform .12s ease}
+.lock-dots .dot.on{background:var(--accent);border-color:var(--accent);transform:scale(1.14)}
+.lock-err{min-height:20px;font-size:12.5px;color:var(--danger);letter-spacing:.03em}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.key{height:58px;border-radius:12px;border:1px solid var(--line-strong);background:var(--surface);
+  color:var(--ink);font-size:19px;font-variant-numeric:tabular-nums;transition:background .12s,transform .1s}
+.key:hover{background:var(--surface-2)}
+.key:active{background:var(--line);transform:scale(.97)}
+.key.ghost{border:0;background:transparent;pointer-events:none}
+.key.del{font-size:16px;color:var(--ink-dim)}
+.lock-forgot{margin-top:20px;background:none;border:0;color:var(--ink-dim);font-size:13px;
+  min-height:44px;padding:0 12px;text-decoration:underline;text-underline-offset:4px}
+.lock-card{text-align:left;font-size:13.5px;line-height:1.85;color:var(--ink-dim);
+  border:1px solid var(--line);border-radius:12px;padding:16px;margin-top:24px;background:var(--surface)}
+.lock-card b{color:var(--ink);font-weight:600}
+.lock-actions{display:flex;flex-direction:column;gap:10px;margin-top:18px}
+.pin-inp{letter-spacing:.42em;text-align:center;font-size:19px;font-variant-numeric:tabular-nums;text-indent:.42em}
+@keyframes shake{0%,100%{transform:translateX(0)}18%{transform:translateX(-7px)}36%{transform:translateX(6px)}
+  54%{transform:translateX(-4px)}72%{transform:translateX(3px)}90%{transform:translateX(-2px)}}
+.shake{animation:shake .32s ease}
+
 /* 回顾 */
 .review{padding:22px 20px 8px}
 .review .rdate{font-size:12px;color:var(--ink-faint);letter-spacing:.08em;font-variant-numeric:tabular-nums}
@@ -312,6 +342,7 @@ textarea.inp{min-height:38vh;line-height:1.75;resize:vertical}
 </div>
 <button class="fab" id="fab" data-act="new" aria-label="新增记录"></button>
 <div class="overlay" id="ov"></div>
+<div class="lock" id="lock" aria-hidden="true"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script id="seed-data" type="application/json"></script>
 <script>
@@ -415,6 +446,8 @@ function normalize(raw){
   if (d.meta.theme !== 'light' && d.meta.theme !== 'dark') d.meta.theme = 'auto';
   d.meta.sort = (d.meta.sort === 'asc') ? 'asc' : 'desc';
   if (typeof d.meta.lastExport !== 'number') d.meta.lastExport = 0;
+  if (typeof d.meta.pin !== 'string') d.meta.pin = '';
+  if (typeof d.meta.lockIdle !== 'number') d.meta.lockIdle = 0;
 
   d.entries = d.entries.map(function(e){
     e = (e && typeof e === 'object') ? e : {};
@@ -548,6 +581,154 @@ function entriesOf(type){
   return arr;
 }
 
+/* ==================== 开机密码 ==================== */
+var LOCK = { on: false, buf: '', err: '', attempts: 0, forgot: false };
+var idleTimer = null;
+var hiddenAt = 0;
+
+function hashPin(pin){
+  var s = 'sibu|' + pin + '|lock';
+  var a = 0x811c9dc5;
+  var b = 0x9e3779b9;
+  for (var r = 0; r < 4; r++) {
+    for (var i = 0; i < s.length; i++) {
+      a = Math.imul(a ^ s.charCodeAt(i), 16777619) >>> 0;
+      b = Math.imul(b + s.charCodeAt(i), 2654435761) >>> 0;
+    }
+    s = (a >>> 0).toString(16) + (b >>> 0).toString(16) + pin;
+  }
+  return ('00000000' + (a >>> 0).toString(16)).slice(-8) + ('00000000' + (b >>> 0).toString(16)).slice(-8);
+}
+
+function pinRequired(){ return !!(db.meta.pin && db.meta.pin.length); }
+
+function renderLock(){
+  var el = document.getElementById('lock');
+  if (!el) return;
+
+  if (LOCK.forgot) {
+    el.innerHTML = '<div class="lock-inner">'
+      + '<div class="lock-brand">四簿</div>'
+      + '<div class="lock-sub">忘记密码</div>'
+      + '<div class="lock-card">这个密码只挡住「打开就被看到」，它没有对记录加密。两条路：<br><br>'
+      + '<b>一、再试一次</b>。想起密码就返回输入。<br>'
+      + '<b>二、重置密码</b>。清掉密码、<b>保留全部记录</b>。'
+      + '这也意味着拿到这台设备的人同样能绕过，所以它是口令闸，不是保险箱。</div>'
+      + '<div class="lock-actions">'
+      + '<button class="btn primary" data-act="resetPin">重置密码并解锁（保留记录）</button>'
+      + '<button class="btn" data-act="forgotBack">返回输入密码</button>'
+      + '</div></div>';
+    el.classList.add('on');
+    return;
+  }
+
+  var dots = '';
+  for (var i = 0; i < 6; i++) dots += '<span class="dot' + (i < LOCK.buf.length ? ' on' : '') + '"></span>';
+  var keys = '';
+  [1,2,3,4,5,6,7,8,9].forEach(function(n){
+    keys += '<button class="key" data-act="pinKey" data-k="' + n + '">' + n + '</button>';
+  });
+  keys += '<span class="key ghost"></span>'
+    + '<button class="key" data-act="pinKey" data-k="0">0</button>'
+    + '<button class="key del" data-act="pinKey" data-k="del" aria-label="删除一位">⌫</button>';
+
+  el.innerHTML = '<div class="lock-inner">'
+    + '<div class="lock-brand">四簿</div>'
+    + '<div class="lock-sub">输入 6 位数字密码</div>'
+    + '<div class="lock-dots' + (LOCK.err ? ' shake' : '') + '">' + dots + '</div>'
+    + '<div class="lock-err">' + (LOCK.err ? esc(LOCK.err) : '') + '</div>'
+    + '<div class="keypad">' + keys + '</div>'
+    + '<button class="lock-forgot" data-act="forgotPin">忘记密码</button>'
+    + '</div>';
+  el.classList.add('on');
+}
+
+function showLock(){
+  if (!pinRequired()) return;
+  LOCK.on = true;
+  LOCK.buf = '';
+  LOCK.err = '';
+  LOCK.forgot = false;
+  renderLock();
+  document.body.style.overflow = 'hidden';
+  if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
+}
+
+function hideLock(){
+  LOCK.on = false;
+  LOCK.buf = '';
+  LOCK.err = '';
+  LOCK.attempts = 0;
+  LOCK.forgot = false;
+  var el = document.getElementById('lock');
+  if (el) { el.classList.remove('on'); el.innerHTML = ''; }
+  document.body.style.overflow = '';
+  resetIdle();
+}
+
+function pinPress(k){
+  if (!LOCK.on || LOCK.forgot) return;
+  if (k === 'del') {
+    LOCK.buf = LOCK.buf.slice(0, -1);
+    LOCK.err = '';
+    renderLock();
+    return;
+  }
+  if (k.length !== 1 || k < '0' || k > '9') return;
+  if (LOCK.buf.length >= 6) return;
+  LOCK.buf += k;
+  LOCK.err = '';
+  renderLock();
+  if (LOCK.buf.length === 6) setTimeout(pinVerify, 130);
+}
+
+function pinVerify(){
+  if (!LOCK.on || LOCK.buf.length !== 6) return;
+  if (hashPin(LOCK.buf) === String(db.meta.pin)) {
+    hideLock();
+    toast('已解锁');
+  } else {
+    LOCK.attempts++;
+    LOCK.buf = '';
+    LOCK.err = LOCK.attempts >= 3 ? ('密码不对，已经错了 ' + LOCK.attempts + ' 次') : '密码不对，再试一次';
+    renderLock();
+  }
+}
+
+function openForgotPin(){
+  LOCK.forgot = true;
+  renderLock();
+}
+
+function resetPinKeepData(){
+  if (!confirm('重置密码并解锁？\n密码会被清除，' + db.entries.length + ' 条记录与灵感都会保留。')) return;
+  db.meta.pin = '';
+  db.meta.lockIdle = 0;
+  persist();
+  hideLock();
+  render();
+  toast('密码已清除，可到「备份」里重新设置');
+}
+
+function resetIdle(){
+  if (idleTimer) { clearTimeout(idleTimer); idleTimer = null; }
+  var m = Number(db.meta.lockIdle || 0);
+  if (!m || !pinRequired() || LOCK.on) return;
+  idleTimer = setTimeout(function(){ showLock(); }, m * 60000);
+}
+
+document.addEventListener('pointerdown', function(){ if (!LOCK.on) resetIdle(); }, true);
+document.addEventListener('keydown', function(){ if (!LOCK.on) resetIdle(); }, true);
+document.addEventListener('visibilitychange', function(){
+  if (document.hidden) { hiddenAt = Date.now(); return; }
+  if (hiddenAt && pinRequired()) {
+    var m = Number(db.meta.lockIdle || 0);
+    if (m && (Date.now() - hiddenAt) > m * 60000) showLock();
+    else resetIdle();
+  }
+  hiddenAt = 0;
+});
+
 /* ==================== 渲染：外壳 ==================== */
 function renderMast(){
   var t = todayISO();
@@ -560,7 +741,7 @@ function renderMast(){
   h += '<div class="tools">';
   h += '<button class="tool" data-act="review">回顾</button>';
   h += '<button class="tool" data-act="search">搜索</button>';
-  h += '<button class="tool" data-act="settings">备份</button>';
+  h += '<button class="tool" data-act="settings">设置</button>';
   h += '</div></div>';
   h += '<div class="mast-meta">';
   h += '<span class="today">' + fmt(t) + '<em>' + wk(t) + '</em></span>';
@@ -1280,6 +1461,8 @@ function exportHTML(){
     if (ov) { ov.className = 'overlay'; ov.innerHTML = ''; }
     var ts = clone.querySelector('#toast');
     if (ts) { ts.className = 'toast'; ts.textContent = ''; ts.removeAttribute('style'); }
+    var lk = clone.querySelector('#lock');
+    if (lk) { lk.className = 'lock'; lk.innerHTML = ''; }
     var bodyEl = clone.querySelector('body');
     if (bodyEl) bodyEl.removeAttribute('style');
 
@@ -1448,6 +1631,24 @@ function openSettings(){
     + '<div class="seg"><button data-act="setSort" data-v="desc" class="' + (S.sort === 'desc' ? 'on' : '') + '">最新在前</button>'
     + '<button data-act="setSort" data-v="asc" class="' + (S.sort === 'asc' ? 'on' : '') + '">最早在前</button></div></div>';
 
+  body += '<div class="set-row"><div><div class="k">开机密码</div><div class="d">'
+    + (pinRequired() ? '已开启 · 打开时需要 6 位数字' : '未开启 · 打开可直接进入') + '</div></div>'
+    + '<div style="display:flex;gap:6px;flex-shrink:0">'
+    + (pinRequired()
+        ? '<button class="btn sm" data-act="pinChange">修改</button><button class="btn sm" data-act="pinOff">关闭</button>'
+        : '<button class="btn sm primary" data-act="pinSet">设置</button>')
+    + '</div></div>';
+
+  if (pinRequired()) {
+    var idle = Number(db.meta.lockIdle || 0);
+    body += '<div class="set-row"><div><div class="k">自动锁定</div><div class="d">闲置一段时间后再进入需要密码</div></div>'
+      + '<div class="seg">'
+      + '<button data-act="setIdle" data-v="0" class="' + (idle === 0 ? 'on' : '') + '">关闭</button>'
+      + '<button data-act="setIdle" data-v="5" class="' + (idle === 5 ? 'on' : '') + '">5 分钟</button>'
+      + '<button data-act="setIdle" data-v="30" class="' + (idle === 30 ? 'on' : '') + '">30 分钟</button>'
+      + '</div></div>';
+  }
+
   body += '<div class="set-row"><div><div class="k">数据量</div><div class="d">'
     + db.entries.length + ' 条记录 · ' + countIdeas() + ' 条想法 · 约 ' + size + '</div></div></div>';
   body += '<div class="set-row"><div><div class="k">上次备份</div><div class="d">' + esc(last) + '</div></div></div>';
@@ -1472,7 +1673,8 @@ function openSettings(){
     + '只搬数据也行：导出 JSON → 新设备「粘贴导入」或「导入 JSON 文件」，可选合并或覆盖。</div>';
   body += '<div class="set-note">数据存在这台设备的浏览器里（localStorage），不会上传到任何服务器。'
     + '清除浏览器数据、换设备、换浏览器都会看不到这里的记录，所以定期导出是唯一稳妥的备份方式。'
-    + '手机上建议把它「添加到主屏幕」再使用。</div>';
+    + '手机上建议把它「添加到主屏幕」再使用。<br>'
+    + '开机密码只拦「打开就看到」；导出的 JSON 是明文，不要把备份文件随手发给别人。</div>';
   body += '<div class="danger-zone"><button class="btn" style="color:var(--danger);border-color:var(--danger)" data-act="wipe">清空全部数据</button></div>';
 
   showPanel('备份与设置', body, '<button class="btn" data-act="close">关闭</button>', '');
@@ -1484,6 +1686,58 @@ function openSettings(){
       f.value = '';
     });
   }
+}
+
+/* --- 密码表单 --- */
+function openPinSheet(mode){
+  S.sheet = null;
+  var changing = mode === 'change';
+  var body = '';
+  if (changing) {
+    body += '<label class="field"><span class="flabel">当前密码</span>'
+      + '<input class="inp pin-inp" id="f-old" type="text" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="••••••"></label>';
+  }
+  body += '<label class="field"><span class="flabel">新密码 · 6 位数字</span>'
+    + '<input class="inp pin-inp" id="f-new" type="text" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="••••••"></label>';
+  body += '<label class="field"><span class="flabel">再输一次</span>'
+    + '<input class="inp pin-inp" id="f-rep" type="text" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="••••••"></label>';
+  body += '<div class="hintline">密码只用于打开时拦一下，记录本身没有加密；真忘了可在锁屏页重置（保留记录）。</div>';
+  showPanel(changing ? '修改开机密码' : '设置开机密码', body,
+    '<button class="btn" data-act="close">取消</button>'
+    + '<button class="btn primary" data-act="savePin" data-mode="' + mode + '">保存</button>', '');
+  focusSel(changing ? '#f-old' : '#f-new');
+}
+
+function savePin(el){
+  var mode = el.getAttribute('data-mode');
+  var oldEl = document.getElementById('f-old');
+  var newEl = document.getElementById('f-new');
+  var repEl = document.getElementById('f-rep');
+  if (!newEl || !repEl) return;
+  if (mode === 'change' && (!oldEl || hashPin((oldEl.value || '').trim()) !== String(db.meta.pin))) {
+    toast('当前密码不对');
+    return;
+  }
+  var a = (newEl.value || '').trim();
+  var b = (repEl.value || '').trim();
+  if (!/^\d{6}$/.test(a)) { toast('要填满 6 位数字'); return; }
+  if (a !== b) { toast('两次输入不一致'); return; }
+  db.meta.pin = hashPin(a);
+  persist();
+  closeOv();
+  render();
+  openSettings();
+  toast('密码已保存，下次打开就需要输入');
+}
+
+function pinOff(){
+  if (!confirm('关闭开机密码？\n之后打开会直接进入记录。')) return;
+  db.meta.pin = '';
+  db.meta.lockIdle = 0;
+  persist();
+  render();
+  openSettings();
+  toast('已关闭开机密码');
 }
 
 /* ==================== 交互分发 ==================== */
@@ -1559,6 +1813,20 @@ function handle(act, el){
       openSettings();
       render();
       break;
+    case 'pinSet': openPinSheet('set'); break;
+    case 'pinChange': openPinSheet('change'); break;
+    case 'pinOff': pinOff(); break;
+    case 'savePin': savePin(el); break;
+    case 'setIdle':
+      db.meta.lockIdle = Number(el.getAttribute('data-v')) || 0;
+      persist();
+      openSettings();
+      resetIdle();
+      break;
+    case 'pinKey': pinPress(el.getAttribute('data-k')); break;
+    case 'forgotPin': openForgotPin(); break;
+    case 'forgotBack': LOCK.forgot = false; LOCK.buf = ''; LOCK.err = ''; renderLock(); break;
+    case 'resetPin': resetPinKeepData(); break;
     case 'exportHTML': exportHTML(); break;
     case 'importText': openImportText(); break;
     case 'parsePaste': parsePaste(); break;
@@ -1587,6 +1855,11 @@ document.addEventListener('click', function(ev){
 });
 
 document.addEventListener('keydown', function(ev){
+  if (LOCK.on) {
+    if (ev.key && ev.key.length === 1 && ev.key >= '0' && ev.key <= '9') { ev.preventDefault(); pinPress(ev.key); return; }
+    if (ev.key === 'Backspace') { ev.preventDefault(); pinPress('del'); return; }
+    return;
+  }
   if (ev.key === 'Escape') {
     var ov = document.getElementById('ov');
     if (ov && ov.classList.contains('on')) closeOv();
@@ -1604,6 +1877,8 @@ window.addEventListener('storage', function(ev){
 /* ==================== 启动 ==================== */
 render();
 if (SEED_RESTORED) toast('已从文件内恢复 ' + SEED_RESTORED + ' 条记录，记得导出一次备份');
+if (pinRequired()) showLock();
+else resetIdle();
 })();
 </script>
 </body>

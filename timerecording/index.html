@@ -151,9 +151,10 @@ input:focus,button:focus-visible,label:focus-within{outline:2px solid var(--jade
 .sp{flex:1 1 auto}
 .catrow{display:grid;grid-template-columns:34px 1fr auto auto;gap:8px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line2)}
 .csw{width:30px;height:30px;padding:0;border:1px solid var(--line);border-radius:2px;background:#fff;cursor:pointer;appearance:none;-webkit-appearance:none}
-.csw::-webkit-color-swatch-wrapper{padding:2px}
-.csw::-webkit-color-swatch{border:0;border-radius:1px}
-.cname{font-size:15px;padding:6px 8px}
+.palette{display:flex;flex-wrap:wrap;gap:8px;padding:8px 2px 10px;border-bottom:1px solid var(--line2);background:#FAFBF6}
+.pl{width:26px;height:26px;border:0;padding:0;border-radius:2px;cursor:pointer;appearance:none;-webkit-appearance:none}
+.pl[aria-selected="true"]{outline:2px solid var(--ink);outline-offset:1px}
+.cname{font-size:15px;padding:6px 8px;min-width:0}
 .cmeta{font-size:11px;color:var(--ink3);font-family:var(--mono);white-space:nowrap}
 .catrow .del{width:auto;font-size:11.5px;padding:0 8px;color:var(--brick);border-color:transparent;height:34px}
 .catadd{display:flex;gap:8px;margin-top:11px;align-items:center;flex-wrap:wrap}
@@ -909,6 +910,7 @@ function renderCompare(){
 }
 
 /* ==================== 视图：分类 ==================== */
+var CATOPEN=null;
 function findCat(id){
  for(var i=0;i<S.cats.length;i++){if(S.cats[i].id===id)return S.cats[i];}
  return null;
@@ -918,18 +920,29 @@ function renderCats(){
  var rows=S.cats.map(function(c){
   var n=0,t=0;
   S.records.forEach(function(r){if((r.cat||'')===c.id){n++;t+=span(r);}});
-  return '<div class="catrow"><input type="color" class="csw" value="'+c.color+'" data-act="catcolor" data-id="'+c.id+'" aria-label="分类颜色">'+
+  var pal='';
+  if(CATOPEN===c.id){
+   pal='<div class="palette">'+PALETTE.map(function(hex){
+    var on=String(c.color).toLowerCase()===hex.toLowerCase();
+    return '<button class="pl" data-act="setcatcolor" data-id="'+c.id+'" data-v="'+hex+'" style="background:'+hex+'" aria-label="'+hex+'"'+(on?' aria-selected="true"':'')+'></button>';
+   }).join('')+
+   '<button class="btn3" data-act="closepalette" style="align-self:center;font-size:12px">颜色够了</button></div>';
+  }
+  return '<div class="catrow">'+
+   '<button class="csw" data-act="opencolor" data-id="'+c.id+'" style="background:'+c.color+'" aria-label="换颜色"></button>'+
    '<input type="text" class="cname" value="'+esc(c.name)+'" data-act="catname" data-id="'+c.id+'" aria-label="分类名称" maxlength="12">'+
    '<span class="cmeta">'+n+' 条 · '+fmtDur(t)+'</span>'+
-   '<button class="iconbtn del" data-act="catdel" data-id="'+c.id+'">删除</button></div>';
+   '<button class="iconbtn del" data-act="catdel" data-id="'+c.id+'" aria-label="删除分类">删</button></div>'+pal;
  }).join('');
  var orphans=S.records.filter(function(r){return !findCat(r.cat);}).length;
- el.innerHTML='<div class="card"><div class="card-h"><h2>大分类</h2><span class="hint">改名即时生效</span></div>'+
-  '<div class="catlist">'+rows+'</div>'+
-  '<div class="catadd"><input id="newcat" type="text" placeholder="新分类，例如：育儿 / 写作" maxlength="12"><button class="btn" data-act="catadd">添加分类</button></div>'+
-  '<p class="fnote" style="margin:10px 0 0">删除分类不会删除记录，那些记录会显示为「未分类」(当前 '+orphans+' 条)。颜色决定所有图表里这一类的配色。</p></div>'+
-  '<div class="card"><div class="card-h"><h2>分类怎么用才省事</h2></div>'+
-   '<p class="muted" style="line-height:1.8">建议 6–9 个大类就够：太少看不出结构，太多自己都记混。具体事情写进「详细活动」，不用为每件事新建分类。</p></div>';
+ el.innerHTML='<div class="card"><div class="card-h"><h2>大分类（'+S.cats.length+' 个）</h2><span class="hint">点左侧色块换颜色</span></div>'+
+  '<div class="catlist">'+(rows||'<p class="muted">还没有分类，先在下面加一个。</p>')+'</div>'+
+  '<div class="catadd"><input id="newcat" type="text" placeholder="新分类，例如：育儿 / 写作" maxlength="12"><button class="btn" data-act="catadd">添加</button></div>'+
+  '<p class="fnote" style="margin:10px 0 0">名字直接在框里改，离开输入框就生效。删除分类不会删记录，那些记录会变成「未分类」（当前 '+orphans+' 条）。颜色决定所有图表里这一类的配色。</p></div>'+
+  '<div class="card"><div class="card-h"><h2>三条经验</h2></div>'+
+   '<p class="muted" style="line-height:1.9">1. 6–9 个大类就够，太少看不出结构，太多自己都记混。<br>'+
+   '2. 具体事情写进「详细活动」，不用为每件事新建分类。<br>'+
+   '3. 分类名越短越好，手机上才看得清。</p></div>';
 }
 
 /* ==================== 视图：数据 ==================== */
@@ -1311,7 +1324,19 @@ document.addEventListener('click',function(e){
  if(act==='cmpw'){V.cmpW=parseInt(val,10);render();return;}
  if(act==='catadd'){addCat();return;}
  if(act==='catdel'){delCat(id);return;}
- if(act==='tabcat'){V.view='cats';render();return;}
+ if(act==='opencolor'){CATOPEN=(CATOPEN===id?null:id);render();return;}
+ if(act==='closepalette'){CATOPEN=null;render();return;}
+ if(act==='setcatcolor'){
+  var cc=findCat(id);
+  if(cc){cc.color=val;CATOPEN=null;save();render();toast('颜色已更新，图表会跟着变');}
+  return;
+ }
+ if(act==='tabcat'){
+  V.view='cats';render();
+  var ni=document.getElementById('newcat');
+  if(ni)setTimeout(function(){try{ni.focus();}catch(e){}},60);
+  return;
+ }
  if(act==='pickcat'){
   SH.cat=id;
   var chips=document.getElementById('fChips');
@@ -1416,7 +1441,8 @@ document.addEventListener('change',function(e){
 });
 
 document.addEventListener('keydown',function(e){
- if(e.key==='Escape')closeSheet();
+ if(e.key==='Escape'){closeSheet();return;}
+ if(e.key==='Enter'&&e.target&&e.target.id==='newcat'){e.preventDefault();addCat();return;}
 });
 
 var rsTimer=null;

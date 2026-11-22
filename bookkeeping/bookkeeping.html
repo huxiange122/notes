@@ -314,6 +314,7 @@ body.locked .wrap,body.locked .fab,body.locked .sheet,body.locked .mask,body.loc
   text-decoration:underline;text-underline-offset:3px;
 }
 .lock-note{margin:8px 0 0;font-size:11px;line-height:1.6;color:var(--ink3)}
+.lock-forgot+.lock-forgot{margin-left:16px}
 
 @media (min-width:768px){
   .hero{padding-top:22px}
@@ -566,7 +567,7 @@ body.locked .wrap,body.locked .fab,body.locked .sheet,body.locked .mask,body.loc
       <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
     </button>
     <button class="act" id="btnPin">
-      <div>解锁密码<small id="pinHint">已设置，点击修改</small></div>
+      <div>修改解锁密码<small id="pinHint">已启用，点击修改</small></div>
       <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
     </button>
     <button class="act" id="btnWipe" style="color:var(--warm)">
@@ -643,6 +644,7 @@ body.locked .wrap,body.locked .fab,body.locked .sheet,body.locked .mask,body.loc
     <button class="k del" data-k="del">删除</button>
   </div>
   <div class="lock-foot">
+    <button class="lock-forgot" id="lockCancel" style="display:none">取消，返回账本</button>
     <button class="lock-forgot" id="lockForgot">忘记密码？</button>
     <p class="lock-note">密码只保存在本机。忘记密码只能清除记录后重设。</p>
   </div>
@@ -2016,7 +2018,7 @@ function writePinRec(pin) {
 
 function refreshPinHint() {
   const h = el('#pinHint');
-  if (h) h.textContent = pinRec ? '已启用 6 位密码，点击修改' : '尚未设置';
+  if (h) h.textContent = pinRec ? '已启用 6 位密码，点击修改（需先验证原密码）' : '尚未设置，点击设置';
 }
 
 function paintDots() {
@@ -2027,7 +2029,10 @@ function paintDots() {
 
 function setLockText() {
   const t = el('#lockTitle'), s = el('#lockSub');
-  if (pinMode === 'setup') {
+  if (pinMode === 'old') {
+    t.textContent = '修改解锁密码';
+    s.textContent = '先输入当前的 6 位密码，验证通过后再设置新密码';
+  } else if (pinMode === 'setup') {
     t.textContent = pinFrom === 'change' ? '修改解锁密码' : '设置解锁密码';
     s.textContent = pinFrom === 'change'
       ? '输入新的 6 位数字密码'
@@ -2042,7 +2047,8 @@ function setLockText() {
 }
 
 function showLock(mode) {
-  pinMode = mode;
+  // 已设密码再点「修改」：先验证原密码，验证通过后才进入设置新密码
+  pinMode = (mode === 'setup' && pinFrom === 'change' && pinRec) ? 'old' : mode;
   pinBuf = '';
   pinTmp = '';
   pinFails = 0;
@@ -2053,6 +2059,8 @@ function showLock(mode) {
   const f = el('#lockForgot');
   f.style.display = mode === 'unlock' ? 'inline-block' : 'none';
   f.textContent = '忘记密码？';
+  const c = el('#lockCancel');
+  c.style.display = (mode !== 'unlock' && pinFrom === 'change') ? 'inline-block' : 'none';
   pinForgotArmed = false;
   clearTimeout(pinForgotTimer);
   document.body.classList.add('locked');
@@ -2100,8 +2108,33 @@ function pinCoolDown() {
   tick();
 }
 
+function pinMatches(v) {
+  try { return !!pinRec && pinHash(v, pinRec.s) === pinRec.h; } catch (e) { return false; }
+}
+
 function submitPin() {
   const v = pinBuf;
+  if (pinMode === 'old') {
+    if (pinMatches(v)) {
+      pinFails = 0;
+      pinMode = 'setup';
+      pinBuf = '';
+      paintDots();
+      el('#lockErr').textContent = '';
+      setLockText();
+      return;
+    }
+    pinFails++;
+    pinBuf = '';
+    paintDots();
+    if (pinFails >= PIN_MAX_FAIL) {
+      el('#lockErr').textContent = '原密码错误次数过多，请 30 秒后再试';
+      pinCoolDown();
+    } else {
+      el('#lockErr').textContent = '原密码不正确，还可以试 ' + (PIN_MAX_FAIL - pinFails) + ' 次';
+    }
+    return;
+  }
   if (pinMode === 'setup' || pinMode === 'change') {
     pinTmp = v;
     pinMode = 'setup2';
@@ -2125,9 +2158,7 @@ function submitPin() {
     return;
   }
   // 解锁
-  let ok = false;
-  try { ok = !!pinRec && pinHash(v, pinRec.s) === pinRec.h; } catch (e) { ok = false; }
-  if (ok) {
+  if (pinMatches(v)) {
     pinFails = 0;
     unlockDone();
     return;
@@ -2310,6 +2341,12 @@ function wire() {
     b.onclick = function () { pressPin(b.dataset.k); };
   });
   el('#lockForgot').onclick = pinForgotClick;
+  el('#lockCancel').onclick = function () {
+    if (pinFrom !== 'change') return;
+    pinFrom = 'first';
+    hideLock();
+    toast('已取消，密码没有改动');
+  };
   el('#btnPin').onclick = function () {
     closeAll();
     pinFrom = pinRec ? 'change' : 'first';

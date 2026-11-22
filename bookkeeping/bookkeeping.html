@@ -1,0 +1,2019 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#F4F5F1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>记账分析</title>
+<link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230F5C4A'/><path d='M9 10h14M9 16h14M9 22h8' stroke='%23F4F5F1' stroke-width='2.4'/></svg>">
+<style>
+:root{
+  --paper:#F4F5F1;
+  --card:#FDFDFB;
+  --ink:#131A16;
+  --ink2:#5A665F;
+  --ink3:#8A948C;
+  --line:#D6DBD2;
+  --line2:#E6EAE1;
+  --accent:#0F5C4A;
+  --accent2:#E3EDE6;
+  --warm:#B56A48;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,"Courier New",monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;
+}
+.num,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.wrap{max-width:560px;margin:0 auto;padding-bottom:96px}
+button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+input,select{font-family:inherit}
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* ===== 顶栏 ===== */
+.bar{
+  position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;padding:11px 16px;background:var(--paper);border-bottom:1px solid var(--line);
+}
+.bar-l{display:flex;align-items:center;gap:9px;min-width:0}
+.mark{
+  display:grid;place-items:center;width:26px;height:26px;border-radius:4px;background:var(--accent);
+  color:#F2F6F0;font-size:13px;font-weight:600;flex:0 0 auto;
+}
+.bar-t{font-size:16px;font-weight:600;white-space:nowrap}
+.bar-t span{color:var(--ink3);font-weight:400;font-size:13px;margin-left:2px}
+.btn-ghost{
+  flex:0 0 auto;height:32px;padding:0 12px;border:1px solid var(--line);border-radius:6px;
+  background:var(--card);color:var(--ink2);font-size:13px;
+}
+
+/* ===== 总览 ===== */
+.hero{padding:16px 16px 0;border-bottom:1px solid var(--line2)}
+.hero-range{display:flex;align-items:center;gap:8px;min-width:0}
+.range-btn{
+  display:inline-flex;align-items:center;gap:5px;border:0;background:transparent;padding:0;
+  font-size:15px;font-weight:600;color:var(--ink);max-width:100%;
+}
+.range-btn svg{width:12px;height:12px;flex:0 0 auto;color:var(--ink3)}
+.tag{
+  flex:0 0 auto;font-size:11px;color:var(--accent);border:1px solid #BFD5C8;background:var(--accent2);
+  border-radius:3px;padding:1px 5px;
+}
+.hero-total{display:flex;align-items:baseline;gap:3px;margin-top:6px}
+.hero-total i{font-style:normal;font-family:var(--mono);font-size:20px;color:var(--ink2);line-height:1}
+.hero-total b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:38px;font-weight:600;line-height:1.1;letter-spacing:-.02em}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px;padding-bottom:13px}
+.stat{min-width:0}
+.stat em{display:block;font-style:normal;font-size:11px;color:var(--ink3);margin-bottom:3px}
+.stat b{display:block;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* ===== 筛选条 ===== */
+.filters{display:flex;gap:7px;padding:10px 16px;overflow-x:auto;border-bottom:1px solid var(--line2);scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.f-chip{
+  flex:0 0 auto;display:flex;align-items:center;gap:5px;height:32px;padding:0 11px;
+  border:1px solid var(--line);border-radius:6px;background:var(--card);font-size:12px;color:var(--ink3);
+  max-width:190px;
+}
+.f-chip b{font-weight:600;color:var(--ink);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:104px}
+.f-chip.on{border-color:var(--accent);background:var(--accent2)}
+.f-chip.on b,.f-chip.on{color:var(--accent)}
+
+/* ===== 区块 ===== */
+.sec{padding:17px 16px 6px}
+.sec + .sec{border-top:1px solid var(--line2);margin-top:10px;padding-top:15px}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:10px}
+.sec-h h2{margin:0;font-size:14px;font-weight:600;color:var(--ink)}
+.hint{font-size:11px;color:var(--ink3);text-align:right;min-width:0}
+
+/* ===== 近六个月 ===== */
+.trend{display:flex;flex-direction:column}
+.t-row{
+  display:grid;grid-template-columns:46px 1fr 76px;align-items:center;gap:9px;
+  border:0;border-radius:4px;background:transparent;text-align:left;padding:7px 4px;width:100%;
+}
+.t-row:active{background:#EBEEE6}
+.t-row .m{font-family:var(--mono);font-size:11px;color:var(--ink2);white-space:nowrap}
+.t-row .m.hl{font-family:inherit;font-weight:600;color:var(--accent);font-size:12px}
+.t-track{position:relative;height:7px;background:#E4E8DF;border-radius:1px}
+.t-bar{position:absolute;left:0;top:0;height:7px;background:var(--accent);border-radius:1px;transition:width .22s ease}
+.t-bar.zero{background:#C9D0C3}
+.t-val{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:12px;color:var(--ink);white-space:nowrap}
+
+/* ===== 饼图 ===== */
+.pie-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+#pie{width:100%;max-width:360px;height:auto;display:block}
+.pie-lead{fill:none;stroke:#C6CEC4;stroke-width:1}
+.pie-lab{font-size:11px;fill:#3C4A43;letter-spacing:.02em}
+.pie-lab-big{font-size:12px;fill:#F4F8F2}
+.legend{list-style:none;margin:0;padding:0;width:100%}
+.l-row{
+  display:grid;grid-template-columns:10px 1fr 52px 92px;align-items:center;gap:9px;
+  width:100%;padding:10px 2px;border:0;border-bottom:1px solid var(--line2);
+  background:transparent;text-align:left;font-size:13px;min-height:44px;
+}
+.l-row:active{background:#EBEEE6}
+.l-dot{width:9px;height:9px;border-radius:2px;display:block}
+.l-name{color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.l-pct{font-family:var(--mono);font-size:11px;color:var(--ink3);text-align:right}
+.l-amt{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;text-align:right;white-space:nowrap}
+
+/* ===== 明细表 ===== */
+.tbl{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px}
+.tbl colgroup col:first-child{width:23%}
+.tbl colgroup col:nth-child(2){width:16%}
+.tbl colgroup col:nth-child(3){width:24%}
+.tbl colgroup col:nth-child(4){width:37%}
+.tbl thead th{
+  padding:7px 0;border-bottom:1px solid var(--line);background:transparent;
+  text-align:left;font-size:11px;font-weight:500;color:var(--ink3);white-space:nowrap;
+}
+.tbl th.num{text-align:right}
+.tbl th .sort{color:var(--accent);font-size:10px;margin-left:2px}
+.tbl tbody td{padding:11px 0;border-bottom:1px solid var(--line2);vertical-align:middle}
+.tbl td.c-date{font-family:var(--mono);font-size:11.5px;color:var(--ink2);white-space:nowrap}
+.tbl td.c-cat{font-size:12px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tbl td.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;white-space:nowrap;padding-right:10px}
+.tbl th.num{padding-right:10px}
+.tbl td.c-note{color:var(--ink2);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tbl tbody tr{cursor:pointer}
+.tbl tbody tr:active{background:#EBEEE6}
+.tbl tbody tr:last-child td{border-bottom:1px solid var(--line2)}
+.more{
+  display:none;width:100%;height:40px;margin-top:8px;border:1px solid var(--line);
+  border-radius:6px;background:var(--card);font-size:13px;color:var(--ink2);
+}
+
+/* ===== 空态 ===== */
+.empty{display:none;padding:18px 2px 10px;color:var(--ink2);font-size:13px;line-height:1.7}
+.empty p{margin:0 0 10px}
+.empty .mini{
+  height:38px;padding:0 14px;border:1px solid var(--line);border-radius:6px;
+  background:var(--card);font-size:13px;color:var(--ink);
+}
+
+/* ===== 底部说明 ===== */
+.foot{padding:16px;color:var(--ink3);font-size:11px;line-height:1.7;border-top:1px solid var(--line2)}
+.foot b{display:block;color:var(--ink2);font-size:12px;font-weight:600;margin-bottom:2px}
+
+/* ===== 悬浮按钮 ===== */
+.fab{
+  position:fixed;bottom:calc(18px + env(safe-area-inset-bottom));right:max(16px,calc(50vw - 280px));
+  z-index:30;height:48px;padding:0 18px 0 15px;border:0;border-radius:24px;
+  background:var(--accent);color:#F4F8F2;font-size:15px;font-weight:600;
+  display:flex;align-items:center;gap:6px;box-shadow:0 6px 16px rgba(15,92,74,.22);
+}
+.fab svg{width:15px;height:15px}
+
+/* ===== 遮罩与面板 ===== */
+.mask{
+  position:fixed;inset:0;z-index:40;background:rgba(19,26,22,.44);
+  opacity:0;pointer-events:none;transition:opacity .2s ease;
+}
+.mask.on{opacity:1;pointer-events:auto}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;width:100%;max-width:560px;margin:0 auto;
+  max-height:88vh;background:var(--card);border-radius:14px 14px 0 0;
+  transform:translateY(101%);transition:transform .26s cubic-bezier(.32,.94,.42,1);
+  display:flex;flex-direction:column;box-shadow:0 -6px 24px rgba(19,26,22,.12);
+}
+.sheet.on{transform:translateY(0)}
+.sheet-h{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:14px 16px 10px;border-bottom:1px solid var(--line2);flex:0 0 auto;
+}
+.sheet-h h3{margin:0;font-size:16px;font-weight:600}
+.sheet-b{overflow-y:auto;padding:14px 16px 4px;-webkit-overflow-scrolling:touch}
+.sheet-f{
+  display:flex;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line2);flex:0 0 auto;background:var(--card);
+}
+.btn-primary{
+  flex:1;height:46px;border:0;border-radius:8px;background:var(--accent);color:#F4F8F2;
+  font-size:15px;font-weight:600;
+}
+.btn-danger{
+  flex:0 0 auto;min-width:86px;height:46px;border:1px solid #DCC6BE;border-radius:8px;
+  background:#FBF1ED;color:var(--warm);font-size:14px;
+}
+.btn-danger.armed{background:var(--warm);border-color:var(--warm);color:#FFF}
+.text-btn{border:0;background:transparent;padding:4px;font-size:13px;color:var(--accent)}
+.close-x{border:0;background:transparent;padding:4px 8px;font-size:22px;line-height:1;color:var(--ink3)}
+
+/* ===== 表单 ===== */
+.field{margin-bottom:16px}
+.field > label,.field > .lab{display:block;font-size:11px;color:var(--ink3);margin-bottom:6px}
+.inp{
+  width:100%;height:44px;border:1px solid var(--line);border-radius:7px;background:#FFF;
+  padding:0 12px;font-size:16px;color:var(--ink);outline:none;
+}
+.inp:focus{border-color:var(--accent)}
+.inp::placeholder{color:#AEB6AC}
+input[type="date"]:invalid{color:var(--ink3)}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{
+  height:34px;padding:0 11px;border:1px solid var(--line);border-radius:7px;
+  background:#FFF;font-size:13px;color:var(--ink2);
+}
+.seg button.on{background:var(--accent2);border-color:var(--accent);color:var(--accent);font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  min-height:34px;padding:0 12px;border:1px solid var(--line);border-radius:6px;
+  background:#FFF;font-size:13px;color:var(--ink2);
+}
+.chip.on{background:var(--accent);border-color:var(--accent);color:#F4F8F2}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.row3{display:grid;grid-template-columns:1fr 22px 1fr;gap:6px;margin-top:8px;align-items:center}
+.row3 .to{text-align:center;color:var(--ink3);font-size:12px}
+.amt-row{display:grid;grid-template-columns:86px 1fr;gap:8px}
+.amt-row select{height:44px;border:1px solid var(--line);border-radius:7px;background:#FFF;font-size:14px;color:var(--ink);padding:0 6px}
+.amt-2{display:grid;grid-template-columns:86px 1fr;gap:8px;margin-top:8px}
+.amt-2.hide{display:none}
+.amt-2 .to{align-self:center;text-align:center;color:var(--ink3);font-size:12px}
+.amount-wrap{position:relative}
+.amount-wrap i{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-style:normal;font-family:var(--mono);color:var(--ink2);font-size:16px}
+.amount-wrap .inp{padding-left:30px;font-family:var(--mono);font-size:18px}
+.tip{margin:8px 0 0;font-size:11px;color:var(--ink3);line-height:1.6}
+.newcat{display:grid;grid-template-columns:1fr 62px;gap:8px;margin-top:8px}
+.newcat .inp{height:38px;font-size:14px}
+.newcat button{height:38px;border:1px solid var(--line);border-radius:7px;background:#FFF;font-size:13px;color:var(--ink2)}
+
+/* ===== 导出面板 ===== */
+.act{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
+  min-height:52px;padding:10px 2px;border:0;border-bottom:1px solid var(--line2);background:transparent;
+  text-align:left;color:var(--ink);font-size:14px;
+}
+.act:active{background:#EBEEE6}
+.act err{color:var(--warm)}
+.act small{display:block;font-size:11px;color:var(--ink3);font-weight:400;margin-top:2px}
+.act .arr svg{width:14px;height:14px;color:var(--ink3)}
+.img-preview{width:100%;display:block;border:1px solid var(--line2);border-radius:6px;background:#FFF}
+
+/* ===== toast ===== */
+.toast{
+  position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));z-index:70;
+  transform:translate(-50%,12px);opacity:0;pointer-events:none;
+  max-width:82vw;padding:9px 14px;border-radius:6px;background:rgba(19,26,22,.92);color:#F2F5EF;
+  font-size:13px;line-height:1.5;text-align:center;transition:opacity .18s ease,transform .18s ease;
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+/* ===== 解锁锁屏 ===== */
+.lock{
+  position:fixed;inset:0;z-index:80;display:none;flex-direction:column;align-items:center;
+  background:var(--paper);overflow-y:auto;
+  padding:calc(26px + env(safe-area-inset-top)) 20px calc(18px + env(safe-area-inset-bottom));
+}
+.lock.on{display:flex}
+body.locked{overflow:hidden}
+body.locked .wrap,body.locked .fab,body.locked .sheet,body.locked .mask,body.locked .toast{visibility:hidden}
+.lock-h{margin:14px 0 6px;font-size:19px;font-weight:600;letter-spacing:.02em;text-align:center}
+.lock-sub{margin:0;max-width:290px;font-size:12.5px;line-height:1.65;color:var(--ink3);text-align:center}
+.dots{display:flex;gap:8px;margin:24px 0 0}
+.dot{
+  width:38px;height:46px;border:1px solid var(--line);border-radius:6px;background:#FFF;
+  display:flex;align-items:center;justify-content:center;transition:border-color .12s ease,background .12s ease;
+}
+.dot i{width:8px;height:8px;border-radius:50%;background:var(--accent);opacity:0;transform:scale(.4);transition:opacity .1s ease,transform .1s ease}
+.dot.on{border-color:var(--accent);background:var(--accent2)}
+.dot.on i{opacity:1;transform:scale(1)}
+.lock-err{height:18px;margin:10px 0 0;font-size:12px;line-height:1.4;color:var(--warm);text-align:center}
+.keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:300px;margin-top:6px}
+.k{
+  height:54px;border:1px solid var(--line);border-radius:8px;background:#FFF;
+  font-family:var(--mono);font-size:20px;color:var(--ink);font-variant-numeric:tabular-nums;
+}
+.k:active{background:var(--accent2);border-color:var(--accent)}
+.k.del{font-family:inherit;font-size:14px;color:var(--ink3)}
+.k:disabled{opacity:.38}
+.lock-foot{width:100%;max-width:300px;margin-top:auto;padding-top:16px;text-align:center}
+.lock-forgot{
+  border:0;background:transparent;padding:6px 4px;font-size:12.5px;color:var(--warm);
+  text-decoration:underline;text-underline-offset:3px;
+}
+.lock-note{margin:8px 0 0;font-size:11px;line-height:1.6;color:var(--ink3)}
+
+@media (min-width:768px){
+  .hero{padding-top:22px}
+  #pie{max-width:440px}
+  .hero-total b{font-size:44px}
+  .tbl{font-size:14px}
+  .tbl td.c-date{font-size:12.5px}
+  .sec{padding:22px 20px 8px}
+  .bar,.filters{padding-left:20px;padding-right:20px}
+}
+@media (prefers-reduced-motion:reduce){
+  .sheet,.mask,.t-bar,.toast{transition:none}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="bar">
+    <div class="bar-l">
+      <span class="mark" aria-hidden="true">账</span>
+      <div class="bar-t">记账分析<span>流水 · 筛选 · 构成</span></div>
+    </div>
+    <button class="btn-ghost" id="btnExport">导出</button>
+  </header>
+
+  <!-- ===== 总览 ===== -->
+  <section class="hero">
+    <div class="hero-range">
+      <button class="range-btn" id="rangeBtn">
+        <span id="rangeLabel">本月</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <span class="tag">筛选结果</span>
+    </div>
+    <div class="hero-total">
+      <i>¥</i><b id="totalNum">0.00</b>
+    </div>
+    <div class="stats">
+      <div class="stat"><em>笔数</em><b id="statCnt">0 笔</b></div>
+      <div class="stat"><em>日均</em><b id="statAvg">—</b></div>
+      <div class="stat"><em>单笔最高</em><b id="statMax">—</b></div>
+    </div>
+  </section>
+
+  <!-- ===== 筛选条 ===== -->
+  <div class="filters" id="filters">
+    <button class="f-chip" data-open="time">时间 <b id="chipTime">本月</b></button>
+    <button class="f-chip" data-open="type">类型 <b id="chipType">全部</b></button>
+    <button class="f-chip" data-open="amount">金额 <b id="chipAmt">不限</b></button>
+    <button class="f-chip" data-open="kw">备注 <b id="chipKw">搜索</b></button>
+  </div>
+
+  <!-- ===== 近六个月 ===== -->
+  <section class="sec">
+    <div class="sec-h">
+      <h2>近六个月</h2>
+      <span class="hint">点月份切换</span>
+    </div>
+    <div class="trend" id="trend"></div>
+  </section>
+
+  <!-- ===== 类型构成 ===== -->
+  <section class="sec">
+    <div class="sec-h">
+      <h2>类型构成</h2>
+      <span class="hint" id="pieHint">—</span>
+    </div>
+    <div class="pie-wrap">
+      <svg id="pie" viewBox="0 0 360 236" role="img" aria-label="按类型划分的支出占比饼图"></svg>
+      <ul class="legend" id="legend"></ul>
+    </div>
+    <div class="empty" id="pieEmpty">当前筛选下没有支出，饼图暂无数据。</div>
+  </section>
+
+  <!-- ===== 明细 ===== -->
+  <section class="sec">
+    <div class="sec-h">
+      <h2>明细</h2>
+      <span class="hint" id="listHint"></span>
+    </div>
+    <table class="tbl" id="tbl">
+      <colgroup><col><col><col><col></colgroup>
+      <thead>
+        <tr>
+          <th data-sort="d">时间<span class="sort"></span></th>
+          <th data-sort="c">类型<span class="sort"></span></th>
+          <th data-sort="a" class="num">金额<span class="sort"></span></th>
+          <th>详细信息</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="listEmpty"></div>
+    <button class="more" id="btnMore">显示更多</button>
+  </section>
+
+  <div class="foot" id="foot">
+    <b>关于数据</b>
+    所有记录只保存在这台设备的浏览器里，不上传任何服务器。换手机、清理浏览器缓存或换浏览器打开都会看不到旧数据，建议每月导出一次 CSV 备份。
+  </div>
+</div>
+
+<button class="fab" id="btnAdd">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+  记一笔
+</button>
+
+<div class="mask" id="mask"></div>
+
+<!-- ===== 面板：筛选 ===== -->
+<section class="sheet" id="sheetFilter" aria-hidden="true">
+  <div class="sheet-h">
+    <h3>筛选</h3>
+    <div style="display:flex;align-items:center;gap:2px">
+      <button class="text-btn" id="btnResetFilter">重置</button>
+      <button class="close-x" data-close aria-label="收起">×</button>
+    </div>
+  </div>
+  <div class="sheet-b">
+    <div class="field" id="fTime">
+      <span class="lab">时间</span>
+      <div class="seg" id="segTime">
+        <button data-mode="month">本月</button>
+        <button data-mode="30d">近 30 天</button>
+        <button data-mode="year">本年</button>
+        <button data-mode="all">全部</button>
+        <button data-mode="custom">自定义</button>
+      </div>
+      <div class="row2" id="monthWrap">
+        <input class="inp" type="month" id="inMonth" aria-label="选择月份">
+      </div>
+      <div class="row3" id="customWrap" style="display:none">
+        <input class="inp" type="date" id="inFrom" aria-label="起始日期">
+        <span class="to">至</span>
+        <input class="inp" type="date" id="inTo" aria-label="结束日期">
+      </div>
+    </div>
+
+    <div class="field" id="fType">
+      <span class="lab">类型（可多选）</span>
+      <div class="chips" id="catChips"></div>
+    </div>
+
+    <div class="field" id="fAmt">
+      <span class="lab">金额</span>
+      <div class="amt-row">
+        <select id="selOp" aria-label="金额条件">
+          <option value="none">不限</option>
+          <option value="gt">大于 &gt;</option>
+          <option value="gte">大于或等于 ≥</option>
+          <option value="lt">小于 &lt;</option>
+          <option value="lte">小于或等于 ≤</option>
+          <option value="eq">等于 =</option>
+          <option value="between">介于区间</option>
+        </select>
+        <input class="inp" id="inAmt1" inputmode="decimal" placeholder="金额（元）" aria-label="金额条件一">
+      </div>
+      <div class="amt-2 hide" id="amtRow2">
+        <span></span>
+        <input class="inp" id="inAmt2" inputmode="decimal" placeholder="金额上限（元）" aria-label="金额条件二">
+      </div>
+      <p class="tip">例：选「大于或等于 ≥」并输入 100，只显示 100 元及以上的支出。</p>
+    </div>
+
+    <div class="field" id="fKw">
+      <span class="lab">详细信息关键词</span>
+      <input class="inp" id="inKw" placeholder="如：打车、咖啡、房租" maxlength="30">
+    </div>
+  </div>
+  <div class="sheet-f">
+    <button class="btn-primary" id="btnFilterDone">完成</button>
+  </div>
+</section>
+
+<!-- ===== 面板：记一笔 / 编辑 ===== -->
+<section class="sheet" id="sheetEdit" aria-hidden="true">
+  <div class="sheet-h">
+    <h3 id="editTitle">记一笔</h3>
+    <button class="close-x" data-close aria-label="关闭">×</button>
+  </div>
+  <div class="sheet-b">
+    <div class="field">
+      <label for="eDate">时间</label>
+      <input class="inp" type="date" id="eDate">
+    </div>
+    <div class="field">
+      <span class="lab">类型</span>
+      <div class="chips" id="eCats"></div>
+      <div class="newcat">
+        <input class="inp" id="eNewCat" placeholder="没有合适的？输入新类型" maxlength="6">
+        <button id="btnAddCat">添加</button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="eAmt">金额</label>
+      <div class="amount-wrap"><i>¥</i><input class="inp" id="eAmt" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
+    </div>
+    <div class="field">
+      <label for="eNote">详细信息</label>
+      <input class="inp" id="eNote" placeholder="选填，如：楼下便利店" maxlength="60">
+    </div>
+  </div>
+  <div class="sheet-f">
+    <button class="btn-danger" id="btnDel" style="display:none">删除</button>
+    <button class="btn-primary" id="btnSave">保存</button>
+  </div>
+</section>
+
+<!-- ===== 面板：导出 ===== -->
+<section class="sheet" id="sheetExport" aria-hidden="true">
+  <div class="sheet-h">
+    <h3>导出与数据</h3>
+    <button class="close-x" data-close aria-label="关闭">×</button>
+  </div>
+  <div class="sheet-b">
+    <button class="act" id="btnCsv">
+      <div>导出当前筛选为 CSV<small>可用 Excel / WPS 直接打开，含合计行</small></div>
+      <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </button>
+    <button class="act" id="btnPng">
+      <div>导出类型占比图<small>生成图片，可长按保存到相册</small></div>
+      <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </button>
+    <button class="act" id="btnPin">
+      <div>解锁密码<small id="pinHint">已设置，点击修改</small></div>
+      <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </button>
+    <button class="act" id="btnWipe" style="color:var(--warm)">
+      <div>清空本机全部记录<small id="wipeHint">删除后不可恢复，建议先导出 CSV</small></div>
+      <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </button>
+    <p class="tip" id="storeNote">数据保存在本机浏览器（localStorage），关闭页面不会丢失。</p>
+  </div>
+  <div class="sheet-f">
+    <button class="btn-primary" data-close>完成</button>
+  </div>
+</section>
+
+<!-- ===== 面板：图片预览 ===== -->
+<section class="sheet" id="sheetImg" aria-hidden="true">
+  <div class="sheet-h">
+    <h3>类型占比图</h3>
+    <button class="close-x" data-close aria-label="关闭">×</button>
+  </div>
+  <div class="sheet-b">
+    <img class="img-preview" id="imgPreview" alt="类型占比图">
+    <p class="tip">手机端长按图片可保存到相册；电脑端点下方按钮下载。</p>
+  </div>
+  <div class="sheet-f">
+    <button class="btn-primary" id="btnImgSave">下载图片</button>
+  </div>
+</section>
+
+<!-- ===== 锁屏 ===== -->
+<div class="lock" id="lock" aria-hidden="true">
+  <span class="mark" aria-hidden="true">账</span>
+  <h2 class="lock-h" id="lockTitle">已锁定</h2>
+  <p class="lock-sub" id="lockSub">输入 6 位数字密码查看账本</p>
+  <div class="dots" id="lockDots" aria-hidden="true">
+    <span class="dot"><i></i></span><span class="dot"><i></i></span><span class="dot"><i></i></span>
+    <span class="dot"><i></i></span><span class="dot"><i></i></span><span class="dot"><i></i></span>
+  </div>
+  <div class="lock-err" id="lockErr" role="status" aria-live="polite"></div>
+  <div class="keypad" id="keypad">
+    <button class="k" data-k="1">1</button>
+    <button class="k" data-k="2">2</button>
+    <button class="k" data-k="3">3</button>
+    <button class="k" data-k="4">4</button>
+    <button class="k" data-k="5">5</button>
+    <button class="k" data-k="6">6</button>
+    <button class="k" data-k="7">7</button>
+    <button class="k" data-k="8">8</button>
+    <button class="k" data-k="9">9</button>
+    <button class="k del" data-k="clear">清空</button>
+    <button class="k" data-k="0">0</button>
+    <button class="k del" data-k="del">删除</button>
+  </div>
+  <div class="lock-foot">
+    <button class="lock-forgot" id="lockForgot">忘记密码？</button>
+    <p class="lock-note">密码只保存在本机。忘记密码只能清除记录后重设。</p>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   纯逻辑区：不触碰 DOM，可被单独提取做单元测试
+   ============================================================ */
+const STORE_KEY = 'jz_expense_v1';
+const OTHER = '其他';
+const PALETTE = ['#0F5C4A', '#3C7D66', '#8FA893', '#C79A3E', '#B56A48', '#66707A'];
+const PRESET_CATS = ['餐饮', '交通', '购物', '居住', '娱乐', '医疗', '教育', '通讯', '人情', '其他'];
+const DAY_MS = 86400000;
+
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+function isoOf(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+
+function todayISO(base) { return isoOf(base ? new Date(base) : new Date()); }
+
+function isValidMonth(ym) {
+  return typeof ym === 'string' && /^[0-9]{4}-(0[1-9]|1[0-2])$/.test(ym);
+}
+
+function shiftMonth(ym, delta) {
+  const y = +ym.slice(0, 4);
+  const m = +ym.slice(5, 7) - 1;
+  return isoOf(new Date(y, m + delta, 1)).slice(0, 7);
+}
+
+function monthRange(ym) {
+  if (!isValidMonth(ym)) return { from: '', to: '' };
+  const y = +ym.slice(0, 4);
+  const m = +ym.slice(5, 7);
+  const days = new Date(y, m, 0).getDate();
+  return { from: ym + '-01', to: ym + '-' + pad2(days) };
+}
+
+function isValidDate(s) {
+  if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const y = +s.slice(0, 4), m = +s.slice(5, 7), d = +s.slice(8, 10);
+  if (m < 1 || m > 12 || d < 1 || d > 31) return false;
+  const dt = new Date(y, m - 1, d);
+  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+}
+
+// 元 -> 分：按字符串拆整数/小数位，避免浮点误差
+function parseAmount(raw) {
+  if (raw === null || raw === undefined) return null;
+  const s = String(raw).replace(/[¥￥,，\s]/g, '').replace(/。/g, '.');
+  if (!s) return null;
+  if (!/^[0-9]{1,7}(\.[0-9]{1,2})?$/.test(s)) return null;
+  const parts = s.split('.');
+  const frac = (parts[1] || '') + '00';
+  return Number(parts[0]) * 100 + Number(frac.slice(0, 2));
+}
+
+function fmtCents(c) {
+  const n = Math.round(c || 0);
+  const sign = n < 0 ? '-' : '';
+  const abs = Math.abs(n);
+  return sign + Math.floor(abs / 100).toLocaleString('en-US') + '.' + pad2(abs % 100);
+}
+
+function fmtCompact(c) {
+  const yuan = Math.round(c || 0) / 100;
+  if (Math.abs(yuan) >= 1000000) return (yuan / 10000).toFixed(0) + '万';
+  if (Math.abs(yuan) >= 10000) return (yuan / 10000).toFixed(1) + '万';
+  return fmtCents(c);
+}
+
+function resolveRange(f, today) {
+  const t = today || todayISO();
+  if (f.mode === 'month') return monthRange(f.month || t.slice(0, 7));
+  if (f.mode === '30d') {
+    const t0 = new Date(t + 'T00:00:00');
+    const from = new Date(t0.getFullYear(), t0.getMonth(), t0.getDate() - 29);
+    return { from: isoOf(from), to: t };
+  }
+  if (f.mode === 'year') return { from: t.slice(0, 4) + '-01-01', to: t.slice(0, 4) + '-12-31' };
+  if (f.mode === 'custom') {
+    let from = isValidDate(f.from) ? f.from : '';
+    let to = isValidDate(f.to) ? f.to : '';
+    if (from && to && from > to) { const tmp = from; from = to; to = tmp; }
+    return { from: from, to: to };
+  }
+  return { from: '', to: '' };
+}
+
+// 金额条件：分是整数，所以「>」「<」可用 ±1 分精确表达
+function resolveAmount(f) {
+  const op = f.amtOp || 'none';
+  if (op === 'none') return null;
+  const a = parseAmount(f.amt1);
+  const b = parseAmount(f.amt2);
+  if (op === 'gt') return a === null ? null : { min: a + 1 };
+  if (op === 'gte') return a === null ? null : { min: a };
+  if (op === 'lt') return a === null ? null : { max: a - 1 };
+  if (op === 'lte') return a === null ? null : { max: a };
+  if (op === 'eq') return a === null ? null : { eq: a };
+  if (op === 'between') {
+    if (a === null && b === null) return null;
+    if (a === null) return { max: b };
+    if (b === null) return { min: a };
+    return a <= b ? { min: a, max: b } : { min: b, max: a };
+  }
+  return null;
+}
+
+function filterItems(items, f, today) {
+  const range = resolveRange(f, today);
+  const amt = resolveAmount(f);
+  const kw = String(f.kw || '').trim().toLowerCase();
+  const cats = f.cats || [];
+  return items.filter(function (it) {
+    if (range.from && it.d < range.from) return false;
+    if (range.to && it.d > range.to) return false;
+    if (cats.length && cats.indexOf(it.c) < 0) return false;
+    if (amt) {
+      if (amt.eq !== undefined && amt.eq !== null) {
+        if (it.a !== amt.eq) return false;
+      } else {
+        if (amt.min !== undefined && amt.min !== null && it.a < amt.min) return false;
+        if (amt.max !== undefined && amt.max !== null && it.a > amt.max) return false;
+      }
+    }
+    if (kw) {
+      const hay = (it.n || '') + ' ' + (it.c || '');
+      if (hay.toLowerCase().indexOf(kw) < 0) return false;
+    }
+    return true;
+  });
+}
+
+function sortItems(items, key, dir) {
+  const out = items.slice();
+  const sign = dir === 'asc' ? 1 : -1;
+  out.sort(function (x, y) {
+    let r = 0;
+    if (key === 'a') r = x.a - y.a;
+    else if (key === 'c') r = String(x.c).localeCompare(String(y.c), 'zh');
+    else if (key === 'd') r = x.d < y.d ? -1 : (x.d > y.d ? 1 : 0);
+    r = r * sign;
+    if (r === 0) r = (y.id || 0) - (x.id || 0); // 同值时后记的在前，保证顺序稳定
+    return r;
+  });
+  return out;
+}
+
+function sumItems(items) {
+  let s = 0;
+  for (const it of items) s += it.a;
+  return s;
+}
+
+function aggregateByCategory(items, limit) {
+  limit = limit || 6;
+  const sums = new Map();
+  for (const it of items) sums.set(it.c, (sums.get(it.c) || 0) + it.a);
+  let arr = Array.from(sums, function (e) { return { name: e[0], val: e[1] }; });
+  arr.sort(function (x, y) { return (y.val - x.val) || String(x.name).localeCompare(String(y.name), 'zh'); });
+  const total = arr.reduce(function (s, x) { return s + x.val; }, 0);
+  if (arr.length > limit) {
+    const kept = arr.slice(0, limit - 1);
+    const tailVal = arr.slice(limit - 1).reduce(function (s, x) { return s + x.val; }, 0);
+    kept.push({ name: OTHER, val: tailVal, merged: true });
+    arr = kept;
+  }
+  // 用户可能自己建了名为「其他」的类型，与合并组重名时累加
+  const byName = new Map();
+  for (const x of arr) {
+    if (byName.has(x.name)) {
+      const y = byName.get(x.name);
+      y.val += x.val;
+      y.merged = y.merged || !!x.merged;
+    } else {
+      byName.set(x.name, { name: x.name, val: x.val, merged: !!x.merged });
+    }
+  }
+  arr = Array.from(byName.values()).sort(function (x, y) {
+    return (y.val - x.val) || String(x.name).localeCompare(String(y.name), 'zh');
+  });
+  arr.forEach(function (x, i) { x.color = x.merged ? '#9AA39A' : PALETTE[i % PALETTE.length]; });
+  return { rows: arr, total: total };
+}
+
+function daysBetween(range) {
+  if (!range.from || !range.to) return 0;
+  const a = Date.parse(range.from + 'T00:00:00');
+  const b = Date.parse(range.to + 'T00:00:00');
+  if (isNaN(a) || isNaN(b) || b < a) return 0;
+  return Math.round((b - a) / DAY_MS) + 1;
+}
+
+function rangeText(f, range) {
+  if (!range.from && !range.to) return '全部记录';
+  if (f.mode === 'month') {
+    const ym = range.from.slice(0, 7);
+    return ym.slice(0, 4) + ' 年 ' + Number(ym.slice(5, 7)) + ' 月';
+  }
+  if (f.mode === '30d') return '近 30 天';
+  if (f.mode === 'year') return range.from.slice(0, 4) + ' 年全年';
+  if (range.from.slice(0, 4) === range.to.slice(0, 4)) {
+    return range.from.slice(5) + ' 至 ' + range.to.slice(5);
+  }
+  return range.from + ' 至 ' + range.to;
+}
+
+// 饼图扇形路径（a0/a1 为弧度）
+function piePath(cx, cy, r, a0, a1) {
+  const x0 = cx + r * Math.cos(a0), y0 = cy + r * Math.sin(a0);
+  const x1 = cx + r * Math.cos(a1), y1 = cy + r * Math.sin(a1);
+  const large = (a1 - a0) > Math.PI ? 1 : 0;
+  return 'M' + cx.toFixed(2) + ' ' + cy.toFixed(2) +
+    ' L' + x0.toFixed(2) + ' ' + y0.toFixed(2) +
+    ' A' + r + ' ' + r + ' 0 ' + large + ' 1 ' + x1.toFixed(2) + ' ' + y1.toFixed(2) + ' Z';
+}
+
+function csvCell(v) {
+  let s = (v === null || v === undefined) ? '' : String(v);
+  if (/^[=+\-@]/.test(s)) s = "'" + s; // 防止被 Excel 当公式执行
+  if (/[",\n\r]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+  return s;
+}
+
+function buildCSV(items, totalCents) {
+  const lines = ['时间,类型,金额（元）,详细信息'];
+  for (const it of items) {
+    lines.push([it.d, csvCell(it.c), (it.a / 100).toFixed(2), csvCell(it.n)].join(','));
+  }
+  lines.push('');
+  lines.push(['合计', '', (totalCents / 100).toFixed(2), items.length + ' 笔'].join(','));
+  return '\ufeff' + lines.join('\r\n');
+}
+
+function pctText(part, total) {
+  if (!total) return '0.0%';
+  return (part / total * 100).toFixed(1) + '%';
+}
+
+// 金额的短写：整数元不显示 .00，用于筛选标签等窄位置
+function shortMoney(c) {
+  return fmtCents(c).replace(/\.00$/, '');
+}
+
+// 最大余数法：让各段百分比相加恰好等于 100.0，避免逐项四舍五入后合计 100.1%
+function pctShares(vals, total) {
+  if (!total || !vals.length) return vals.map(function () { return 0; });
+  const raw = vals.map(function (v) { return v / total * 1000; });
+  const base = raw.map(function (x) { return Math.floor(x); });
+  let rest = 1000 - base.reduce(function (a, b) { return a + b; }, 0);
+  const order = raw.map(function (x, i) { return { i: i, r: x - base[i] }; })
+    .sort(function (a, b) { return b.r - a.r; });
+  const out = base.slice();
+  for (let k = 0; k < rest; k++) out[order[k % order.length].i] += 1;
+  return out.map(function (x) { return x / 10; });
+}
+
+/* ---------- 解锁密码 ---------- */
+const PIN_KEY = 'jz_pin_v1';
+const PIN_LEN = 6;
+const PIN_MAX_FAIL = 5;
+const PIN_COOL_MS = 30 * 1000;        // 连续输错 5 次后冷却 30 秒
+const AUTO_LOCK_MS = 5 * 60 * 1000;   // 切到后台超过 5 分钟，回来重新上锁
+
+function isValidPin(pin) {
+  return typeof pin === 'string' && /^\d{6}$/.test(pin);
+}
+
+// 纯 JS 加盐摘要：目的只是让 localStorage 里不出现明文密码。
+// 本机存的是明文账目，锁挡的是「别人拿起手机就看得到」，不是设备外的攻击。
+function pinHash(pin, salt) {
+  const src = String(salt) + '#' + String(pin) + '#' + String(salt);
+  let out = '';
+  for (let lane = 0; lane < 4; lane++) {
+    let h = (0x9E3779B9 ^ Math.imul(lane + 1, 0x85EBCA6B)) >>> 0;
+    for (let pass = 0; pass < 3; pass++) {
+      for (let i = 0; i < src.length; i++) {
+        h = (h ^ src.charCodeAt(i)) >>> 0;
+        h = Math.imul(h, 16777619) >>> 0;
+        h = ((h << 13) | (h >>> 19)) >>> 0;
+        h = (h + 0x7F4A7C15 + lane) >>> 0;
+      }
+      h = Math.imul(h ^ (h >>> 16), 2246822507) >>> 0;
+      h = Math.imul(h ^ (h >>> 13), 3266489909) >>> 0;
+      h = (h ^ (h >>> 16)) >>> 0;
+    }
+    out += ('0000000' + h.toString(16)).slice(-8);
+  }
+  return out;
+}
+
+/* ---------- 饼图切片与外侧标签 ---------- */
+// 每片的起止角（度，从 12 点方向顺时针）与中线角
+function pieSlices(rows, total) {
+  const out = [];
+  let a = -90;
+  rows.forEach(function (r) {
+    const sweep = total > 0 ? (r.val / total) * 360 : 0;
+    out.push({ name: r.name, val: r.val, a0: a, a1: a + sweep, mid: a + sweep / 2 });
+    a += sweep;
+  });
+  return out;
+}
+
+// 外侧标签布局：按左右两列分开，纵向按最小间距避让，返回引线与文字坐标
+function pieLabelLayout(slices, opt) {
+  const o = opt || {};
+  const cx = o.cx || 0, cy = o.cy || 0, r = o.r || 0;
+  const dist = o.dist === undefined ? r + 24 : o.dist;
+  const gap = o.gap === undefined ? 21 : o.gap;
+  const top = o.top === undefined ? cy - r - 24 : o.top;
+  const bottom = o.bottom === undefined ? cy + r + 24 : o.bottom;
+  const items = slices.map(function (s) {
+    const rad = (s.mid * Math.PI) / 180;
+    const cos = Math.cos(rad), sin = Math.sin(rad);
+    const side = cos >= 0 ? 'r' : 'l';
+    return {
+      name: s.name,
+      side: side,
+      ax: cx + cos * (r - 10),
+      ay: cy + sin * (r - 10),
+      bx: cx + cos * (r + 12),
+      by: cy + sin * (r + 12),
+      lx: cx + (side === 'r' ? dist : -dist),
+      want: cy + sin * (r + 12),
+      y: 0,
+    };
+  });
+  ['l', 'r'].forEach(function (sd) {
+    const grp = items.filter(function (i) { return i.side === sd; })
+      .sort(function (a, b) { return a.want - b.want; });
+    for (let i = 0; i < grp.length; i++) {
+      grp[i].y = Math.max(grp[i].want, i > 0 ? grp[i - 1].y + gap : top);
+    }
+    for (let i = grp.length - 1; i >= 0; i--) {
+      const lim = i === grp.length - 1 ? bottom : grp[i + 1].y - gap;
+      if (grp[i].y > lim) grp[i].y = lim;
+    }
+    for (let i = 0; i < grp.length; i++) if (grp[i].y < top) grp[i].y = top;
+  });
+  return items;
+}
+
+/*__BOOT__*/
+/* ============================================================
+   状态
+   ============================================================ */
+const state = {
+  items: [],
+  cats: PRESET_CATS.slice(),
+  nextId: 1,
+  lastCat: '',
+  filter: {
+    mode: 'month',
+    month: todayISO().slice(0, 7),
+    from: '',
+    to: '',
+    cats: [],
+    amtOp: 'none',
+    amt1: '',
+    amt2: '',
+    kw: ''
+  },
+  sort: { key: 'd', dir: 'desc' },
+  limit: 200,
+  editingId: null,
+  editCat: '',
+  png: ''
+};
+
+let openId = null;
+let delArmed = false;
+let delTimer = null;
+let wipeArmed = false;
+let wipeTimer = null;
+let toastTimer = null;
+
+const el = (s, r) => (r || document).querySelector(s);
+const els = (s, r) => Array.from((r || document).querySelectorAll(s));
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
+function toast(msg) {
+  const t = el('#toast');
+  t.textContent = msg;
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.classList.remove('on'); }, 2200);
+}
+
+/* ============================================================
+   存储
+   ============================================================ */
+function storageAlive() {
+  try {
+    localStorage.setItem('__jz_probe', '1');
+    localStorage.removeItem('__jz_probe');
+    return true;
+  } catch (e) { return false; }
+}
+
+function load() {
+  let raw = null;
+  try { raw = localStorage.getItem(STORE_KEY); } catch (e) { return; }
+  state.items = [];
+  state.cats = PRESET_CATS.slice();
+  state.nextId = 1;
+  if (!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    if (!d || !Array.isArray(d.items)) return;
+    const seen = {};
+    const items = [];
+    let maxId = 0;
+    for (const x of d.items) {
+      if (!x || !isValidDate(x.d) || typeof x.c !== 'string' || !x.c) continue;
+      const a = Number.isInteger(x.a) ? x.a : Math.round(Number(x.a));
+      if (!isFinite(a) || a <= 0) continue;
+      let id = (Number.isInteger(x.id) && x.id > 0) ? x.id : 0;
+      if (id && seen[id]) id = 0;
+      if (id) { seen[id] = 1; if (id > maxId) maxId = id; }
+      items.push({ id: id, d: x.d, c: String(x.c).slice(0, 10), a: a, n: String(x.n || '').slice(0, 80) });
+    }
+    for (const x of items) { if (!x.id) { x.id = ++maxId; } }
+    state.items = items;
+    state.nextId = Math.max(Number(d.nextId) || 0, maxId + 1, 1);
+    const cats = PRESET_CATS.slice();
+    (Array.isArray(d.cats) ? d.cats : []).forEach(function (c) {
+      if (typeof c === 'string' && c && cats.indexOf(c) < 0) cats.push(c);
+    });
+    items.forEach(function (x) { if (cats.indexOf(x.c) < 0) cats.push(x.c); });
+    state.cats = cats;
+    if (typeof d.lastCat === 'string') state.lastCat = d.lastCat;
+  } catch (e) { /* 数据损坏时保持空账本，不阻塞页面 */ }
+}
+
+function save() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify({
+      v: 1, nextId: state.nextId, items: state.items, cats: state.cats, lastCat: state.lastCat
+    }));
+  } catch (e) {
+    toast('本机存储不可用，这次改动可能丢失');
+  }
+}
+
+/* ============================================================
+   视图计算与渲染
+   ============================================================ */
+function view() {
+  const f = state.filter;
+  const range = resolveRange(f);
+  const filtered = filterItems(state.items, f);
+  return { range: range, filtered: filtered, sorted: sortItems(filtered, state.sort.key, state.sort.dir) };
+}
+
+function refreshData() {
+  const v = view();
+  renderHero(v);
+  renderChips();
+  renderTrend();
+  renderPie(v);
+  renderTable(v);
+  renderSortMarks();
+}
+
+function onFilterChange() {
+  state.limit = 200;
+  refreshData();
+}
+
+function renderHero(v) {
+  const f = state.filter;
+  const total = sumItems(v.filtered);
+  el('#rangeLabel').textContent = rangeText(f, v.range);
+  el('#totalNum').textContent = fmtCents(total);
+  el('#statCnt').textContent = v.filtered.length + ' 笔';
+  const days = daysBetween(v.range);
+  el('#statAvg').textContent = (days && v.filtered.length && f.mode !== 'all')
+    ? '¥' + fmtCents(Math.round(total / days)) : '—';
+  let max = 0;
+  for (const it of v.filtered) { if (it.a > max) max = it.a; }
+  el('#statMax').textContent = v.filtered.length ? '¥' + fmtCents(max) : '—';
+}
+
+function amtText() {
+  const f = state.filter;
+  const a = parseAmount(f.amt1);
+  const b = parseAmount(f.amt2);
+  const sym = { gt: '>', gte: '≥', lt: '<', lte: '≤', eq: '=' };
+  if (f.amtOp === 'none') return '不限';
+  if (f.amtOp === 'between') {
+    if (a === null && b === null) return '不限';
+    if (a !== null && b !== null) return '¥' + shortMoney(a) + '~' + shortMoney(b);
+    if (a !== null) return '≥¥' + shortMoney(a);
+    return '≤¥' + shortMoney(b);
+  }
+  if (a === null) return '不限';
+  return sym[f.amtOp] + '¥' + shortMoney(a);
+}
+
+function setChip(sel, text, active) {
+  const b = el(sel);
+  if (!b) return;
+  b.textContent = text;
+  const p = b.closest('.f-chip');
+  if (p) p.classList.toggle('on', !!active);
+}
+
+function renderChips() {
+  const f = state.filter;
+  let t = '全部';
+  if (f.mode === 'month') {
+    const ym = isValidMonth(f.month) ? f.month : todayISO().slice(0, 7);
+    t = Number(ym.slice(5, 7)) + '月';
+  } else if (f.mode === '30d') t = '近30天';
+  else if (f.mode === 'year') t = '全年';
+  else if (f.mode === 'custom') t = '自定义';
+  setChip('#chipTime', t, f.mode !== 'all');
+  const n = f.cats.length;
+  setChip('#chipType', n ? (n === 1 ? f.cats[0] : '已选 ' + n + ' 项') : '全部', n > 0);
+  setChip('#chipAmt', amtText(), f.amtOp !== 'none');
+  const kw = String(f.kw || '').trim();
+  setChip('#chipKw', kw ? '“' + kw + '”' : '搜索', !!kw);
+}
+
+function renderSortMarks() {
+  els('.tbl th[data-sort]').forEach(function (th) {
+    const on = th.dataset.sort === state.sort.key;
+    const mark = th.querySelector('.sort');
+    if (mark) mark.textContent = on ? (state.sort.dir === 'desc' ? '↓' : '↑') : '';
+  });
+}
+
+function renderTrend() {
+  const f = state.filter;
+  const base = (f.mode === 'month' && isValidMonth(f.month)) ? f.month : todayISO().slice(0, 7);
+  const ms = [];
+  for (let i = 5; i >= 0; i--) ms.push(shiftMonth(base, -i));
+  const vals = ms.map(function (ym) {
+    const r = monthRange(ym);
+    return sumItems(state.items.filter(function (it) { return it.d >= r.from && it.d <= r.to; }));
+  });
+  let max = 1;
+  vals.forEach(function (v) { if (v > max) max = v; });
+  el('#trend').innerHTML = ms.map(function (ym, i) {
+    const val = vals[i];
+    const w = val > 0 ? Math.max(3, Math.round(val / max * 100)) : 0;
+    const on = (f.mode === 'month' && f.month === ym);
+    return '<button class="t-row" data-ym="' + ym + '" aria-label="切换查看 ' + ym + '">' +
+      '<span class="m' + (on ? ' hl' : '') + '">' + ym.slice(2, 4) + '-' + ym.slice(5, 7) + '</span>' +
+      '<span class="t-track"><span class="t-bar' + (val > 0 ? '' : ' zero') + '" style="width:' + w + '%"></span></span>' +
+      '<span class="t-val">' + (val > 0 ? fmtCompact(val) : '—') + '</span>' +
+      '</button>';
+  }).join('');
+  els('#trend .t-row').forEach(function (b) {
+    b.onclick = function () {
+      state.filter.mode = 'month';
+      state.filter.month = b.dataset.ym;
+      state.limit = 200;
+      refreshData();
+      syncFilterUI();
+    };
+  });
+}
+
+function renderPie(v) {
+  const agg = aggregateByCategory(v.filtered, 6);
+  const total = agg.total;
+  const shares = pctShares(agg.rows.map(function (r) { return r.val; }), total);
+  const svg = el('#pie');
+  const legend = el('#legend');
+  el('#pieHint').textContent = total ? '合计 ¥' + fmtCents(total) + ' · ' + v.filtered.length + ' 笔' : '—';
+  el('#pieEmpty').style.display = total ? 'none' : 'block';
+  svg.style.display = total ? 'block' : 'none';
+  legend.innerHTML = '';
+  if (!total) { svg.innerHTML = ''; return; }
+
+  const G = { cx: 180, cy: 118, r: 82 };
+  if (agg.rows.length === 1) {
+    const r0 = agg.rows[0];
+    svg.innerHTML =
+      '<circle cx="' + G.cx + '" cy="' + G.cy + '" r="' + G.r + '" fill="' + r0.color + '"/>' +
+      '<text class="pie-lab-big" x="' + G.cx + '" y="' + (G.cy - 4) + '" text-anchor="middle">' + esc(r0.name) + '</text>' +
+      '<text class="pie-lab-big" x="' + G.cx + '" y="' + (G.cy + 16) + '" text-anchor="middle">100%</text>';
+  } else {
+    const DEG = Math.PI / 180;
+    const slices = pieSlices(agg.rows, total);
+    let out = '';
+    slices.forEach(function (s, i) {
+      out += '<path d="' + piePath(G.cx, G.cy, G.r, s.a0 * DEG, s.a1 * DEG) + '" fill="' + agg.rows[i].color +
+        '" stroke="#F4F5F1" stroke-width="1.6"/>';
+    });
+    const labels = pieLabelLayout(slices, {
+      cx: G.cx, cy: G.cy, r: G.r, dist: G.r + 24, gap: 20, top: 14, bottom: 222,
+    });
+    labels.forEach(function (L) {
+      const endX = L.side === 'r' ? L.lx - 7 : L.lx + 7;
+      out += '<path class="pie-lead" d="M' + L.ax.toFixed(1) + ' ' + L.ay.toFixed(1) +
+        ' L' + L.bx.toFixed(1) + ' ' + L.by.toFixed(1) +
+        ' L' + endX.toFixed(1) + ' ' + L.y.toFixed(1) + '"/>';
+      out += '<text class="pie-lab" x="' + L.lx.toFixed(1) + '" y="' + (L.y + 4).toFixed(1) +
+        '" text-anchor="' + (L.side === 'r' ? 'start' : 'end') + '">' + esc(L.name) + '</text>';
+    });
+    svg.innerHTML = out;
+  }
+
+  legend.innerHTML = agg.rows.map(function (r, i) {
+    return '<button class="l-row" data-cat="' + esc(r.name) + '" data-merged="' + (r.merged ? '1' : '0') + '">' +
+      '<span class="l-dot" style="background:' + r.color + '"></span>' +
+      '<span class="l-name">' + esc(r.name) + (r.merged ? '（合并）' : '') + '</span>' +
+      '<span class="l-pct">' + shares[i].toFixed(1) + '%</span>' +
+      '<span class="l-amt">¥' + fmtCents(r.val) + '</span>' +
+      '</button>';
+  }).join('');
+
+  els('#legend .l-row').forEach(function (b) {
+    b.onclick = function () {
+      if (b.dataset.merged === '1') {
+        toast('「其他」是合并分组，请用类型筛选选择具体类型');
+        return;
+      }
+      state.filter.cats = [b.dataset.cat];
+      onFilterChange();
+      syncFilterUI();
+      toast('只看「' + b.dataset.cat + '」');
+    };
+  });
+}
+
+function renderTable(v) {
+  const total = v.sorted.length;
+  const rows = v.sorted.slice(0, state.limit);
+  el('#tbody').innerHTML = rows.map(function (it) {
+    return '<tr data-id="' + it.id + '">' +
+      '<td class="c-date">' + it.d + '</td>' +
+      '<td class="c-cat">' + esc(it.c) + '</td>' +
+      '<td class="num">' + fmtCents(it.a) + '</td>' +
+      '<td class="c-note">' + esc(it.n || '—') + '</td>' +
+      '</tr>';
+  }).join('');
+  el('#listHint').textContent = total ? '共 ' + total + ' 笔' : '';
+
+  const empty = el('#listEmpty');
+  if (total) {
+    empty.style.display = 'none';
+    empty.innerHTML = '';
+  } else {
+    empty.style.display = 'block';
+    empty.innerHTML = state.items.length
+      ? '<p>当前筛选条件下没有记录，换一下时间或金额条件再试。</p>' +
+        '<button class="mini" id="btnClearFilter">清除筛选</button>'
+      : '<p>还没有任何记录。可以先记一笔，或填入一份本月示例数据看看效果。</p>' +
+        '<button class="mini" id="btnEmptySeed">填入示例数据</button>';
+    const s = el('#btnEmptySeed');
+    if (s) s.onclick = seedDemo;
+    const c = el('#btnClearFilter');
+    if (c) c.onclick = function () { resetFilter(); toast('已清除筛选'); };
+  }
+
+  const more = el('#btnMore');
+  if (total > state.limit) {
+    more.style.display = 'block';
+    more.textContent = '显示更多（还剩 ' + (total - state.limit) + ' 笔）';
+  } else {
+    more.style.display = 'none';
+  }
+}
+
+/* ============================================================
+   面板
+   ============================================================ */
+function openSheet(id) {
+  if (openId && openId !== id) {
+    const prev = el('#' + openId);
+    if (prev) { prev.classList.remove('on'); prev.setAttribute('aria-hidden', 'true'); }
+  }
+  openId = id;
+  const s = el('#' + id);
+  s.classList.add('on');
+  s.setAttribute('aria-hidden', 'false');
+  el('#mask').classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAll() {
+  if (openId) {
+    const s = el('#' + openId);
+    if (s) { s.classList.remove('on'); s.setAttribute('aria-hidden', 'true'); }
+  }
+  openId = null;
+  el('#mask').classList.remove('on');
+  document.body.style.overflow = '';
+}
+
+function openFilter(field) {
+  syncFilterUI();
+  openSheet('sheetFilter');
+  const map = { time: '#fTime', type: '#fType', amount: '#fAmt', kw: '#fKw' };
+  const target = map[field];
+  if (target) {
+    setTimeout(function () {
+      const n = el(target);
+      if (n) n.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }, 300);
+  }
+}
+
+function syncFilterUI() {
+  const f = state.filter;
+  els('#segTime button').forEach(function (b) { b.classList.toggle('on', b.dataset.mode === f.mode); });
+  el('#monthWrap').style.display = f.mode === 'month' ? 'grid' : 'none';
+  el('#customWrap').style.display = f.mode === 'custom' ? 'grid' : 'none';
+  el('#inMonth').value = isValidMonth(f.month) ? f.month : todayISO().slice(0, 7);
+  el('#inFrom').value = isValidDate(f.from) ? f.from : '';
+  el('#inTo').value = isValidDate(f.to) ? f.to : '';
+  el('#selOp').value = f.amtOp;
+  el('#inAmt1').value = f.amt1 || '';
+  el('#inAmt2').value = f.amt2 || '';
+  el('#amtRow2').classList.toggle('hide', f.amtOp !== 'between');
+  el('#inKw').value = f.kw || '';
+  renderCatChips();
+}
+
+function renderCatChips() {
+  const wrap = el('#catChips');
+  const f = state.filter;
+  wrap.innerHTML = '<button class="chip"' + (f.cats.length ? '' : ' on') + ' data-cat="">全部</button>' +
+    state.cats.map(function (c) {
+      return '<button class="chip' + (f.cats.indexOf(c) >= 0 ? ' on' : '') + '" data-cat="' + esc(c) + '">' + esc(c) + '</button>';
+    }).join('');
+  els('.chip', wrap).forEach(function (b) {
+    b.onclick = function () {
+      const c = b.dataset.cat;
+      if (!c) {
+        f.cats = [];
+      } else {
+        const i = f.cats.indexOf(c);
+        if (i >= 0) f.cats.splice(i, 1); else f.cats.push(c);
+      }
+      onFilterChange();
+      renderCatChips();
+    };
+  });
+}
+
+function resetFilter() {
+  state.filter = {
+    mode: 'month',
+    month: todayISO().slice(0, 7),
+    from: '',
+    to: '',
+    cats: [],
+    amtOp: 'none',
+    amt1: '',
+    amt2: '',
+    kw: ''
+  };
+  onFilterChange();
+  syncFilterUI();
+}
+
+/* ============================================================
+   记一笔 / 编辑
+   ============================================================ */
+function defaultDate() {
+  const t = todayISO();
+  if (state.filter.mode === 'month') {
+    const r = monthRange(state.filter.month);
+    if (r.from && r.to) return (t >= r.from && t <= r.to) ? t : r.to;
+  }
+  return t;
+}
+
+function renderEditCats() {
+  const wrap = el('#eCats');
+  wrap.innerHTML = state.cats.map(function (c) {
+    return '<button class="chip' + (c === state.editCat ? ' on' : '') + '" data-c="' + esc(c) + '">' + esc(c) + '</button>';
+  }).join('');
+  els('.chip', wrap).forEach(function (b) {
+    b.onclick = function () {
+      state.editCat = b.dataset.c;
+      renderEditCats();
+    };
+  });
+}
+
+function openEdit(id) {
+  const item = (typeof id === 'number') ? state.items.find(function (x) { return x.id === id; }) : null;
+  state.editingId = item ? item.id : null;
+  state.editCat = item ? item.c
+    : (state.lastCat && state.cats.indexOf(state.lastCat) >= 0 ? state.lastCat : '餐饮');
+  el('#editTitle').textContent = item ? '编辑记录' : '记一笔';
+  el('#eDate').value = item ? item.d : defaultDate();
+  el('#eAmt').value = item ? (item.a / 100).toFixed(2) : '';
+  el('#eNote').value = item ? item.n : '';
+  el('#eNewCat').value = '';
+  const del = el('#btnDel');
+  del.style.display = item ? 'block' : 'none';
+  del.textContent = '删除';
+  del.classList.remove('armed');
+  delArmed = false;
+  clearTimeout(delTimer);
+  renderEditCats();
+  openSheet('sheetEdit');
+}
+
+function saveEdit() {
+  const isEdit = !!state.editingId;
+  const d = el('#eDate').value;
+  const c = state.editCat;
+  const a = parseAmount(el('#eAmt').value);
+  if (!isValidDate(d)) { toast('日期无效，请重新选择'); return; }
+  if (!c) { toast('请选择支出类型'); return; }
+  if (a === null) { toast('金额请填数字，最多两位小数'); return; }
+  if (a === 0) { toast('金额需大于 0'); return; }
+  if (a > 999999900) { toast('金额过大'); return; }
+  const note = el('#eNote').value.trim().slice(0, 60);
+
+  if (isEdit) {
+    const it = state.items.find(function (x) { return x.id === state.editingId; });
+    if (!it) { toast('记录不存在，可能已被删除'); return; }
+    it.d = d; it.c = c; it.a = a; it.n = note;
+  } else {
+    const id = state.nextId++;
+    state.items.push({ id: id, d: d, c: c, a: a, n: note });
+  }
+  state.lastCat = c;
+  save();
+  refreshData();
+  closeAll();
+  toast(isEdit ? '已更新' : '已记一笔');
+}
+
+function onDelete() {
+  if (!state.editingId) return;
+  const b = el('#btnDel');
+  if (!delArmed) {
+    delArmed = true;
+    b.textContent = '确认删除';
+    b.classList.add('armed');
+    clearTimeout(delTimer);
+    delTimer = setTimeout(function () {
+      delArmed = false;
+      b.textContent = '删除';
+      b.classList.remove('armed');
+    }, 2600);
+    return;
+  }
+  clearTimeout(delTimer);
+  const id = state.editingId;
+  state.items = state.items.filter(function (x) { return x.id !== id; });
+  state.editingId = null;
+  delArmed = false;
+  save();
+  refreshData();
+  closeAll();
+  toast('已删除');
+}
+
+function addCat() {
+  const v = el('#eNewCat').value.trim();
+  if (!v) { toast('请输入类型名称'); return; }
+  if (v.length > 6) { toast('类型名称最多 6 个字'); return; }
+  if (v === OTHER) { toast('「其他」已存在'); return; }
+  if (state.cats.indexOf(v) < 0) state.cats.push(v);
+  state.editCat = v;
+  el('#eNewCat').value = '';
+  save();
+  renderEditCats();
+  toast('已加入类型「' + v + '」');
+}
+
+/* ============================================================
+   导出
+   ============================================================ */
+function download(name, content, mime) {
+  try {
+    let href = content;
+    if (String(content).indexOf('data:') !== 0) {
+      href = URL.createObjectURL(new Blob([content], { type: mime || 'application/octet-stream' }));
+    }
+    const a = document.createElement('a');
+    a.href = href;
+    a.download = name;
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () {
+      a.remove();
+      if (href.indexOf('blob:') === 0) URL.revokeObjectURL(href);
+    }, 1500);
+    toast('已开始下载：' + name);
+  } catch (e) {
+    toast('导出失败：' + ((e && e.message) || '当前浏览器不支持下载'));
+  }
+}
+
+function doCSV() {
+  const v = view();
+  if (!v.filtered.length) { toast('当前筛选没有记录可导出'); return; }
+  const tag = (state.filter.mode === 'month' && isValidMonth(state.filter.month)) ? state.filter.month : '筛选';
+  download('记账明细_' + tag + '.csv', buildCSV(v.sorted, sumItems(v.filtered)), 'text/csv;charset=utf-8');
+}
+
+function drawPieCanvas(agg, v) {
+  const W = 760;
+  const rowH = 54;
+  const H = 610 + agg.rows.length * rowH + 40;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const cv = document.createElement('canvas');
+  cv.width = W * dpr;
+  cv.height = H * dpr;
+  const g = cv.getContext('2d');
+  g.scale(dpr, dpr);
+  const sans = '600 32px -apple-system,"PingFang SC","Microsoft YaHei",sans-serif';
+  const sansR = '400 24px -apple-system,"PingFang SC","Microsoft YaHei",sans-serif';
+  const mono = '400 24px ui-monospace,"SF Mono",Menlo,Consolas,monospace';
+
+  g.fillStyle = '#F4F5F1';
+  g.fillRect(0, 0, W, H);
+
+  g.fillStyle = '#131A16';
+  g.font = sans;
+  g.fillText('类型构成', 48, 68);
+
+  g.fillStyle = '#5A665F';
+  g.font = sansR;
+  g.fillText(rangeText(state.filter, v.range) + ' · 合计 ¥' + fmtCents(agg.total), 48, 106);
+
+  const cx = W / 2, cy = 360, R = 180;
+  let a = -Math.PI / 2;
+  for (const r of agg.rows) {
+    const span = Math.PI * 2 * (r.val / agg.total);
+    g.beginPath();
+    g.moveTo(cx, cy);
+    g.arc(cx, cy, R, a, a + span);
+    g.closePath();
+    g.fillStyle = r.color;
+    g.fill();
+    g.strokeStyle = '#F4F5F1';
+    g.lineWidth = 2;
+    g.stroke();
+    a += span;
+  }
+
+  // 扇形外侧标注类型名，与页面里的饼图保持一致
+  const labels = pieLabelLayout(pieSlices(agg.rows, agg.total), {
+    cx: cx, cy: cy, r: R, dist: R + 56, gap: 42, top: cy - R - 46, bottom: cy + R + 46,
+  });
+  g.strokeStyle = '#C6CEC4';
+  g.lineWidth = 1;
+  g.fillStyle = '#3C4A43';
+  g.font = '500 22px -apple-system,"PingFang SC","Microsoft YaHei",sans-serif';
+  g.textBaseline = 'middle';
+  labels.forEach(function (L) {
+    const endX = L.side === 'r' ? L.lx - 10 : L.lx + 10;
+    g.beginPath();
+    g.moveTo(L.ax, L.ay);
+    g.lineTo(L.bx, L.by);
+    g.lineTo(endX, L.y);
+    g.stroke();
+    g.textAlign = L.side === 'r' ? 'left' : 'right';
+    g.fillText(L.name, L.lx, L.y);
+  });
+  g.textAlign = 'left';
+  g.textBaseline = 'alphabetic';
+
+  let y = 640;
+  const shares = pctShares(agg.rows.map(function (r) { return r.val; }), agg.total);
+  let idx = 0;
+  for (const r of agg.rows) {
+    g.fillStyle = r.color;
+    g.fillRect(48, y - 18, 18, 18);
+    g.fillStyle = '#131A16';
+    g.font = sansR;
+    g.fillText(r.name + (r.merged ? '（合并）' : ''), 80, y);
+    g.textAlign = 'right';
+    g.fillStyle = '#5A665F';
+    g.font = mono;
+    g.fillText(shares[idx].toFixed(1) + '%', 560, y);
+    g.fillStyle = '#131A16';
+    g.fillText('¥' + fmtCents(r.val), 712, y);
+    g.textAlign = 'left';
+    y += rowH;
+    idx++;
+  }
+
+  g.fillStyle = '#8A948C';
+  g.font = '400 18px -apple-system,"PingFang SC","Microsoft YaHei",sans-serif';
+  g.fillText('记账分析 · ' + todayISO(), 48, H - 26);
+
+  return cv.toDataURL('image/png');
+}
+
+function doPNG() {
+  const v = view();
+  const agg = aggregateByCategory(v.filtered, 6);
+  if (!agg.total) { toast('当前筛选没有数据，无法出图'); return; }
+  try {
+    state.png = drawPieCanvas(agg, v);
+    el('#imgPreview').src = state.png;
+    openSheet('sheetImg');
+  } catch (e) {
+    toast('生成图片失败：' + ((e && e.message) || '未知错误'));
+  }
+}
+
+function doImgSave() {
+  if (!state.png) { toast('图片还没生成'); return; }
+  const tag = (state.filter.mode === 'month' && isValidMonth(state.filter.month)) ? state.filter.month : '筛选';
+  download('支出类型占比_' + tag + '.png', state.png, 'image/png');
+}
+
+function resetWipe() {
+  wipeArmed = false;
+  clearTimeout(wipeTimer);
+  const b = el('#btnWipe');
+  b.classList.remove('armed');
+  const h = el('#wipeHint');
+  if (h) h.textContent = '删除后不可恢复，建议先导出 CSV';
+  b.style.color = 'var(--warm)';
+}
+
+function doWipe() {
+  if (!state.items.length) { toast('本来就没有记录'); return; }
+  if (!wipeArmed) {
+    wipeArmed = true;
+    const b = el('#btnWipe');
+    b.classList.add('armed');
+    b.style.color = '#FFF';
+    el('#wipeHint').textContent = '再点一次即清空全部 ' + state.items.length + ' 条记录';
+    clearTimeout(wipeTimer);
+    wipeTimer = setTimeout(resetWipe, 3000);
+    return;
+  }
+  state.items = [];
+  state.nextId = 1;
+  wipeArmed = false;
+  save();
+  refreshData();
+  resetWipe();
+  closeAll();
+  toast('已清空全部记录');
+}
+
+/* ============================================================
+   示例数据
+   ============================================================ */
+/* ============================================================
+   锁屏：6 位数字密码
+   ============================================================ */
+let pinRec = null;
+let pinBuf = '';
+let pinMode = '';        // setup | setup2 | unlock
+let pinFrom = 'first';   // first：首次设置；change：已解锁后修改
+let pinTmp = '';
+let pinFails = 0;
+let pinCoolUntil = 0;
+let pinCoolTimer = null;
+let pinForgotArmed = false;
+let pinForgotTimer = null;
+let hiddenAt = 0;
+
+function readPinRec() {
+  try {
+    const raw = localStorage.getItem(PIN_KEY);
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    const ok = o && typeof o.h === 'string' && o.h.length >= 16 && typeof o.s === 'string';
+    return ok ? o : null;
+  } catch (e) { return null; }
+}
+
+function writePinRec(pin) {
+  const salt = Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  const rec = { v: 1, s: salt, h: pinHash(pin, salt), at: Date.now() };
+  pinRec = rec;
+  try { localStorage.setItem(PIN_KEY, JSON.stringify(rec)); } catch (e) { /* 存储不可用时无法持久化 */ }
+  refreshPinHint();
+}
+
+function refreshPinHint() {
+  const h = el('#pinHint');
+  if (h) h.textContent = pinRec ? '已启用 6 位密码，点击修改' : '尚未设置';
+}
+
+function paintDots() {
+  els('#lockDots .dot').forEach(function (d, i) {
+    d.classList.toggle('on', i < pinBuf.length);
+  });
+}
+
+function setLockText() {
+  const t = el('#lockTitle'), s = el('#lockSub');
+  if (pinMode === 'setup') {
+    t.textContent = pinFrom === 'change' ? '修改解锁密码' : '设置解锁密码';
+    s.textContent = pinFrom === 'change'
+      ? '输入新的 6 位数字密码'
+      : '首次使用，先设置 6 位数字密码；以后每次打开都要输入';
+  } else if (pinMode === 'setup2') {
+    t.textContent = '再输一次';
+    s.textContent = '确认刚才输入的 6 位数字密码';
+  } else {
+    t.textContent = '已锁定';
+    s.textContent = '输入 6 位数字密码查看账本';
+  }
+}
+
+function showLock(mode) {
+  pinMode = mode;
+  pinBuf = '';
+  pinTmp = '';
+  pinFails = 0;
+  pinCoolUntil = 0;
+  clearTimeout(pinCoolTimer);
+  els('#keypad .k').forEach(function (b) { b.disabled = false; });
+  el('#lockErr').textContent = '';
+  const f = el('#lockForgot');
+  f.style.display = mode === 'unlock' ? 'inline-block' : 'none';
+  f.textContent = '忘记密码？';
+  pinForgotArmed = false;
+  clearTimeout(pinForgotTimer);
+  document.body.classList.add('locked');
+  const box = el('#lock');
+  box.classList.add('on');
+  box.setAttribute('aria-hidden', 'false');
+  setLockText();
+  paintDots();
+}
+
+function hideLock() {
+  document.body.classList.remove('locked');
+  const box = el('#lock');
+  box.classList.remove('on');
+  box.setAttribute('aria-hidden', 'true');
+  pinBuf = '';
+  pinTmp = '';
+  pinFails = 0;
+  hiddenAt = 0;
+}
+
+function unlockDone(msg) {
+  hideLock();
+  refreshData();
+  syncFilterUI();
+  refreshPinHint();
+  if (msg) toast(msg);
+}
+
+function pinCoolDown() {
+  pinCoolUntil = Date.now() + PIN_COOL_MS;
+  els('#keypad .k').forEach(function (b) { b.disabled = true; });
+  const tick = function () {
+    const left = Math.ceil((pinCoolUntil - Date.now()) / 1000);
+    if (left <= 0) {
+      pinCoolUntil = 0;
+      pinFails = 0;
+      els('#keypad .k').forEach(function (b) { b.disabled = false; });
+      el('#lockErr').textContent = '可以再试了';
+      return;
+    }
+    el('#lockErr').textContent = '错误次数过多，请 ' + left + ' 秒后再试';
+    pinCoolTimer = setTimeout(tick, 1000);
+  };
+  tick();
+}
+
+function submitPin() {
+  const v = pinBuf;
+  if (pinMode === 'setup' || pinMode === 'change') {
+    pinTmp = v;
+    pinMode = 'setup2';
+    pinBuf = '';
+    paintDots();
+    setLockText();
+    return;
+  }
+  if (pinMode === 'setup2') {
+    if (v === pinTmp) {
+      writePinRec(v);
+      unlockDone(pinFrom === 'change' ? '解锁密码已更新' : '密码已设置，账本已上锁');
+    } else {
+      pinTmp = '';
+      pinMode = 'setup';
+      pinBuf = '';
+      paintDots();
+      setLockText();
+      el('#lockErr').textContent = '两次输入不一致，请重新设置';
+    }
+    return;
+  }
+  // 解锁
+  let ok = false;
+  try { ok = !!pinRec && pinHash(v, pinRec.s) === pinRec.h; } catch (e) { ok = false; }
+  if (ok) {
+    pinFails = 0;
+    unlockDone();
+    return;
+  }
+  pinFails++;
+  pinBuf = '';
+  paintDots();
+  if (pinFails >= PIN_MAX_FAIL) {
+    el('#lockErr').textContent = '错误次数过多，请 30 秒后再试';
+    pinCoolDown();
+  } else {
+    el('#lockErr').textContent = '密码错误，还可以试 ' + (PIN_MAX_FAIL - pinFails) + ' 次';
+  }
+}
+
+function pressPin(k) {
+  if (pinCoolUntil && Date.now() < pinCoolUntil) return;
+  if (k === 'del') { pinBuf = pinBuf.slice(0, -1); paintDots(); return; }
+  if (k === 'clear') { pinBuf = ''; paintDots(); return; }
+  if (pinBuf.length >= PIN_LEN) return;
+  pinBuf += k;
+  paintDots();
+  el('#lockErr').textContent = '';
+  if (pinBuf.length === PIN_LEN) submitPin();
+}
+
+function pinForgotClick() {
+  if (!pinForgotArmed) {
+    pinForgotArmed = true;
+    el('#lockForgot').textContent = '再点一次：清除本机记录并重设密码';
+    clearTimeout(pinForgotTimer);
+    pinForgotTimer = setTimeout(function () {
+      pinForgotArmed = false;
+      const f = el('#lockForgot');
+      if (f) f.textContent = '忘记密码？';
+    }, 4000);
+    return;
+  }
+  pinForgotArmed = false;
+  clearTimeout(pinForgotTimer);
+  try { localStorage.removeItem(PIN_KEY); } catch (e) {}
+  pinRec = null;
+  state.items = [];
+  state.nextId = 1;
+  save();
+  refreshData();
+  refreshPinHint();
+  pinFrom = 'first';
+  showLock('setup');
+  el('#lockErr').textContent = '已清除本机记录，请设置新密码';
+}
+
+function seedDemo() {
+  const ym = (state.filter.mode === 'month' && isValidMonth(state.filter.month))
+    ? state.filter.month : todayISO().slice(0, 7);
+  const days = +monthRange(ym).to.slice(8);
+  const rows = [
+    ['居住', '房租', 120000, 1],
+    ['餐饮', '超市买菜', 15640, 2],
+    ['交通', '地铁通勤', 600, 2],
+    ['餐饮', '公司楼下午饭', 3200, 3],
+    ['购物', '洗衣液和纸巾', 8990, 4],
+    ['通讯', '手机话费', 5900, 5],
+    ['餐饮', '外卖晚餐', 4200, 6],
+    ['娱乐', '电影票', 4500, 8],
+    ['交通', '加班打车', 3850, 9],
+    ['餐饮', '咖啡', 2200, 10],
+    ['医疗', '药店', 6800, 12],
+    ['教育', '网课订阅', 26000, 13],
+    ['购物', '秋衣', 19900, 15],
+    ['人情', '同事份子钱', 20000, 18],
+    ['餐饮', '周末聚餐', 28800, 20],
+    ['其他', '快递费', 1200, 22]
+  ];
+  for (const r of rows) {
+    const day = Math.min(r[3], days);
+    state.items.push({
+      id: state.nextId++,
+      d: ym + '-' + pad2(day),
+      c: r[0],
+      a: r[2],
+      n: r[1]
+    });
+  }
+  save();
+  refreshData();
+  toast('已填入 16 条示例记录');
+}
+
+/* ============================================================
+   启动与事件绑定
+   ============================================================ */
+function wire() {
+  el('#btnAdd').onclick = function () { openEdit(null); };
+  el('#btnExport').onclick = function () { resetWipe(); openSheet('sheetExport'); };
+  el('#rangeBtn').onclick = function () { openFilter('time'); };
+  els('#filters .f-chip').forEach(function (b) {
+    b.onclick = function () { openFilter(b.dataset.open); };
+  });
+  el('#mask').onclick = closeAll;
+  els('[data-close]').forEach(function (b) { b.onclick = closeAll; });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeAll();
+  });
+
+  els('#segTime button').forEach(function (b) {
+    b.onclick = function () {
+      const f = state.filter;
+      f.mode = b.dataset.mode;
+      if (f.mode === 'month' && !isValidMonth(f.month)) f.month = todayISO().slice(0, 7);
+      if (f.mode === 'custom' && !isValidDate(f.from) && !isValidDate(f.to)) {
+        const r = monthRange(f.month);
+        f.from = r.from;
+        f.to = r.to;
+      }
+      onFilterChange();
+      syncFilterUI();
+    };
+  });
+
+  el('#inMonth').onchange = function (e) {
+    const v = e.target.value;
+    if (!isValidMonth(v)) { toast('月份格式不正确'); syncFilterUI(); return; }
+    state.filter.month = v;
+    state.filter.mode = 'month';
+    onFilterChange();
+    syncFilterUI();
+  };
+  el('#inFrom').onchange = function (e) {
+    const v = e.target.value;
+    if (!isValidDate(v)) { toast('起始日期无效'); syncFilterUI(); return; }
+    state.filter.from = v;
+    state.filter.mode = 'custom';
+    onFilterChange();
+    syncFilterUI();
+  };
+  el('#inTo').onchange = function (e) {
+    const v = e.target.value;
+    if (!isValidDate(v)) { toast('结束日期无效'); syncFilterUI(); return; }
+    state.filter.to = v;
+    state.filter.mode = 'custom';
+    onFilterChange();
+    syncFilterUI();
+  };
+  el('#selOp').onchange = function (e) {
+    state.filter.amtOp = e.target.value;
+    onFilterChange();
+    syncFilterUI();
+  };
+  el('#inAmt1').oninput = function (e) { state.filter.amt1 = e.target.value; onFilterChange(); };
+  el('#inAmt2').oninput = function (e) { state.filter.amt2 = e.target.value; onFilterChange(); };
+  el('#inKw').oninput = function (e) { state.filter.kw = e.target.value; onFilterChange(); };
+  el('#btnResetFilter').onclick = function () { resetFilter(); toast('筛选已重置'); };
+  el('#btnFilterDone').onclick = closeAll;
+
+  el('#btnSave').onclick = saveEdit;
+  el('#btnDel').onclick = onDelete;
+  el('#btnAddCat').onclick = addCat;
+  el('#eNewCat').onkeydown = function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); addCat(); }
+  };
+
+  el('#btnCsv').onclick = doCSV;
+  el('#btnPng').onclick = doPNG;
+  el('#btnImgSave').onclick = doImgSave;
+  el('#btnWipe').onclick = doWipe;
+
+  // 锁屏
+  els('#keypad .k').forEach(function (b) {
+    b.onclick = function () { pressPin(b.dataset.k); };
+  });
+  el('#lockForgot').onclick = pinForgotClick;
+  el('#btnPin').onclick = function () {
+    closeAll();
+    pinFrom = pinRec ? 'change' : 'first';
+    showLock('setup');
+  };
+  document.addEventListener('keydown', function (e) {
+    if (!document.body.classList.contains('locked')) return;
+    if (/^\d$/.test(e.key)) { e.preventDefault(); pressPin(e.key); }
+    else if (e.key === 'Backspace') { e.preventDefault(); pressPin('del'); }
+    else if (e.key === 'Escape') { e.preventDefault(); pressPin('clear'); }
+  });
+  // 切后台超过 5 分钟回来重新上锁
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) {
+      if (!document.body.classList.contains('locked')) hiddenAt = Date.now();
+      return;
+    }
+    const away = hiddenAt ? Date.now() - hiddenAt : 0;
+    hiddenAt = 0;
+    if (away > AUTO_LOCK_MS && !document.body.classList.contains('locked')) showLock('unlock');
+  });
+
+  el('#tbody').onclick = function (e) {
+    const tr = e.target.closest('tr');
+    if (tr && tr.dataset.id) openEdit(+tr.dataset.id);
+  };
+  els('.tbl th[data-sort]').forEach(function (th) {
+    th.tabIndex = 0;
+    th.setAttribute('role', 'button');
+    th.onclick = function () {
+      const k = th.dataset.sort;
+      if (state.sort.key === k) {
+        state.sort.dir = state.sort.dir === 'desc' ? 'asc' : 'desc';
+      } else {
+        state.sort.key = k;
+        state.sort.dir = (k === 'c') ? 'asc' : 'desc';
+      }
+      refreshData();
+    };
+    th.onkeydown = function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); th.onclick(); }
+    };
+  });
+  el('#btnMore').onclick = function () { state.limit += 200; refreshData(); };
+}
+
+function boot() {
+  const alive = storageAlive();
+  load();
+  wire();
+  refreshData();
+  syncFilterUI();
+  if (!alive) {
+    el('#storeNote').textContent = '提示：当前打开方式无法使用本机存储（常见于无痕模式），关闭页面后记录会丢失，请及时导出 CSV。';
+  }
+  pinRec = readPinRec();
+  pinFrom = 'first';
+  refreshPinHint();
+  showLock(pinRec ? 'unlock' : 'setup');
+}
+
+boot();
+</script>
+</body>
+</html>

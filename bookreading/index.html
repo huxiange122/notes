@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ECEDE7">
+<title>读书笔记 · 四层目录</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%232E6157'/%3E%3Crect x='8' y='8' width='3' height='16' fill='%23ECEDE7'/%3E%3Crect x='14' y='8' width='10' height='3' fill='%23ECEDE7'/%3E%3Crect x='14' y='14' width='10' height='3' fill='%23ECEDE7' opacity='.7'/%3E%3Crect x='14' y='20' width='6' height='3' fill='%23ECEDE7' opacity='.5'/%3E%3C/svg%3E">
+<style>
+/* ============ 基础与色板 ============ */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+:root{
+  --paper:#ECEDE7; --surface:#F6F7F2;
+  --ink:#1F231F; --ink2:#474D46; --muted:#767C73;
+  --line:#D3D7CC; --line2:#DFE2D8;
+  --accent:#2E6157; --accent-soft:#D9E5DE; --accent-ink:#F3F7F3;
+  --warn:#A2402B; --warn-soft:#F0DCD5;
+  --shadow:0 8px 24px rgba(31,35,31,.12);
+  --serif:"Songti SC","Noto Serif SC","Source Han Serif SC","SimSun",serif;
+  --sans:"PingFang SC","HarmonyOS Sans SC","Source Han Sans SC","Noto Sans SC","Microsoft YaHei",sans-serif;
+}
+html[data-theme="dark"]{
+  --paper:#141713; --surface:#1C201B;
+  --ink:#E8EAE2; --ink2:#B9BFB3; --muted:#8A9086;
+  --line:#2C322A; --line2:#242922;
+  --accent:#7FB6A6; --accent-soft:#24352F; --accent-ink:#101613;
+  --warn:#D98A73; --warn-soft:#33231E;
+  --shadow:0 8px 24px rgba(0,0,0,.55);
+}
+body{
+  background:var(--paper);color:var(--ink);
+  font:16px/1.6 var(--sans);
+  -webkit-font-smoothing:antialiased;
+  overscroll-behavior-y:none;
+}
+#app{
+  max-width:600px;margin:0 auto;min-height:100dvh;
+  display:flex;flex-direction:column;
+  background:var(--paper);
+}
+@media (min-width:640px){
+  #app{border-left:1px solid var(--line2);border-right:1px solid var(--line2)}
+}
+
+/* ============ 顶栏 ============ */
+.hdr{
+  position:sticky;top:0;z-index:20;background:var(--paper);
+  padding:calc(env(safe-area-inset-top,0px) + 6px) 18px 0;
+}
+.bar{display:flex;align-items:center;gap:2px;min-height:46px}
+.bar .sp{flex:1}
+.iconbtn{
+  width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  background:none;border:0;color:var(--ink);border-radius:10px;cursor:pointer;font:inherit;
+}
+.iconbtn:active{background:var(--surface)}
+.iconbtn.more{font-size:19px;letter-spacing:.12em;line-height:1;color:var(--ink2)}
+.crumbs{display:flex;align-items:center;gap:2px;overflow-x:auto;white-space:nowrap;padding:0 0 2px;scrollbar-width:none}
+.crumbs::-webkit-scrollbar{display:none}
+.crumb{
+  flex:none;border:0;background:none;cursor:pointer;
+  color:var(--muted);font:13px/1.4 var(--sans);padding:7px 4px;border-radius:6px;
+  max-width:42vw;overflow:hidden;text-overflow:ellipsis;
+}
+.crumb.on{color:var(--ink2);font-weight:500}
+.sep{color:var(--muted);font-size:12px;flex:none;opacity:.6}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:4px 0 12px}
+.h1{
+  font:600 27px/1.25 var(--serif);letter-spacing:.01em;margin:0;
+  min-width:0;overflow-wrap:anywhere;
+}
+.headmeta{font-size:13px;color:var(--muted);text-align:right;flex:none;padding-bottom:5px;font-variant-numeric:tabular-nums;line-height:1.4}
+.rail{display:flex;border-top:1px solid var(--line2);padding:9px 0 0}
+.rail .s{flex:1;font-size:12px;line-height:1;color:var(--muted);padding-bottom:9px;position:relative}
+.rail .s::after{content:"";position:absolute;left:0;right:10px;bottom:0;height:2px;background:var(--line2)}
+.rail .s:last-child::after{right:0}
+.rail .s.cur{color:var(--accent);font-weight:600}
+.rail .s.cur::after{background:var(--accent)}
+.rail .s.done{color:var(--ink2)}
+.rail .s.done::after{background:var(--ink2);opacity:.5}
+
+/* ============ 目录列表 ============ */
+.list{padding:2px 18px 150px}
+.row{
+  display:grid;grid-template-columns:30px minmax(0,1fr) 16px;column-gap:10px;align-items:start;
+  padding:16px 0 17px;border-bottom:1px solid var(--line2);cursor:pointer;
+  transition:background .12s;
+}
+.row:active{background:var(--surface)}
+.idx{font-size:13px;line-height:1.9;color:var(--muted);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.rt{font-size:17px;line-height:1.45;font-weight:500;color:var(--ink);overflow-wrap:anywhere}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:8px;vertical-align:middle;transform:translateY(-1px)}
+.dot.n{background:var(--muted);opacity:.55}
+.dot.r{background:var(--warn)}
+.dot.m{background:var(--accent)}
+.rm{
+  margin-top:5px;font-size:13px;line-height:1.55;color:var(--muted);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.rtags{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.tag{
+  font-size:12px;line-height:1;padding:5px 7px;border-radius:4px;
+  background:var(--accent-soft);color:var(--accent);border:0;cursor:pointer;font-family:var(--sans);
+}
+.chev{align-self:center;color:var(--muted);opacity:.65}
+
+/* ============ 空态 ============ */
+.empty{padding:60px 6px 40px;text-align:center;color:var(--muted)}
+.empty .et{font:600 20px/1.4 var(--serif);color:var(--ink2);margin:0 0 10px}
+.empty p{margin:0 auto 22px;font-size:15px;line-height:1.75;max-width:300px}
+
+/* ============ 按钮 ============ */
+.btn{
+  height:48px;padding:0 20px;border-radius:10px;font:500 16px/1 var(--sans);
+  border:1px solid transparent;cursor:pointer;background:var(--surface);color:var(--ink);
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.btn-primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn-ghost{background:none;border-color:var(--line);color:var(--ink2)}
+.btn-warn{background:none;border-color:var(--warn);color:var(--warn)}
+.btn-row{display:flex;gap:10px;margin-top:18px}
+.btn-row .btn{flex:1}
+.btn-block{width:100%}
+
+/* ============ 悬浮按钮 ============ */
+.fabwrap{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;justify-content:center;pointer-events:none;padding:0 18px calc(env(safe-area-inset-bottom,0px) + 18px)}
+.fabinner{width:100%;max-width:600px;display:flex;justify-content:flex-end;align-items:flex-end;gap:12px}
+.fab{
+  pointer-events:auto;width:58px;height:58px;border-radius:50%;border:0;cursor:pointer;
+  background:var(--accent);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;
+  box-shadow:0 8px 22px rgba(46,97,87,.28);
+}
+.fab:active{transform:scale(.96)}
+.fab.ghost{
+  width:52px;height:52px;background:var(--surface);color:var(--ink2);
+  border:1px solid var(--line);box-shadow:var(--shadow);
+}
+.hint{font-size:13px;color:var(--muted);padding:26px 0 0;text-align:center;line-height:1.6}
+
+/* ============ 知识点详情 ============ */
+.note{padding:6px 18px 140px}
+.note h1{font:600 24px/1.4 var(--serif);margin:6px 0 12px;overflow-wrap:anywhere}
+.nmeta{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.chip{font-size:12px;line-height:1;padding:6px 9px;border:1px solid var(--line);border-radius:4px;color:var(--ink2);background:none;font-family:var(--sans);cursor:default}
+.chip.st-r{color:var(--warn);border-color:var(--warn)}
+.chip.st-m{color:var(--accent);border-color:var(--accent)}
+.chip.st-n{color:var(--muted)}
+.tagbtn{cursor:pointer}
+.sec{margin-top:24px;padding-top:15px;border-top:1px solid var(--line2)}
+.sec h2{font:600 15px/1.4 var(--sans);color:var(--ink2);margin:0 0 4px}
+.sec .lab{font-size:12px;color:var(--muted);margin:0 0 10px;line-height:1.5}
+.quote{font:400 16px/1.8 var(--serif);color:var(--ink2);background:var(--surface);padding:13px 15px;border-radius:8px;border-left:2px solid var(--line)}
+.prose p{margin:0 0 10px;font-size:15.5px;line-height:1.9;overflow-wrap:anywhere}
+.ilink{background:none;border:0;padding:0;color:var(--accent);border-bottom:1px solid var(--accent);font:inherit;cursor:pointer}
+.blist .brow{padding:11px 0;border-bottom:1px solid var(--line2);display:flex;gap:10px;align-items:baseline;cursor:pointer}
+.blist .bt{font-size:15px;line-height:1.5;color:var(--ink)}
+.blist .bp{font-size:12px;color:var(--muted);flex:0 1 auto;max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.muted{color:var(--muted);font-size:14px;line-height:1.7}
+
+/* ============ 搜索 ============ */
+.searchpad{padding:0 18px 120px}
+.sinputwrap{display:flex;align-items:center;gap:10px;padding:8px 0 10px;border-bottom:1px solid var(--line);margin:0 0 8px}
+.sinput{
+  flex:1;border:0;background:none;outline:none;color:var(--ink);
+  font:16px/1.4 var(--sans);padding:8px 0;min-width:0;
+}
+.sinput::placeholder{color:var(--muted)}
+.resrow{padding:14px 0;border-bottom:1px solid var(--line2);cursor:pointer}
+.resrow:active{background:var(--surface)}
+.res-t{font-size:16px;line-height:1.5;font-weight:500}
+.res-p{font-size:12px;color:var(--muted);margin-top:4px}
+.res-s{font-size:13px;color:var(--ink2);margin-top:6px;line-height:1.6}
+mark{background:var(--accent-soft);color:inherit;padding:0 1px;border-radius:2px}
+
+/* ============ 底部弹层 ============ */
+.mask{
+  position:fixed;inset:0;z-index:60;background:rgba(18,20,18,.42);
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;transition:opacity .18s ease;
+}
+.mask.on{opacity:1}
+.sheet{
+  width:100%;max-width:600px;background:var(--surface);
+  border-radius:16px 16px 0 0;max-height:90dvh;overflow-y:auto;
+  padding:6px 18px calc(env(safe-area-inset-bottom,0px) + 18px);
+  box-shadow:0 -8px 30px rgba(0,0,0,.18);
+  transform:translateY(14px);transition:transform .22s cubic-bezier(.22,.8,.3,1);
+  -webkit-overflow-scrolling:touch;
+}
+.mask.on .sheet{transform:translateY(0)}
+.grab{width:38px;height:4px;border-radius:2px;background:var(--line);margin:6px auto 14px}
+.stitle{font:600 18px/1.4 var(--sans);margin:0 0 4px;color:var(--ink)}
+.sdesc{font-size:13px;color:var(--muted);line-height:1.6;margin:0 0 6px}
+.fld{margin:14px 0}
+.fld label{display:block;font-size:13px;color:var(--muted);margin-bottom:7px}
+.fld .hintline{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5}
+.inp,.ta,.sel{
+  width:100%;font:16px/1.5 var(--sans);color:var(--ink);
+  background:var(--paper);border:1px solid var(--line);border-radius:9px;
+  padding:12px 13px;outline:none;
+}
+.inp:focus,.ta:focus,.sel:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.ta{min-height:92px;resize:vertical;line-height:1.7}
+.ta.tall{min-height:120px}
+.sel{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 22px,calc(100% - 13px) 22px;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+.oitems{display:flex;flex-direction:column;margin:8px -18px 0}
+.oitem{
+  text-align:left;background:none;border:0;border-top:1px solid var(--line2);
+  padding:16px 18px;font:16px/1.4 var(--sans);color:var(--ink);cursor:pointer;width:100%;
+}
+.oitem:active{background:var(--paper)}
+.oitem small{display:block;font-size:12px;color:var(--muted);margin-top:4px}
+.oitem.danger{color:var(--warn)}
+.slist{max-height:48dvh;overflow-y:auto;margin:8px -18px 0}
+.sitem{display:flex;flex-direction:column;gap:3px;padding:14px 18px;border-top:1px solid var(--line2);background:none;border-left:0;border-right:0;border-bottom:0;text-align:left;width:100%;cursor:pointer;font-family:var(--sans)}
+.sitem:active{background:var(--paper)}
+.sitem .st{font-size:15px;color:var(--ink);line-height:1.4}
+.sitem .sp2{font-size:12px;color:var(--muted)}
+.filein{display:block;margin-top:10px;font-size:13px;color:var(--muted);width:100%}
+.stats{display:flex;gap:0;margin:16px -18px 0;border-top:1px solid var(--line2);border-bottom:1px solid var(--line2)}
+.stat{flex:1;padding:14px 6px;text-align:center;border-right:1px solid var(--line2)}
+.stat:last-child{border-right:0}
+.stat b{display:block;font:600 20px/1.3 var(--sans);font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+
+/* ============ Toast ============ */
+.toast{
+  position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);
+  transform:translate(-50%,8px);z-index:90;
+  background:var(--ink);color:var(--paper);font-size:14px;line-height:1.4;
+  padding:11px 18px;border-radius:999px;opacity:0;pointer-events:none;
+  transition:opacity .18s,transform .18s;max-width:80vw;text-align:center;
+}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+
+@media (prefers-reduced-motion:reduce){
+  *{transition:none!important;animation:none!important}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="sheet"></div>
+<script>
+(function(){
+'use strict';
+
+/* ============ 1. 数据 ============ */
+var DB_KEY='rn_db_v1', TH_KEY='rn_theme';
+var LEVEL_NAME={1:'书',2:'章',3:'节',4:'知识点'};
+var CHILD_UNIT={1:'章',2:'节',3:'个知识点'};
+
+var SEED=[
+  {t:'《代码整洁之道》',k:[
+    {t:'命名与函数',k:[
+      {t:'有意义的命名',k:[
+        {t:'名副其实',ex:'名称应该回答全部的大问题：它为什么存在、它做什么事、它该怎么用。如果名称需要注释来补充，那就不算名副其实。',in:'我以前图省事，变量就叫 a、tmp、data。过两周回头，自己写的代码自己都读不懂。名字的长度不是成本，理解成本才是。',ac:'新建变量前先把名字念一遍：能不能直接当一句话说出来。',pg:'P12',tg:['命名','可读性'],st:'mastered'},
+        {t:'避免误导',ex:'不要用 accountList 去命名一组账户，除非它真的是 List。把容器类型写进名字，就把实现绑死在名字上。',in:'名字一旦暗示了类型，后面换实现就会名不副实。宁可用复数 accounts。',ac:'检查一遍名字里有没有 List、Map、Array 这类词。',pg:'P16',tg:['命名'],st:'review'}
+      ]},
+      {t:'函数要短小',k:[
+        {t:'一个函数只做一件事',ex:'判断标准很简单：能不能从中再拆出一个函数，而且拆出来的不是单纯的「把代码搬过去」。',in:'我常把校验、转换、写库塞在一个函数里，觉得少写几个函数更省事。真正的代价是这段代码以后再也没法复用。',ac:'超过 20 行的函数，先找它的「第二件事」。',pg:'P35',tg:['函数','重构'],st:'review'}
+      ]}
+    ]},
+    {t:'注释与错误处理',k:[
+      {t:'注释不是补救',k:[
+        {t:'好代码不需要解释「是什么」',ex:'注释应当讲「为什么这样做」，而不是把代码翻译一遍。用注释解释一段晦涩的代码，本质上是在掩盖没写清楚的事实。',in:'我最常写的注释是「// 这里判断是否为 null」，其实代码已经写着了。真正该留下的，是「为什么这里必须容忍 null」。',ac:'下次想写注释时，先试着改名字或拆函数；改不动了再写注释。',pg:'P54',tg:['注释'],st:'new'}
+      ]},
+      {t:'别返回 null',k:[
+        {t:'抛出异常，或返回特例对象',ex:'返回 null 等于把判空的责任丢给每一个调用方，而调用方通常会忘。更好的做法是抛异常，或者返回一个有空语义的特例对象。',in:'一个接口返回 null，十个调用点就得写十次判断，还总有一处漏掉。',ac:'接口设计时先问：查不到东西时，调用方应该做什么？',pg:'P110',tg:['错误处理'],st:'new'}
+      ]}
+    ]}
+  ]},
+  {t:'《人月神话》',k:[
+    {t:'进度与人力',k:[
+      {t:'布鲁克斯定律',k:[
+        {t:'向进度落后的项目增加人手只会让它更慢',ex:'Adding manpower to a late software project makes it later.',in:'沟通路径按 n(n-1)/2 增长，新人还要被老人带。多出来的人先消耗产能，很久之后才产出。这一点和 [[沟通路径随人数平方增长]] 是同一件事的两面。',ac:'排期落后时，先砍范围，再谈加人。加人只在任务能干净切分时才有用。',pg:'第2章',tg:['项目管理','估算'],st:'mastered'}
+      ]},
+      {t:'概念完整性',k:[
+        {t:'架构要由一个人拍板',ex:'概念完整性要求系统设计出自同一個人的头脑，或者极少数协调一致的头脑。',in:'多人各设计一块，最后拼出来的东西每个局部都合理，整体却处处别扭。',ac:'架构评审只认一个最终负责人，其余人提意见但不做决定。',pg:'第4章',tg:['架构','协作'],st:'review'}
+      ]}
+    ]},
+    {t:'团队与沟通',k:[
+      {t:'沟通成本',k:[
+        {t:'沟通路径随人数平方增长',ex:'n 个人之间有 n(n-1)/2 条沟通路径。人一多，会议和同步的成本会指数级上升。',in:'十个人的团队不是一个人的十倍产出，可能只有四倍，剩下的都花在对齐上。',ac:'团队超过 8 人时，先想怎么拆成能独立交付的小组。',tg:['协作','团队'],st:'review'}
+      ]},
+      {t:'文档',k:[
+        {t:'会议结论要落成文字',ex:'没有写下来的结论，等于没有结论。',in:'口头对齐的问题在于，每个人记住的版本都不一样，而且都确信自己记得对。',ac:'每次会议结束前用三行写下：决定了什么、谁做、什么时候。',tg:['协作'],st:'new'}
+      ]}
+    ]}
+  ]},
+  {t:'《深度工作》',k:[
+    {t:'深度工作的价值',k:[
+      {t:'注意力残留',k:[
+        {t:'切换任务后注意力会残留',ex:'从任务 A 切到任务 B 之后，A 的注意力残留仍会占用认知资源，切换越突然，残留越久。',in:'看一眼手机的代价不是那 30 秒，而是回到代码之后，还要花几分钟才重新进入状态。',ac:'把消息集中到固定时段处理，其余时间关掉通知。',tg:['专注','注意力'],st:'review'}
+      ]}
+    ]},
+    {t:'准则',k:[
+      {t:'固定日程',k:[
+        {t:'给每天设一个硬性结束时间',ex:'固定日程生产力：确定一个明确的收工时间，在此之前高强度工作，在此之后不再工作。',in:'没有结束时间，工作就会膨胀到填满一整天，深度时段反而被稀释。',ac:'先定下班时间，再倒排任务，而不是反过来。',tg:['时间管理'],st:'new'}
+      ]},
+      {t:'拥抱无聊',k:[
+        {t:'不要用刷手机填满每段空白',ex:'如果每一段无聊都被手机填满，大脑就失去了忍受无刺激的能力，专注力会持续退化。',in:'排队两分钟就掏手机，看似高效，实际是在训练自己无法安静思考。',ac:'通勤和排队时，允许自己什么都不做。',tg:['注意力'],st:'new'}
+      ]}
+    ]}
+  ]}
+];
+
+function now(){return Date.now();}
+function uid(){return 'n'+Math.random().toString(36).slice(2,9)+Math.floor(Math.random()*1000).toString(36);}
+
+function buildSeed(){
+  var nodes=[];
+  function walk(list,pid,level,prefix){
+    list.forEach(function(it,i){
+      var id=uid(), t=now()+i;
+      nodes.push({
+        id:id,pid:pid,level:level,title:it.t,order:i,
+        excerpt:it.ex||'',insight:it.in||'',action:it.ac||'',
+        page:it.pg||'',tags:it.tg||[],status:it.st||'new',
+        created:t,updated:t
+      });
+      if(it.k) walk(it.k,id,level+1,prefix+i);
+    });
+  }
+  walk(SEED,null,1,'');
+  return {version:1,nodes:nodes};
+}
+
+var LS={
+  get:function(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } },
+  set:function(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } }
+};
+
+var db;
+function loadDB(){
+  try{
+    var raw=LS.get(DB_KEY);
+    if(raw){
+      var o=JSON.parse(raw);
+      if(o&&o.nodes&&o.nodes.length!==undefined) return o;
+    }
+  }catch(e){}
+  return buildSeed();
+}
+function saveDB(){
+  if(!LS.set(DB_KEY,JSON.stringify(db))) toast('存储空间不足，建议先导出备份');
+}
+db=loadDB();
+if(!LS.get(DB_KEY)) saveDB();
+
+/* ============ 2. 状态 ============ */
+var ui={path:[],noteId:null,search:false,q:'',sheet:false};
+var longPressTimer=null, longPressFired=false;
+
+/* ============ 3. 工具 ============ */
+function esc(s){
+  return String(s==null?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+function byId(id){
+  for(var i=0;i<db.nodes.length;i++) if(db.nodes[i].id===id) return db.nodes[i];
+  return null;
+}
+function kids(pid){
+  return db.nodes.filter(function(n){return n.pid===pid;})
+    .sort(function(a,b){return (a.order-b.order)||(a.created-b.created);});
+}
+function chain(id){
+  var out=[],n=byId(id),guard=0;
+  while(n&&guard++<10){ out.unshift(n); n=n.pid?byId(n.pid):null; }
+  return out;
+}
+function countNotes(id){
+  var n=byId(id); if(!n) return 0;
+  if(n.level===4) return 1;
+  var total=0;
+  kids(id).forEach(function(c){ total+=countNotes(c.id); });
+  return total;
+}
+function parentOf(n){ return n&&n.pid?byId(n.pid):null; }
+function todayStr(){
+  var d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+/* ============ 4. 图标 ============ */
+var ICON_BACK='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 19l-7-7 7-7"/></svg>';
+var ICON_SEARCH='<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>';
+var ICON_PLUS='<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+var ICON_BOLT='<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3L5 13h6l-1 8 8-10h-6z"/></svg>';
+var ICON_CHEV='<svg class="chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>';
+
+/* ============ 5. 渲染：目录 ============ */
+function headerHTML(){
+  var lvl=ui.path.length+1;
+  var cur=ui.path.length?byId(ui.path[ui.path.length-1]):null;
+  var trail=ui.path.map(byId).filter(Boolean);
+  var cr='<button class="crumb'+(ui.path.length?'':' on')+'" data-act="jump" data-val="-1">书架</button>';
+  trail.forEach(function(n,i){
+    cr+='<span class="sep">›</span><button class="crumb'+(i===trail.length-1?' on':'')+'" data-act="jump" data-val="'+i+'">'+esc(n.title)+'</button>';
+  });
+  var title=cur?cur.title:'书架';
+  var meta='';
+  if(!cur){
+    var bs=kids(null), total=0;
+    bs.forEach(function(b){ total+=countNotes(b.id); });
+    meta=bs.length+' 本书 · '+total+' 条笔记';
+  }else{
+    var k=kids(cur.id);
+    if(cur.level===3) meta=k.length+' 个知识点';
+    else meta=k.length+' '+CHILD_UNIT[cur.level]+' · '+countNotes(cur.id)+' 条笔记';
+  }
+  var rail=['书','章','节','知识点'].map(function(s,i){
+    var cls=i===lvl-1?'cur':(i<lvl-1?'done':'');
+    return '<div class="s '+cls+'">'+s+'</div>';
+  }).join('');
+  return '<div class="hdr">'+
+    '<div class="bar">'+
+      (ui.path.length?'<button class="iconbtn" data-act="back" aria-label="返回上一级">'+ICON_BACK+'</button>':'<div style="width:8px;flex:none"></div>')+
+      '<div class="sp"></div>'+
+      '<button class="iconbtn" data-act="search" aria-label="搜索">'+ICON_SEARCH+'</button>'+
+      (cur?'<button class="iconbtn more" data-act="more" aria-label="当前层级的操作">···</button>':'')+
+    '</div>'+
+    '<div class="crumbs">'+cr+'</div>'+
+    '<div class="head"><h1 class="h1">'+esc(title)+'</h1><div class="headmeta">'+meta+'</div></div>'+
+    '<div class="rail">'+rail+'</div>'+
+  '</div>';
+}
+
+function rowHTML(n,i){
+  var idx=String(i+1).padStart(2,'0');
+  var rt, rm, tags='';
+  if(n.level<4){
+    rt=esc(n.title);
+    var k=kids(n.id), c=countNotes(n.id);
+    rm = (n.level===3)
+      ? k.length+' 个知识点'
+      : k.length+' '+CHILD_UNIT[n.level]+(c?' · '+c+' 条笔记':'');
+  }else{
+    var cls=n.status==='mastered'?'m':(n.status==='review'?'r':'n');
+    rt='<span class="dot '+cls+'"></span>'+esc(n.title);
+    var prev=(n.excerpt||n.insight||n.action||'').replace(/\s+/g,' ').trim();
+    rm=esc(prev?prev.slice(0,72)+(prev.length>72?'…':''):'还没写内容');
+    if(n.tags&&n.tags.length){
+      tags='<div class="rtags">'+n.tags.slice(0,3).map(function(t){
+        return '<span class="tag">#'+esc(t)+'</span>';
+      }).join('')+'</div>';
+    }
+  }
+  return '<div class="row" data-act="open" data-val="'+n.id+'">'+
+    '<div class="idx">'+idx+'</div>'+
+    '<div style="min-width:0"><div class="rt">'+rt+'</div><div class="rm">'+rm+'</div>'+tags+'</div>'+
+    ICON_CHEV+
+  '</div>';
+}
+
+function emptyHint(lvl){
+  if(lvl===1) return '把正在读的书先建起来，再按书里的章一层层往下加。';
+  if(lvl===2) return '这本书还没有章节。可以照着原书目录建，也可以先建你关心的主题。';
+  if(lvl===3) return '这一章还没有分节。一个节放一个主题，宽度刚好够一屏。';
+  return '这一节还没有知识点。一条只写一件事，标题就写成那句判断。';
+}
+
+function treeHTML(){
+  var pid=ui.path.length?ui.path[ui.path.length-1]:null;
+  var lvl=ui.path.length+1;
+  var list=kids(pid);
+  var body;
+  if(list.length){
+    body='<div class="list">'+list.map(rowHTML).join('')+
+      '<div class="hint">长按条目可重命名、移动或删除</div></div>';
+  }else{
+    body='<div class="list"><div class="empty">'+
+      '<p class="et">这里还没有内容</p>'+
+      '<p>'+emptyHint(lvl)+'</p>'+
+      '<button class="btn btn-primary" data-act="add">新建第一个'+LEVEL_NAME[lvl]+'</button>'+
+      '</div></div>';
+  }
+  return headerHTML()+body+
+    '<div class="fabwrap"><div class="fabinner">'+
+      '<button class="fab ghost" data-act="capture" aria-label="速记">'+ICON_BOLT+'</button>'+
+      '<button class="fab" data-act="add" aria-label="新建'+LEVEL_NAME[lvl]+'">'+ICON_PLUS+'</button>'+
+    '</div></div>';
+}
+
+/* ============ 6. 渲染：知识点详情 ============ */
+function rich(s){
+  var safe=esc(s);
+  safe=safe.split(/\n+/).map(function(p){return '<p>'+p+'</p>';}).join('');
+  return safe.replace(/\[\[([^\]]+)\]\]/g,function(m,t){
+    return '<button class="ilink" data-act="goto" data-val="'+t+'">'+t+'</button>';
+  });
+}
+
+function pathLabel(n){
+  return chain(n.id).slice(0,-1).map(function(x){return x.title;}).join(' › ');
+}
+
+function noteHTML(n){
+  if(!n) return '';
+  var trail=chain(n.id).slice(0,-1).map(function(x){return esc(x.title);}).join(' › ');
+  var stmap={new:['st-n','未消化'],review:['st-r','待复习'],mastered:['st-m','已掌握']};
+  var st=stmap[n.status]||stmap.new;
+  var meta='';
+  if(n.page) meta+='<span class="chip">'+esc(n.page)+'</span>';
+  meta+='<button class="chip '+st[0]+'" data-act="cycle-status" data-val="'+n.id+'">'+st[1]+'</button>';
+  var tags=(n.tags||[]).map(function(t){
+    return '<button class="tag tagbtn" data-act="tag" data-val="'+esc(t)+'">#'+esc(t)+'</button>';
+  }).join('');
+
+  var secs='';
+  if(n.excerpt) secs+='<div class="sec"><h2>原文摘录</h2><p class="lab">作者怎么说</p><div class="quote">'+rich(n.excerpt)+'</div></div>';
+  if(n.insight) secs+='<div class="sec"><h2>我的理解</h2><p class="lab">用自己的话重写一遍</p><div class="prose">'+rich(n.insight)+'</div></div>';
+  if(n.action) secs+='<div class="sec"><h2>怎么用</h2><p class="lab">下一个具体动作</p><div class="prose">'+rich(n.action)+'</div></div>';
+  if(!secs) secs+='<div class="sec"><p class="muted">这条还没有正文。点下面的「编辑」，把原文、你的理解、下一步分别写进去。</p></div>';
+
+  var outs=[];
+  (n.excerpt+'\n'+n.insight+'\n'+n.action).replace(/\[\[([^\]]+)\]\]/g,function(m,t){
+    if(outs.indexOf(t)<0) outs.push(t);
+    return m;
+  });
+  var backs=db.nodes.filter(function(x){
+    return x.level===4 && x.id!==n.id &&
+      ((x.excerpt||'')+' '+(x.insight||'')+' '+(x.action||'')).indexOf('[['+n.title+']]')>=0;
+  });
+  var links='';
+  if(outs.length||backs.length){
+    links='<div class="sec"><h2>关联</h2>';
+    if(outs.length){
+      links+='<p class="lab">这条提到了</p><div class="rtags">'+outs.map(function(t){
+        return '<button class="tag tagbtn" data-act="goto" data-val="'+esc(t)+'">'+esc(t)+'</button>';
+      }).join('')+'</div>';
+    }
+    if(backs.length){
+      links+='<p class="lab" style="margin-top:14px">被这些笔记引用</p><div class="blist">'+backs.map(function(b){
+        return '<div class="brow" data-act="goto-id" data-val="'+b.id+'">'+
+          '<div class="bt">'+esc(b.title)+'</div><div class="bp">'+esc(pathLabel(b))+'</div></div>';
+      }).join('')+'</div>';
+    }
+    links+='</div>';
+  }
+
+  return '<div class="hdr">'+
+    '<div class="bar">'+
+      '<button class="iconbtn" data-act="back" aria-label="返回">'+ICON_BACK+'</button>'+
+      '<div class="sp"></div>'+
+      '<button class="iconbtn more" data-act="more-note" data-val="'+n.id+'" aria-label="更多操作">···</button>'+
+    '</div>'+
+    '<div class="crumbs"><button class="crumb" data-act="jump" data-val="-1">书架</button>'+
+      (trail?'<span class="sep">›</span><span class="crumb" style="max-width:60vw">'+trail+'</span>':'')+
+    '</div>'+
+  '</div>'+
+  '<div class="note">'+
+    '<h1>'+esc(n.title)+'</h1>'+
+    '<div class="nmeta">'+meta+'</div>'+
+    (tags?'<div class="rtags" style="margin-top:10px">'+tags+'</div>':'')+
+    secs+links+
+    '<div class="btn-row"><button class="btn btn-primary" data-act="edit-note" data-val="'+n.id+'">编辑</button>'+
+      '<button class="btn btn-ghost" data-act="move" data-val="'+n.id+'">移动</button></div>'+
+    '<div class="btn-row"><button class="btn btn-warn btn-block" data-act="del" data-val="'+n.id+'">删除这条</button></div>'+
+    '<div class="hint">写于 '+new Date(n.created).toLocaleDateString('zh-CN')+(n.updated-n.created>86400000?' · 更新于 '+new Date(n.updated).toLocaleDateString('zh-CN'):'')+'</div>'+
+  '</div>';
+}
+
+/* ============ 7. 搜索 ============ */
+function hay(n){
+  return [n.title,n.excerpt,n.insight,n.action,(n.tags||[]).join(' '),pathLabel(n)].join(' ');
+}
+function hl(text,q){
+  if(!q) return esc(text);
+  var idx=text.toLowerCase().indexOf(q.toLowerCase());
+  if(idx<0) return esc(text);
+  return esc(text.slice(0,idx))+'<mark>'+esc(text.slice(idx,idx+q.length))+'</mark>'+esc(text.slice(idx+q.length));
+}
+function searchHTML(){
+  return '<div class="hdr" style="padding-bottom:4px">'+
+    '<div class="bar"><button class="iconbtn" data-act="close-search" aria-label="退出搜索">'+ICON_BACK+'</button></div>'+
+    '<div class="sinputwrap">'+ICON_SEARCH+
+      '<input id="q" class="sinput" type="search" placeholder="搜标题、正文、标签、书名" value="'+esc(ui.q)+'" autocomplete="off" autocorrect="off">'+
+    '</div>'+
+  '</div>'+
+  '<div class="searchpad"><div id="res"></div></div>';
+}
+function renderResults(){
+  var box=document.getElementById('res');
+  if(!box) return;
+  var q=(ui.q||'').trim();
+  var items=db.nodes.filter(function(n){return n.level===4;});
+  var list,label;
+  if(!q){
+    list=items.slice().sort(function(a,b){return b.updated-a.updated;}).slice(0,25);
+    label='最近记录的 25 条';
+  }else if(q.charAt(0)==='#'){
+    var tg=q.slice(1);
+    list=items.filter(function(n){return (n.tags||[]).some(function(t){return t===tg;});});
+    label='标签 #'+tg+' · '+list.length+' 条';
+  }else{
+    list=items.filter(function(n){return hay(n).toLowerCase().indexOf(q.toLowerCase())>=0;});
+    label=list.length+' 条结果';
+  }
+  if(!list.length){
+    box.innerHTML='<div class="empty"><p class="et">没有找到</p><p>换个词试试。可以搜书名、章节名、正文片段，或者用 #标签 精确筛选。</p></div>';
+    return;
+  }
+  box.innerHTML='<div style="font-size:13px;color:var(--muted);padding:12px 0 4px">'+esc(label)+'</div>'+
+    list.map(function(n){
+      var snip=n.excerpt||n.insight||n.action||'';
+      snip=snip.replace(/\s+/g,' ').trim();
+      var i=q?snip.toLowerCase().indexOf(q.toLowerCase()):-1;
+      var show=i>=0?snip.slice(Math.max(0,i-12),i+70):snip.slice(0,80);
+      return '<div class="resrow" data-act="goto-id" data-val="'+n.id+'">'+
+        '<div class="res-t">'+hl(n.title,q)+'</div>'+
+        '<div class="res-p">'+esc(pathLabel(n))+'</div>'+
+        (show?'<div class="res-s">'+(i>=0?'…':'')+hl(show,q)+(show.length>=70?'…':'')+'</div>':'')+
+      '</div>';
+    }).join('');
+}
+
+/* ============ 8. 主渲染 ============ */
+function render(){
+  var app=document.getElementById('app');
+  if(ui.search){
+    app.innerHTML=searchHTML();
+    renderResults();
+    var inp=document.getElementById('q');
+    if(inp){
+      inp.addEventListener('input',function(){ ui.q=this.value; renderResults(); });
+      inp.addEventListener('keydown',function(e){ if(e.key==='Escape'){ closeSearch(); } });
+    }
+    return;
+  }
+  if(ui.noteId){
+    app.innerHTML=noteHTML(byId(ui.noteId));
+    return;
+  }
+  app.innerHTML=treeHTML();
+}
+
+function goBack(){
+  if(ui.noteId){ ui.noteId=null; render(); return; }
+  if(ui.search){ closeSearch(); return; }
+  if(ui.path.length){ ui.path.pop(); render(); }
+}
+function closeSearch(){ ui.search=false; ui.q=''; render(); }
+
+/* ============ 9. 提示 ============ */
+var toastTimer=null;
+function toast(msg){
+  var el=document.querySelector('.toast');
+  if(!el){ el=document.createElement('div'); el.className='toast'; document.body.appendChild(el); }
+  el.textContent=msg;
+  el.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(function(){ el.classList.remove('on'); },1900);
+}
+
+/* ============ 10. 主题 ============ */
+function applyTheme(){
+  var saved=LS.get(TH_KEY)||'auto';
+  var dark = saved==='dark' || (saved==='auto' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  document.documentElement.setAttribute('data-theme', dark?'dark':'light');
+  var m=document.querySelector('meta[name="theme-color"]');
+  if(m) m.setAttribute('content', dark?'#141713':'#ECEDE7');
+}
+/* ============ 11. 弹层 ============ */
+var sheetRoot=document.getElementById('sheet');
+var sheetTimer=null;
+function openSheet(html){
+  clearTimeout(sheetTimer);
+  ui.sheet=true;
+  sheetRoot.innerHTML='<div class="mask" data-act="close-sheet"><div class="sheet"><div class="grab"></div>'+html+'</div></div>';
+  document.body.style.overflow='hidden';
+  requestAnimationFrame(function(){
+    var m=sheetRoot.querySelector('.mask');
+    if(m) m.classList.add('on');
+  });
+}
+function closeSheet(){
+  var m=sheetRoot.querySelector('.mask');
+  if(m){
+    m.classList.remove('on');
+    clearTimeout(sheetTimer);
+    sheetTimer=setTimeout(function(){ sheetRoot.innerHTML=''; },180);
+  }else{
+    sheetRoot.innerHTML='';
+  }
+  ui.sheet=false;
+  document.body.style.overflow='';
+}
+function v(id){ var el=document.getElementById(id); return el?String(el.value||''):''; }
+function opt(a,b,c,d,e,f,cur){
+  return [[a,b],[c,d],[e,f]].map(function(it){
+    return '<option value="'+it[0]+'"'+(cur===it[0]?' selected':'')+'>'+esc(it[1])+'</option>';
+  }).join('');
+}
+function phFor(lvl){
+  return lvl===1?'比如《人月神话》':lvl===2?'比如 进度与人力':lvl===3?'比如 布鲁克斯定律':'';
+}
+
+function sheetCreate(){
+  var lvl=ui.path.length+1;
+  if(lvl===4){
+    openSheet(noteForm({title:'',excerpt:'',insight:'',action:'',page:'',tags:[],status:'new'},'新建知识点')+
+      '<div class="btn-row"><button class="btn btn-ghost" data-act="close">取消</button>'+
+      '<button class="btn btn-primary" data-act="save-note" data-val="new">保存</button></div>');
+    return;
+  }
+  var parent=ui.path.length?byId(ui.path[ui.path.length-1]):null;
+  openSheet('<p class="stitle">新建'+LEVEL_NAME[lvl]+'</p>'+
+    '<p class="sdesc">'+(parent?'加在「'+esc(parent.title)+'」下面':'会成为书架上的第一本')+'</p>'+
+    '<div class="fld"><label for="f-title">'+LEVEL_NAME[lvl]+'名称</label>'+
+    '<input id="f-title" class="inp" type="text" placeholder="'+phFor(lvl)+'" autocomplete="off"></div>'+
+    '<div class="btn-row"><button class="btn btn-ghost" data-act="close">取消</button>'+
+    '<button class="btn btn-primary" data-act="save-create">保存</button></div>');
+  setTimeout(function(){
+    var i=document.getElementById('f-title');
+    if(i){ i.focus(); i.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); saveCreateNode(); } }); }
+  },220);
+}
+
+function saveCreateNode(){
+  var t=v('f-title').trim();
+  if(!t){ toast('先写个名称'); return; }
+  var pid=ui.path.length?ui.path[ui.path.length-1]:null;
+  var lvl=ui.path.length+1;
+  var order=kids(pid).length;
+  db.nodes.push({id:uid(),pid:pid,level:lvl,title:t,order:order,
+    excerpt:'',insight:'',action:'',page:'',tags:[],status:'new',created:now(),updated:now()});
+  saveDB(); closeSheet(); render(); toast('已新建「'+t+'」');
+}
+
+function noteForm(n,title){
+  return '<p class="stitle">'+esc(title)+'</p>'+
+    '<div class="fld"><label for="f-title">标题</label>'+
+    '<input id="f-title" class="inp" type="text" value="'+esc(n.title)+'" placeholder="写成一句判断，比如 函数只做一件事" autocomplete="off">'+
+    '<div class="hintline">一个知识点只写一件事，标题就是那句结论。</div></div>'+
+    '<div class="fld"><label for="f-excerpt">原文摘录</label>'+
+    '<textarea id="f-excerpt" class="ta">'+esc(n.excerpt)+'</textarea>'+
+    '<div class="hintline">抄原句，不要改写。</div></div>'+
+    '<div class="fld"><label for="f-insight">我的理解</label>'+
+    '<textarea id="f-insight" class="ta">'+esc(n.insight)+'</textarea>'+
+    '<div class="hintline">用自己的话重写一遍，这一栏最重要。</div></div>'+
+    '<div class="fld"><label for="f-action">怎么用</label>'+
+    '<textarea id="f-action" class="ta">'+esc(n.action)+'</textarea>'+
+    '<div class="hintline">写一个下次能直接执行的动作。</div></div>'+
+    '<div class="fld"><label for="f-page">页码 / 位置</label>'+
+    '<input id="f-page" class="inp" type="text" value="'+esc(n.page)+'" placeholder="P12、Kindle 位置 1024、微信读书 12%"></div>'+
+    '<div class="fld"><label for="f-tags">标签</label>'+
+    '<input id="f-tags" class="inp" type="text" value="'+esc((n.tags||[]).join(' '))+'" placeholder="空格分隔，比如 命名 重构">'+
+    '<div class="hintline">正文里写 [[另一条笔记的标题]]，两条笔记就会互相关联。</div></div>'+
+    '<div class="fld"><label for="f-status">掌握状态</label>'+
+    '<select id="f-status" class="sel">'+opt('new','未消化','review','待复习','mastered','已掌握',n.status)+'</select></div>';
+}
+
+function openNoteEditor(id){
+  var n=byId(id); if(!n) return;
+  openSheet(noteForm(n,'编辑知识点')+
+    '<div class="btn-row"><button class="btn btn-ghost" data-act="close">取消</button>'+
+    '<button class="btn btn-primary" data-act="save-note" data-val="'+id+'">保存</button></div>');
+}
+
+function saveNote(id){
+  var t=v('f-title').trim();
+  if(!t){ toast('标题不能为空'); return; }
+  var data={
+    title:t,
+    excerpt:v('f-excerpt').trim(),
+    insight:v('f-insight').trim(),
+    action:v('f-action').trim(),
+    page:v('f-page').trim(),
+    tags:v('f-tags').split(/[\s,，、]+/).filter(Boolean),
+    status:v('f-status')||'new'
+  };
+  if(id==='new'){
+    var pid=ui.path.length?ui.path[ui.path.length-1]:null;
+    var n={id:uid(),pid:pid,level:4,order:kids(pid).length,created:now(),updated:now()};
+    for(var k in data) n[k]=data[k];
+    db.nodes.push(n);
+    saveDB(); closeSheet();
+    ui.noteId=n.id; render(); toast('已保存');
+  }else{
+    var x=byId(id); if(!x) return;
+    for(var k2 in data) x[k2]=data[k2];
+    x.updated=now();
+    saveDB(); closeSheet(); render(); toast('已保存');
+  }
+}
+
+function openRename(id){
+  var n=byId(id); if(!n) return;
+  openSheet('<p class="stitle">重命名</p>'+
+    '<div class="fld"><label for="f-title">名称</label>'+
+    '<input id="f-title" class="inp" type="text" value="'+esc(n.title)+'" autocomplete="off"></div>'+
+    '<div class="btn-row"><button class="btn btn-ghost" data-act="close">取消</button>'+
+    '<button class="btn btn-primary" data-act="save-rename" data-val="'+id+'">保存</button></div>');
+  setTimeout(function(){
+    var i=document.getElementById('f-title');
+    if(i){ i.focus(); i.select(); i.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); saveRename(id); } }); }
+  },220);
+}
+function saveRename(id){
+  var t=v('f-title').trim(); if(!t){ toast('名称不能为空'); return; }
+  var n=byId(id); if(!n) return;
+  n.title=t; n.updated=now();
+  saveDB(); closeSheet(); render(); toast('已改名');
+}
+
+function sheetActions(id){
+  var n=byId(id); if(!n) return;
+  var sub=(n.level===4)?pathLabel(n):(kids(n.id).length+' '+CHILD_UNIT[n.level]);
+  var items='';
+  if(n.level===4){
+    items+='<button class="oitem" data-act="edit-note" data-val="'+id+'">编辑<small>改标题、正文、标签、状态</small></button>';
+  }else{
+    items+='<button class="oitem" data-act="rename" data-val="'+id+'">重命名<small>只改名称，不动下级</small></button>';
+  }
+  if(n.level===4){
+    items+='<button class="oitem" data-act="move" data-val="'+id+'">移动<small>换到另一本书的另一节</small></button>';
+  }
+  items+='<button class="oitem danger" data-act="del" data-val="'+id+'">删除<small>'+(n.level===4?'这条知识点':'连同其下的内容一起删除')+'</small></button>';
+  openSheet('<p class="stitle">'+esc(n.title)+'</p><p class="sdesc">'+LEVEL_NAME[n.level]+' · '+esc(sub)+'</p><div class="oitems">'+items+'</div>');
+}
+
+function descendants(id){
+  var out=[];
+  (function walk(pid){
+    kids(pid).forEach(function(c){ out.push(c); walk(c.id); });
+  })(id);
+  return out;
+}
+
+function sheetConfirmDelete(id){
+  var n=byId(id); if(!n) return;
+  var d=descendants(id);
+  var noteCount=d.filter(function(x){return x.level===4;}).length;
+  var warn=d.length
+    ? '它下面还有 '+d.length+' 个子项（含 '+noteCount+' 条知识点），会一起删除，无法撤销。'
+    : '删除后无法撤销。';
+  openSheet('<p class="stitle">删除「'+esc(n.title)+'」？</p><p class="sdesc">'+warn+'</p>'+
+    '<div class="btn-row"><button class="btn btn-ghost" data-act="close">取消</button>'+
+    '<button class="btn btn-warn" data-act="do-del" data-val="'+id+'">删除</button></div>');
+}
+
+function doDelete(id){
+  var n=byId(id); if(!n) return;
+  var rm=[id].concat(descendants(id).map(function(x){return x.id;}));
+  var parentId=n.pid;
+  db.nodes=db.nodes.filter(function(x){ return rm.indexOf(x.id)<0; });
+  saveDB(); closeSheet();
+  if(ui.noteId&&rm.indexOf(ui.noteId)>=0){
+    ui.noteId=null;
+    ui.path=parentId?chain(parentId).map(function(x){return x.id;}):[];
+  }
+  if(ui.path.indexOf(id)>=0){
+    ui.path=parentId?chain(parentId).map(function(x){return x.id;}):[];
+  }
+  render(); toast('已删除');
+}
+
+function sheetMove(id){
+  var n=byId(id); if(!n) return;
+  ui.movingId=id;
+  var secs=db.nodes.filter(function(x){return x.level===3;});
+  if(!secs.length){
+    toast('还没有可归档的「节」，先建一层目录');
+    return;
+  }
+  secs.sort(function(a,b){
+    var pa=pathLabel(a),pb=pathLabel(b);
+    return pa<pb?-1:pa>pb?1:0;
+  });
+  openSheet('<p class="stitle">移到哪一节</p><p class="sdesc">选一个「节」，「'+esc(n.title)+'」会挂到它下面。</p>'+
+    '<div class="slist">'+secs.map(function(s){
+      var cur=(n.pid===s.id);
+      return '<button class="sitem" data-act="move-to" data-val="'+s.id+'"'+(cur?' disabled style="opacity:.5"':'')+'>'+
+        '<span class="st">'+esc(s.title)+(cur?'（当前位置）':'')+'</span>'+
+        '<span class="sp2">'+esc(pathLabel(s))+'</span></button>';
+    }).join('')+'</div>');
+}
+function moveTo(targetId){
+  var n=byId(ui.movingId), t=byId(targetId);
+  if(!n||!t) return;
+  n.pid=t.id; n.order=kids(t.id).length; n.updated=now();
+  saveDB(); closeSheet();
+  if(ui.noteId===n.id) ui.path=chain(n.id).slice(0,-1).map(function(x){return x.id;});
+  render(); toast('已移到「'+t.title+'」');
+}
+
+function mkNode(pid,level,title,order){
+  var t=now();
+  return {id:uid(),pid:pid,level:level,title:title,order:order,
+    excerpt:'',insight:'',action:'',page:'',tags:[],status:'new',created:t,updated:t};
+}
+function ensureInbox(){
+  var book=db.nodes.filter(function(n){return n.level===1&&n.title==='速记箱';})[0];
+  if(!book){ book=mkNode(null,1,'速记箱',999); db.nodes.push(book); }
+  var ch=kids(book.id).filter(function(n){return n.title==='待整理';})[0];
+  if(!ch){ ch=mkNode(book.id,2,'待整理',0); db.nodes.push(ch); }
+  var sec=kids(ch.id).filter(function(n){return n.title==='待归档';})[0];
+  if(!sec){ sec=mkNode(ch.id,3,'待归档',0); db.nodes.push(sec); }
+  return sec.id;
+}
+
+function sheetCapture(){
+  openSheet('<p class="stitle">速记一条</p>'+
+    '<p class="sdesc">先记下来，不用想放哪。会存进「速记箱 › 待整理 › 待归档」，之后可以移动。</p>'+
+    '<div class="fld"><label for="f-cap">想到的那句话</label>'+
+    '<textarea id="f-cap" class="ta tall" placeholder="一句话说清一个观点，不用管格式"></textarea></div>'+
+    '<div class="btn-row"><button class="btn btn-ghost" data-act="close">取消</button>'+
+    '<button class="btn btn-primary" data-act="save-capture">存下来</button></div>');
+  setTimeout(function(){ var t=document.getElementById('f-cap'); if(t) t.focus(); },220);
+}
+function saveCapture(){
+  var txt=v('f-cap').trim();
+  if(!txt){ toast('还没写内容'); return; }
+  var secId=ensureInbox();
+  var first=txt.split(/\n/)[0].slice(0,40);
+  var n=mkNode(secId,4,first, kids(secId).length);
+  n.insight=txt;
+  db.nodes.push(n);
+  saveDB(); closeSheet(); render();
+  toast('已存进速记箱，长按可移动到正式章节');
+}
+
+/* ============ 12. 设置与备份 ============ */
+function stats(){
+  var notes=db.nodes.filter(function(n){return n.level===4;});
+  return {
+    books:kids(null).length,
+    notes:notes.length,
+    review:notes.filter(function(n){return n.status==='review';}).length,
+    mastered:notes.filter(function(n){return n.status==='mastered';}).length
+  };
+}
+function sheetSettings(){
+  var s=stats();
+  var th=LS.get(TH_KEY)||'auto';
+  var thTxt=th==='auto'?'跟随系统':(th==='dark'?'深色':'浅色');
+  openSheet('<p class="stitle">设置与备份</p>'+
+    '<div class="stats">'+
+      '<div class="stat"><b>'+s.books+'</b><span>本书</span></div>'+
+      '<div class="stat"><b>'+s.notes+'</b><span>知识点</span></div>'+
+      '<div class="stat"><b>'+s.review+'</b><span>待复习</span></div>'+
+      '<div class="stat"><b>'+s.mastered+'</b><span>已掌握</span></div>'+
+    '</div>'+
+    '<div class="oitems">'+
+      '<button class="oitem" data-act="review">回顾一条<small>随机抽一条知识点</small></button>'+
+      '<button class="oitem" data-act="theme">外观：'+thTxt+'<small>浅色 / 深色 / 跟随系统</small></button>'+
+      '<button class="oitem" data-act="export-json">导出 JSON<small>完整结构，可原样恢复</small></button>'+
+      '<button class="oitem" data-act="export-md">导出 Markdown<small>可读文本，能导入 Obsidian 等</small></button>'+
+      '<button class="oitem" data-act="copy-json">复制 JSON 到剪贴板<small>微信里打不开文件时用这个</small></button>'+
+      '<button class="oitem" data-act="import-open">从 JSON 导入<small>会覆盖当前全部数据</small></button>'+
+      '<button class="oitem" data-act="reseed">恢复示例数据<small>覆盖当前数据</small></button>'+
+      '<button class="oitem danger" data-act="clear-all">清空全部<small>数据不可恢复，先导出备份</small></button>'+
+    '</div>'+
+    '<p class="hint" style="text-align:left;padding-top:16px">数据只存在这台设备的浏览器里。换手机或清理浏览器数据前，先导出一份 JSON。</p>');
+}
+
+function download(name,text,mime){
+  try{
+    var blob=new Blob([text],{type:mime+';charset=utf-8'});
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a');
+    a.href=url; a.download=name;
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ document.body.removeChild(a); URL.revokeObjectURL(url); },400);
+    return true;
+  }catch(e){ return false; }
+}
+function copyText(text){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){ toast('已复制到剪贴板'); },fallback);
+  }else{ fallback(); }
+  function fallback(){
+    var ta=document.createElement('textarea');
+    ta.value=text; ta.style.position='fixed'; ta.style.left='-9999px';
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast('已复制到剪贴板'); }
+    catch(e){ toast('复制失败，请手动选择文本'); }
+    document.body.removeChild(ta);
+  }
+}
+function exportJSON(){
+  var text=JSON.stringify(db,null,2);
+  if(download('读书笔记备份-'+todayStr()+'.json',text,'application/json')) toast('已导出 JSON 文件');
+  else copyText(text);
+}
+function exportMD(){
+  var lines=['# 读书笔记','','导出时间：'+new Date().toLocaleString('zh-CN'),''];
+  kids(null).forEach(function(b){
+    if(b.title==='速记箱'&&countNotes(b.id)===0) return;
+    lines.push('## '+b.title,'');
+    kids(b.id).forEach(function(ch){
+      lines.push('### '+ch.title,'');
+      kids(ch.id).forEach(function(sec){
+        lines.push('#### '+sec.title,'');
+        kids(sec.id).forEach(function(n){
+          lines.push('**'+n.title+'**','');
+          var m=[];
+          if(n.page) m.push(n.page);
+          if(n.tags&&n.tags.length) m.push(n.tags.map(function(t){return '#'+t;}).join(' '));
+          var st={new:'未消化',review:'待复习',mastered:'已掌握'}[n.status];
+          if(st) m.push(st);
+          if(m.length) lines.push('*'+m.join('｜')+'*','');
+          if(n.excerpt) lines.push('> '+n.excerpt.split('\n').join('\n> '),'');
+          if(n.insight) lines.push('**我的理解**：'+n.insight,'');
+          if(n.action) lines.push('**怎么用**：'+n.action,'');
+          lines.push('');
+        });
+      });
+    });
+  });
+  if(download('读书笔记-'+todayStr()+'.md',lines.join('\n'),'text/markdown')) toast('已导出 Markdown');
+  else copyText(lines.join('\n'));
+}
+
+function sheetImport(){
+  openSheet('<p class="stitle">从 JSON 恢复</p>'+
+    '<p class="sdesc">导入会覆盖当前全部数据。若只是想看看，请先取消并导出一份当前备份。</p>'+
+    '<div class="fld"><label for="f-json">粘贴 JSON 内容</label>'+
+    '<textarea id="f-json" class="ta tall" placeholder="{\"version\":1,\"nodes\":[…]}"></textarea></div>'+
+    '<input class="filein" id="f-file" type="file" accept=".json,application/json">'+
+    '<div class="btn-row"><button class="btn btn-ghost" data-act="close">取消</button>'+
+    '<button class="btn btn-primary" data-act="import-do">覆盖导入</button></div>');
+  setTimeout(function(){
+    var f=document.getElementById('f-file');
+    if(f) f.addEventListener('change',function(){
+      var file=this.files&&this.files[0]; if(!file) return;
+      var r=new FileReader();
+      r.onload=function(){
+        var ta=document.getElementById('f-json');
+        if(ta){ ta.value=String(r.result); toast('已读取文件，点「覆盖导入」生效'); }
+      };
+      r.readAsText(file,'utf-8');
+    });
+  },60);
+}
+function doImport(){
+  var txt=v('f-json').trim();
+  if(!txt){ toast('先粘贴或选择 JSON 文件'); return; }
+  var o=null;
+  try{ o=JSON.parse(txt); }catch(e){}
+  if(!o||!o.nodes||typeof o.nodes.length!=='number'){
+    toast('JSON 格式不对，需要包含 nodes 数组');
+    return;
+  }
+  db={version:1,nodes:o.nodes};
+  saveDB(); closeSheet();
+  ui.path=[]; ui.noteId=null; ui.search=false; ui.q='';
+  render(); toast('已导入 '+db.nodes.length+' 条记录');
+}
+function doClearAll(){
+  openSheet('<p class="stitle">清空全部数据？</p>'+
+    '<p class="sdesc">所有书、章节和知识点都会删除，无法撤销。建议先导出一份 JSON。</p>'+
+    '<div class="btn-row"><button class="btn btn-ghost" data-act="close">取消</button>'+
+    '<button class="btn btn-warn" data-act="clear-confirm">确认清空</button></div>');
+}
+function doReseed(){
+  db=buildSeed(); saveDB();
+  ui.path=[]; ui.noteId=null; closeSheet(); render(); toast('已恢复示例数据');
+}
+
+/* ============ 13. 导航与状态 ============ */
+function openNode(id){
+  var n=byId(id); if(!n) return;
+  if(n.level===4){ openNote(id); return; }
+  ui.path=chain(id).map(function(x){return x.id;});
+  render();
+}
+function openNote(id){
+  var n=byId(id); if(!n) return;
+  ui.noteId=id;
+  ui.path=chain(id).slice(0,-1).map(function(x){return x.id;});
+  ui.search=false;
+  render();
+}
+function gotoTitle(t){
+  var n=db.nodes.filter(function(x){return x.level===4&&x.title===t;})[0];
+  if(n){ openNote(n.id); } else { toast('没有找到「'+t+'」这条笔记'); }
+}
+function cycleStatus(id){
+  var n=byId(id); if(!n) return;
+  n.status = n.status==='new'?'review':(n.status==='review'?'mastered':'new');
+  n.updated=now(); saveDB(); render();
+  toast({new:'标记为未消化',review:'标记为待复习',mastered:'标记为已掌握'}[n.status]);
+}
+function review(){
+  var notes=db.nodes.filter(function(n){return n.level===4;});
+  if(!notes.length){ toast('还没有知识点'); return; }
+  var pool=notes.filter(function(n){return n.status==='review';});
+  if(!pool.length) pool=notes;
+  var pick=pool[Math.floor(Math.random()*pool.length)];
+  closeSheet();
+  openNote(pick.id);
+  toast('回顾：'+pick.title);
+}
+function toggleTheme(){
+  var cur=LS.get(TH_KEY)||'auto';
+  var next=cur==='auto'?'light':(cur==='light'?'dark':'auto');
+  LS.set(TH_KEY,next);
+  applyTheme();
+  toast('外观：'+(next==='auto'?'跟随系统':(next==='light'?'浅色':'深色')));
+  if(ui.sheet){ sheetSettings(); }
+}
+
+/* ============ 14. 事件 ============ */
+document.addEventListener('click',function(e){
+  var el=e.target&&e.target.closest?e.target.closest('[data-act]'):null;
+  if(!el) return;
+  var act=el.getAttribute('data-act');
+  var val=el.getAttribute('data-val')||'';
+
+  if(act==='close-sheet'){
+    if(e.target!==el) return;
+    closeSheet(); return;
+  }
+  if(longPressFired){
+    longPressFired=false;
+    if(act==='open'||act==='goto-id') return;
+  }
+  switch(act){
+    case 'back': goBack(); break;
+    case 'jump':
+      var i=parseInt(val,10);
+      if(i<0){ ui.path=[]; ui.noteId=null; }
+      else { ui.path=ui.path.slice(0,i+1); ui.noteId=null; }
+      render(); break;
+    case 'open': openNode(val); break;
+    case 'goto-id': openNote(val); break;
+    case 'goto': gotoTitle(val); break;
+    case 'add': sheetCreate(); break;
+    case 'capture': sheetCapture(); break;
+    case 'search': ui.search=true; ui.q=''; render(); break;
+    case 'close-search': closeSearch(); break;
+    case 'more': if(ui.path.length) sheetActions(ui.path[ui.path.length-1]); break;
+    case 'more-note': sheetActions(val); break;
+    case 'close': closeSheet(); break;
+    case 'save-create': saveCreateNode(); break;
+    case 'save-note': saveNote(val); break;
+    case 'edit-note': closeSheet(); setTimeout(function(){ openNoteEditor(val); },190); break;
+    case 'rename': openRename(val); break;
+    case 'save-rename': saveRename(val); break;
+    case 'move': sheetMove(val); break;
+    case 'move-to': moveTo(val); break;
+    case 'del': sheetConfirmDelete(val); break;
+    case 'do-del': doDelete(val); break;
+    case 'cycle-status': cycleStatus(val); break;
+    case 'tag': ui.search=true; ui.q='#'+val; render(); break;
+    case 'save-capture': saveCapture(); break;
+    case 'review': review(); break;
+    case 'theme': toggleTheme(); break;
+    case 'settings': sheetSettings(); break;
+    case 'export-json': exportJSON(); break;
+    case 'export-md': exportMD(); break;
+    case 'copy-json': copyText(JSON.stringify(db,null,2)); break;
+    case 'import-open': sheetImport(); break;
+    case 'import-do': doImport(); break;
+    case 'clear-all': doClearAll(); break;
+    case 'clear-confirm':
+      db={version:1,nodes:[]}; saveDB();
+      ui.path=[]; ui.noteId=null; closeSheet(); render(); toast('已清空'); break;
+    case 'reseed': doReseed(); break;
+  }
+});
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    if(ui.sheet){ closeSheet(); }
+    else if(ui.search){ closeSearch(); }
+    else if(ui.noteId||ui.path.length){ goBack(); }
+  }
+});
+
+/* 长按条目：重命名 / 移动 / 删除 */
+document.addEventListener('pointerdown',function(e){
+  var row=e.target&&e.target.closest?e.target.closest('.row'):null;
+  if(!row) return;
+  clearTimeout(longPressTimer);
+  longPressFired=false;
+  longPressTimer=setTimeout(function(){
+    longPressFired=true;
+    var id=row.getAttribute('data-val');
+    if(id) sheetActions(id);
+  },420);
+},true);
+document.addEventListener('pointerup',function(){ clearTimeout(longPressTimer); },true);
+document.addEventListener('pointermove',function(){ clearTimeout(longPressTimer); },true);
+document.addEventListener('pointercancel',function(){ clearTimeout(longPressTimer); },true);
+
+/* 系统外观变化 */
+if(window.matchMedia){
+  var mq=window.matchMedia('(prefers-color-scheme: dark)');
+  var onChange=function(){ applyTheme(); };
+  if(mq.addEventListener) mq.addEventListener('change',onChange);
+  else if(mq.addListener) mq.addListener(onChange);
+}
+
+/* ============ 15. 启动 ============ */
+applyTheme();
+render();
+})();
+</script>
+</body>
+</html>

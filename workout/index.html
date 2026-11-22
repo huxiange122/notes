@@ -377,6 +377,7 @@ table.heat{border-collapse:separate;border-spacing:0;table-layout:fixed}
         <button class="chip" data-tab="week" type="button">按周</button>
         <button class="chip" data-tab="month" type="button">按月</button>
         <button class="chip" data-tab="compare" type="button">多周对比</button>
+        <button class="chip" data-tab="item" type="button">按运动项</button>
       </div>
       <div id="statsBody"></div>
     </div>
@@ -838,6 +839,10 @@ var statsTab = 'week';
 var weekOff = 0;
 var monthOff = 0;
 var cmpWeeks = 8;
+var itemMode = 'week';
+var itemEx = '';
+var itemSpanByMode = { day: 14, week: 8, month: 6 };
+var exChipsScroll = 0;
 var editingId = null;
 var editingEx = null;
 var toastTimer = null;
@@ -1655,7 +1660,10 @@ function renderStats(){
   if(!body) return;
   if(statsTab === 'month') body.innerHTML = viewMonth();
   else if(statsTab === 'compare') body.innerHTML = viewCompare();
+  else if(statsTab === 'item') body.innerHTML = viewItem();
   else body.innerHTML = viewWeek();
+  var ec = $('#exChips');
+  if(ec) ec.scrollLeft = exChipsScroll;
 }
 function viewWeek(){
   var w = weekRange(weekOff), p = weekRange(weekOff - 1);
@@ -1904,6 +1912,146 @@ function recsTip(){
   return '上次记录是 ' + mdShort(last.date) + '，距今 ' + gap + ' 天。';
 }
 
+/* ---------- 按运动项：按天/周/月筛选 ---------- */
+function itemPeriods(mode, span){
+  var out = [], i, w, m, d, ds;
+  if(mode === 'day'){
+    var today = new Date();
+    for(i = span - 1; i >= 0; i--){
+      ds = ymd(addDays(today, -i));
+      out.push({ start: ds, end: ds, label: mdShort(ds), sub: '' });
+    }
+  }else if(mode === 'month'){
+    for(i = span - 1; i >= 0; i--){
+      m = monthRange(-i);
+      d = parseYmd(m[0]);
+      out.push({ start: m[0], end: m[1], label: (d.getMonth() + 1) + '月', sub: String(d.getFullYear()) });
+    }
+  }else{
+    for(i = span - 1; i >= 0; i--){
+      w = weekRange(-i);
+      out.push({ start: w[0], end: w[1], label: mdShort(w[0]), sub: '' });
+    }
+  }
+  return out;
+}
+function viewItem(){
+  var ex = S.exercises.filter(function(e){ return !e.archived; });
+  if(!ex.length){
+    return '<div class="empty" style="margin-top:12px"><b>还没有运动项</b>先添加运动项，才能按项看趋势。' +
+      '<br><button class="btn" data-act="new-ex" type="button">添加运动项</button></div>';
+  }
+  var spans = { day: [7, 14], week: [4, 8, 12], month: [3, 6, 12] };
+  var modeNames = { day: '按天', week: '按周', month: '按月' };
+  var spanOpts = spans[itemMode] || spans.week;
+  var span = itemSpanByMode[itemMode];
+  if(spanOpts.indexOf(span) < 0) span = spanOpts[1];
+  var periods = itemPeriods(itemMode, span);
+  var matrix = {}, totals = {}, allTotals = [], i;
+  ex.forEach(function(e){ matrix[e.id] = []; totals[e.id] = 0; });
+  periods.forEach(function(p){
+    var recs = recordsBetween(p.start, p.end);
+    var sumAll = 0;
+    ex.forEach(function(e){
+      var v = sumCount(recs, e.id);
+      matrix[e.id].push(v);
+      totals[e.id] += v;
+      sumAll += v;
+    });
+    allTotals.push(sumAll);
+  });
+
+  var valid = (itemEx === '__all');
+  if(!valid){
+    for(i = 0; i < ex.length; i++){ if(ex[i].id === itemEx){ valid = true; break; } }
+  }
+  if(!valid){
+    var bestId = ex[0].id, bestV = -1;
+    for(i = 0; i < ex.length; i++){
+      if(totals[ex[i].id] > bestV){ bestV = totals[ex[i].id]; bestId = ex[i].id; }
+    }
+    itemEx = bestId;
+  }
+
+  var series = [], total = 0, peak = 0, peakIdx = 0;
+  for(i = 0; i < periods.length; i++){
+    var v = (itemEx === '__all') ? allTotals[i] : matrix[itemEx][i];
+    series.push({
+      label: periods[i].label,
+      value: v,
+      color: (itemEx === '__all' ? '#14654F' : exColor(itemEx)),
+      active: i === periods.length - 1
+    });
+    total += v;
+    if(v > peak){ peak = v; peakIdx = i; }
+  }
+  var recsAll = recordsBetween(periods[0].start, periods[periods.length - 1].end);
+  var days = statsFor(recsAll).days;
+  var selEx = null;
+  for(i = 0; i < ex.length; i++){ if(ex[i].id === itemEx) selEx = ex[i]; }
+  var selName = selEx ? selEx.name : '全部运动项';
+  var unit = selEx ? selEx.unit : '次';
+  var uw = (itemMode === 'day') ? '天' : (itemMode === 'week' ? '周' : '月');
+  var unitWord = (itemMode === 'day') ? '天' : (itemMode === 'week' ? '周' : '个月');
+
+  var h = '';
+  h += '<div class="chips" style="padding-bottom:2px;margin-top:2px">';
+  ['day', 'week', 'month'].forEach(function(m){
+    h += '<button class="chip' + (m === itemMode ? ' on' : '') + '" data-act="item-mode" data-mode="' + m + '" type="button">' + modeNames[m] + '</button>';
+  });
+  h += '</div>';
+
+  h += '<div class="chips" id="exChips" style="padding-bottom:2px">';
+  h += '<button class="chip' + (itemEx === '__all' ? ' on' : '') + '" data-act="item-ex" data-ex="__all" type="button">全部</button>';
+  ex.forEach(function(e){
+    h += '<button class="chip' + (e.id === itemEx ? ' on' : '') + '" data-act="item-ex" data-ex="' + esc(e.id) + '" type="button">' + esc(e.name) + '</button>';
+  });
+  h += '</div>';
+
+  h += '<div class="chips" style="padding-bottom:10px">';
+  spanOpts.forEach(function(k){
+    h += '<button class="chip' + (k === span ? ' on' : '') + '" data-act="item-span" data-n="' + k + '" type="button">最近 ' + k + ' ' + unitWord + '</button>';
+  });
+  h += '</div>';
+
+  h += '<div class="kpis">' +
+    kpi(fmtNum(total), unit, '合计') +
+    kpi(fmtNum(total / periods.length), unit, '每' + uw + '平均') +
+    kpi(fmtNum(peak), unit, '单期最高' + (peak ? '（' + periods[peakIdx].label + '）' : '')) +
+    kpi(days, '天', '有记录') + '</div>';
+
+  h += '<div class="sechead"><h2>每' + uw + '次数</h2><span class="hint">' + esc(selName) + ' · ' + esc(unit) + '</span></div>';
+  h += '<div class="card">' + chartBarsV(series, { label: '每' + uw + '次数', every: series.length > 8 ? 2 : 1, height: 172 }) + '</div>';
+  if(!total){
+    h += '<p class="footnote">这段时间还没有这一项的记录，换个范围或换一项看看。</p>';
+  }
+
+  var rows = '';
+  for(i = periods.length - 1; i >= 0; i--){
+    var vv = series[i].value;
+    var dlt = (i > 0) ? deltaOf(vv, series[i - 1].value) : { txt: '—', cls: 'flat' };
+    rows += '<tr><td>' + esc(periods[i].label) +
+      (periods[i].sub ? '<em style="font-style:normal;color:var(--ink3);font-size:10.5px"> ' + esc(periods[i].sub) + '</em>' : '') +
+      '</td><td>' + fmtNum(vv) + '</td><td class="' + dlt.cls + '">' + dlt.txt + '</td></tr>';
+  }
+  h += '<div class="sechead"><h2>逐' + uw + '明细</h2><span class="hint">最新在上</span></div>';
+  h += '<div class="card" style="padding:0 12px"><table class="cmp"><thead><tr><th>周期</th><th>次数</th><th>较上一期</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+
+  var order = ex.slice().sort(function(a, b){ return totals[b.id] - totals[a.id]; });
+  var srows = '';
+  order.forEach(function(e){
+    var mx = 0;
+    matrix[e.id].forEach(function(x){ if(x > mx) mx = x; });
+    srows += '<tr data-act="item-ex" data-ex="' + esc(e.id) + '" style="cursor:pointer">' +
+      '<td>' + esc(e.name) + '</td><td>' + fmtNum(totals[e.id]) + '</td>' +
+      '<td>' + fmtNum(totals[e.id] / periods.length) + '</td><td>' + fmtNum(mx) + '</td></tr>';
+  });
+  h += '<div class="sechead"><h2>各项合计</h2><span class="hint">点一行切换上方图表</span></div>';
+  h += '<div class="card" style="padding:0 12px"><table class="cmp"><thead><tr><th>运动项</th><th>合计</th><th>每' + uw + '平均</th><th>最高一次</th></tr></thead><tbody>' + srows + '</tbody></table></div>';
+  h += '<p class="footnote">柱高和柱顶数字都是次数；「全部」是把各运动项次数相加，只作总量参考。切到「按天」看单日，切到「按月」看长期趋势。</p>';
+  return h;
+}
+
 /* ---------- 设置视图 ---------- */
 function renderSet(){
   var list = $('#exList');
@@ -2074,6 +2222,20 @@ function onClick(ev){
       break;
     case 'cmp-n':
       cmpWeeks = Number(el.getAttribute('data-n')) || 8;
+      renderStats();
+      break;
+    case 'item-mode':
+      itemMode = el.getAttribute('data-mode') || 'week';
+      renderStats();
+      break;
+    case 'item-ex':
+      var eRow = $('#exChips');
+      if(eRow) exChipsScroll = eRow.scrollLeft;
+      itemEx = el.getAttribute('data-ex') || '';
+      renderStats();
+      break;
+    case 'item-span':
+      itemSpanByMode[itemMode] = Number(el.getAttribute('data-n')) || 8;
       renderStats();
       break;
     case 'export-json':

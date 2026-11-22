@@ -316,6 +316,105 @@ body.locked .wrap,body.locked .fab,body.locked .sheet,body.locked .mask,body.loc
 .lock-note{margin:8px 0 0;font-size:11px;line-height:1.6;color:var(--ink3)}
 .lock-forgot+.lock-forgot{margin-left:16px}
 
+/* ===== 页签 ===== */
+.topbar{position:sticky;top:0;z-index:20;background:var(--paper)}
+.topbar .bar{position:static}
+.tabs{display:flex;gap:6px;padding:0 16px 9px}
+.tab{
+  flex:1;height:33px;border:1px solid var(--line);border-radius:6px;background:var(--card);
+  font-size:13px;color:var(--ink2);
+}
+.tab.on{background:var(--accent);border-color:var(--accent);color:#F4F8F2;font-weight:600}
+.view{display:none}
+.view.on{display:block}
+
+/* ===== 资产页 ===== */
+.io-box{border:1px solid var(--line2);border-radius:8px;background:#FFF;padding:4px 12px 12px}
+.io-line{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line2)}
+.io-line:last-of-type{border-bottom:0}
+.io-line em{flex:0 0 auto;font-style:normal;font-size:12px;color:var(--ink3)}
+.io-line b{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:14px;font-weight:600}
+.io-line .amount-wrap{max-width:168px;flex:1}
+.io-line .amount-wrap .inp{height:40px;font-size:16px;padding-left:26px}
+.io-line .amount-wrap i{left:10px;font-size:14px}
+.io-line b.up{color:var(--accent)}
+.io-line b.down{color:var(--warm)}
+.io-check{display:flex;align-items:flex-start;gap:8px;margin-top:11px;font-size:12px;color:var(--ink2);line-height:1.5}
+.io-check input{width:16px;height:16px;margin:1px 0 0;flex:0 0 auto;accent-color:var(--accent)}
+.arows{margin-top:2px}
+.arow{
+  display:grid;grid-template-columns:1fr auto 14px;align-items:center;gap:10px;width:100%;
+  min-height:46px;padding:9px 2px;border:0;border-bottom:1px solid var(--line2);background:transparent;
+  text-align:left;font-size:14px;color:var(--ink);
+}
+.arow:active{background:#EBEEE6}
+.arow .a-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.arow .a-amt{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:14px;font-weight:600;white-space:nowrap}
+.arow .a-amt.neg{color:var(--warm)}
+.arow .arr svg{width:12px;height:12px;color:var(--ink3)}
+.arow.auto{color:var(--ink2);cursor:default}
+.arow.auto .a-name small{display:block;font-size:10.5px;color:var(--ink3);font-weight:400}
+.sec-h .add{height:26px;padding:0 9px;border:1px solid var(--line);border-radius:5px;background:var(--card);font-size:12px;color:var(--ink2)}
+.sec-h .add:active{background:var(--accent2)}
+
+/* ===== 投资页 ===== */
+.hcard{border:1px solid var(--line2);border-radius:9px;background:var(--card);padding:11px 12px 10px;margin-bottom:9px}
+.hcard.on{border-color:#B9CFC3}
+.hcard:active{background:#F1F3EC}
+.hcard-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.hcard-l{min-width:0}
+.hkind{
+  display:inline-block;margin-right:5px;padding:0 4px;border:1px solid var(--line);border-radius:3px;
+  font-size:10px;color:var(--ink3);vertical-align:1px;
+}
+.hkind.fund{border-color:#C9D2BC;color:#7A7F52}
+.hname{font-size:15px;font-weight:600;letter-spacing:.01em}
+.hcode{font-family:var(--mono);font-size:10.5px;color:var(--ink3);margin-left:4px}
+.hpnl{flex:0 0 auto;text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.hpnl b{display:block;font-size:14px;font-weight:600}
+.hpnl em{font-style:normal;font-size:10.5px;color:var(--ink3)}
+.hpnl b.up{color:var(--accent)}
+.hpnl b.down{color:var(--warm)}
+.hgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px 10px;margin-top:9px}
+.hcell{min-width:0}
+.hcell em{display:block;font-style:normal;font-size:10.5px;color:var(--ink3);margin-bottom:1px}
+.hcell b{
+  display:block;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:12.5px;font-weight:500;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.htags{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.htag{
+  padding:2px 6px;border:1px solid var(--line);border-radius:4px;background:#FFF;
+  font-size:10.5px;color:var(--ink2);white-space:nowrap;
+}
+.htag.add{border-color:#BFD5C8;background:var(--accent2);color:var(--accent);font-weight:600}
+.htag.less{border-color:#E0CBBC;background:#FBF2EC;color:var(--warm)}
+.htag.sell{border-color:var(--warm);background:var(--warm);color:#FFF;font-weight:600}
+.htag.ghost{color:var(--ink3)}
+.alert-row{
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:9px 10px;margin-bottom:7px;
+  border:1px solid #E0CBBC;border-radius:7px;background:#FBF2EC;font-size:13px;
+}
+.alert-row b{font-family:var(--mono);font-size:12.5px;color:var(--warm);white-space:nowrap}
+.txt{
+  margin:0;max-height:58vh;overflow:auto;padding:12px;border:1px solid var(--line2);border-radius:8px;
+  background:#FFF;font-family:var(--mono);font-size:11.5px;line-height:1.75;white-space:pre-wrap;
+  word-break:break-word;color:var(--ink);
+}
+.adv{margin:4px 0 16px;border:1px solid var(--line2);border-radius:8px;background:#FFF}
+.adv summary{
+  padding:10px 12px;font-size:12px;color:var(--ink2);cursor:pointer;list-style:none;
+}
+.adv summary::-webkit-details-marker{display:none}
+.adv summary b{font-weight:600;color:var(--ink);font-size:12.5px}
+.adv[open] summary{border-bottom:1px solid var(--line2)}
+.adv-b{padding:12px}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.pair .field{margin-bottom:10px}
+.pair .inp{height:40px;font-size:15px}
+.pair .field > label{font-size:10.5px}
+.snap-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 14px}
+
 @media (min-width:768px){
   .hero{padding-top:22px}
   #pie{max-width:440px}
@@ -333,13 +432,22 @@ body.locked .wrap,body.locked .fab,body.locked .sheet,body.locked .mask,body.loc
 <body>
 
 <div class="wrap">
-  <header class="bar">
-    <div class="bar-l">
-      <span class="mark" aria-hidden="true">账</span>
-      <div class="bar-t">记账分析<span>流水 · 筛选 · 构成</span></div>
-    </div>
-    <button class="btn-ghost" id="btnExport">导出</button>
-  </header>
+  <div class="topbar">
+    <header class="bar">
+      <div class="bar-l">
+        <span class="mark" aria-hidden="true">账</span>
+        <div class="bar-t">记账分析<span>流水 · 资产 · 投资</span></div>
+      </div>
+      <button class="btn-ghost" id="btnExport">导出</button>
+    </header>
+    <nav class="tabs" id="tabs" aria-label="页面切换">
+      <button class="tab on" data-view="book">账本</button>
+      <button class="tab" data-view="assets">资产</button>
+      <button class="tab" data-view="invest">投资</button>
+    </nav>
+  </div>
+
+<div class="view on" id="viewBook">
 
   <!-- ===== 总览 ===== -->
   <section class="hero">
@@ -413,11 +521,126 @@ body.locked .wrap,body.locked .fab,body.locked .sheet,body.locked .mask,body.loc
     <button class="more" id="btnMore">显示更多</button>
   </section>
 
-  <div class="foot" id="foot">
-    <b>关于数据</b>
-    所有记录只保存在这台设备的浏览器里，不上传任何服务器。换手机、清理浏览器缓存或换浏览器打开都会看不到旧数据，建议每月导出一次备份文件。
+  <div class="foot">
+    <b>关于账本数据</b>
+    所有记录只保存在这台设备的浏览器里，不上传任何服务器。换手机、清理浏览器缓存或换浏览器打开都会看不到旧数据，建议每月导出一次备份文件（备份含账本、资产与持仓，不含密码）。
+  </div>
+
+</div><!-- /viewBook -->
+
+<!-- ===================== 资产页 ===================== -->
+<div class="view" id="viewAssets">
+
+  <section class="hero">
+    <div class="hero-range">
+      <span class="range-btn" id="assetDate" style="cursor:default">—</span>
+      <span class="tag">净资产</span>
+    </div>
+    <div class="hero-total"><i>¥</i><b id="netNum">0.00</b></div>
+    <div class="stats">
+      <div class="stat"><em>现金资产</em><b id="cashNum">0.00</b></div>
+      <div class="stat"><em>实物资产</em><b id="physNum">0.00</b></div>
+      <div class="stat"><em>负债</em><b id="debtNum">0.00</b></div>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-h"><h2>本月收支</h2><span class="hint" id="ioHint">支出取自账本</span></div>
+    <div class="io-box">
+      <div class="io-line">
+        <em>本月收入（税后）</em>
+        <div class="amount-wrap"><i>¥</i><input class="inp" id="asIncome" inputmode="decimal" placeholder="0.00" aria-label="本月收入"></div>
+      </div>
+      <div class="io-line"><em>本月支出（账本）</em><b class="num" id="asExpense">0.00</b></div>
+      <div class="io-line"><em>本月结余</em><b class="num" id="asSurplus">0.00</b></div>
+      <label class="io-check">
+        <input type="checkbox" id="asAuto">
+        <span>把本月账本支出当作信用卡开销，从净资产里扣减（信用卡还没还款的部分）</span>
+      </label>
+      <p class="tip">净资产 = 现金资产 + 实物资产 − 负债；勾选后「本月支出」会额外计入负债。收入填税后到手金额，结余 = 收入 − 本月支出。</p>
+    </div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-h">
+      <h2>现金资产</h2>
+      <span class="hint"><b class="num" id="cashTotal">0.00</b> <button class="add" data-addass="cash">添加</button></span>
+    </div>
+    <div class="arows" id="cashRows"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-h">
+      <h2>实物资产</h2>
+      <span class="hint"><b class="num" id="physTotal">0.00</b> <button class="add" data-addass="phys">添加</button></span>
+    </div>
+    <div class="arows" id="physRows"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-h">
+      <h2>负债</h2>
+      <span class="hint"><b class="num" id="debtTotal">0.00</b> <button class="add" data-addass="debt">添加</button></span>
+    </div>
+    <div class="arows" id="debtRows"></div>
+    <div class="arows" id="autoRows"></div>
+    <p class="tip">房产、车按你心里的估值填；负债填剩余未还金额，不是月供。</p>
+  </section>
+
+  <div class="foot">
+    <b>关于资产</b>
+    资产是一份「当前快照」，你更新一次金额就覆盖一次，不做历史月度留存；账本支出自动取整月数据来算结余和信用卡开销。
   </div>
 </div>
+
+<!-- ===================== 投资页 ===================== -->
+<div class="view" id="viewInvest">
+
+  <section class="hero">
+    <div class="hero-range">
+      <span class="range-btn" id="invDate" style="cursor:default">—</span>
+      <span class="tag">持仓市值</span>
+    </div>
+    <div class="hero-total"><i>¥</i><b id="invMv">0.00</b></div>
+    <div class="stats">
+      <div class="stat"><em>浮动盈亏</em><b id="invPnl">—</b></div>
+      <div class="stat"><em>收益率</em><b id="invPct">—</b></div>
+      <div class="stat"><em>本月定投</em><b id="invDca">—</b></div>
+    </div>
+  </section>
+
+  <section class="sec" id="secAlert" style="display:none">
+    <div class="sec-h"><h2>卖出提醒</h2><span class="hint" id="alertHint"></span></div>
+    <div id="alertList"></div>
+  </section>
+
+  <section class="sec">
+    <div class="sec-h">
+      <h2>持仓</h2>
+      <span style="display:flex;align-items:baseline;gap:8px">
+        <button class="text-btn" id="btnInvText">导出文本</button>
+        <button class="add" id="btnInvAdd">添加</button>
+      </span>
+    </div>
+    <div id="invList"></div>
+    <div class="empty" id="invEmpty" style="display:none">
+      <p>还没有持仓。点右上「添加」，先记一只股票或基金。</p>
+    </div>
+    <p class="tip">每次保存会把当天的价格与 PE 存成一条快照，定投建议用「当前 PE 与前几次 PE 均值」比较得出：低于均值 10% 建议加大，高于 10% 建议减少。占位为估算，不构成投资建议。</p>
+  </section>
+
+  <div class="foot">
+    <b>关于投资数据</b>
+    股价、PE 等需要你自己填（本工具不联网抓行情）。每月改一次价格再保存，就会自动攒出一条 PE 记录，用于判断这次定投该加还是该减。
+  </div>
+</div>
+
+<div class="foot" id="storeFoot">
+  <b>关于存储</b>
+  账本、资产、持仓三页的数据都存在这台设备的这个浏览器里。换设备请用「导出 → 导出备份文件」带走，再在新设备导入。
+</div>
+
+</div><!-- /wrap -->
 
 <button class="fab" id="btnAdd">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
@@ -554,7 +777,7 @@ body.locked .wrap,body.locked .fab,body.locked .sheet,body.locked .mask,body.loc
       <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
     </button>
     <button class="act" id="btnBkup">
-      <div>导出备份文件<small>含全部记录与类型，换手机/换电脑用它带走（不含密码）</small></div>
+      <div>导出备份文件<small>账本 + 资产 + 持仓一次带走，换手机/换电脑用它（不含密码）</small></div>
       <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
     </button>
     <button class="act" id="btnBkin">
@@ -571,7 +794,7 @@ body.locked .wrap,body.locked .fab,body.locked .sheet,body.locked .mask,body.loc
       <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
     </button>
     <button class="act" id="btnWipe" style="color:var(--warm)">
-      <div>清空本机全部记录<small id="wipeHint">删除后不可恢复，建议先导出备份</small></div>
+      <div>清空本机全部记录<small id="wipeHint">连资产与持仓一起删除，不可恢复；建议先导出备份</small></div>
       <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
     </button>
     <p class="tip" id="storeNote">数据只存在这台设备的这个浏览器里（localStorage），关闭页面不会丢；换手机或换浏览器，请用上面的备份导出 / 导入搬过去。</p>
@@ -610,12 +833,171 @@ body.locked .wrap,body.locked .fab,body.locked .sheet,body.locked .mask,body.loc
       <div class="imp-row"><em>金额合计</em><b id="impTotal">—</b></div>
       <div class="imp-row"><em>与本机重复</em><b id="impDup">—</b></div>
       <div class="imp-row"><em>本机现有</em><b id="impHave">—</b></div>
+      <div class="imp-row"><em>备份里资产</em><b id="impAssets">—</b></div>
+      <div class="imp-row"><em>备份里持仓</em><b id="impInvest">—</b></div>
     </div>
     <p class="tip" id="impTip"></p>
   </div>
   <div class="sheet-f">
     <button class="btn-danger" id="btnImpReplace">覆盖</button>
     <button class="btn-primary" id="btnImpMerge">合并导入</button>
+  </div>
+</section>
+
+<!-- ===== 面板：资产条目 ===== -->
+<section class="sheet" id="sheetAsset" aria-hidden="true">
+  <div class="sheet-h">
+    <h3 id="assetTitle">添加资产</h3>
+    <button class="close-x" data-close aria-label="关闭">×</button>
+  </div>
+  <div class="sheet-b">
+    <div class="field">
+      <label for="asName">名称</label>
+      <input class="inp" id="asName" maxlength="10" placeholder="如：支付宝、房产、房贷">
+    </div>
+    <div class="field">
+      <label for="asValue">金额</label>
+      <div class="amount-wrap"><i>¥</i><input class="inp" id="asValue" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
+      <p class="tip" id="asTip">负债也填正数，系统会从净资产里减掉它。</p>
+    </div>
+    <div class="field">
+      <span class="lab">归属</span>
+      <div class="seg" id="asKind">
+        <button data-k="cash">现金资产</button>
+        <button data-k="phys">实物资产</button>
+        <button data-k="debt">负债</button>
+      </div>
+    </div>
+  </div>
+  <div class="sheet-f">
+    <button class="btn-danger" id="btnAssetDel" style="display:none">删除</button>
+    <button class="btn-primary" id="btnAssetSave">保存</button>
+  </div>
+</section>
+
+<!-- ===== 面板：持仓（股票 / 基金） ===== -->
+<section class="sheet" id="sheetHolding" aria-hidden="true">
+  <div class="sheet-h">
+    <h3 id="hTitle">添加持仓</h3>
+    <button class="close-x" data-close aria-label="关闭">×</button>
+  </div>
+  <div class="sheet-b">
+    <div class="field">
+      <span class="lab">品种</span>
+      <div class="seg" id="hKind">
+        <button data-k="stock">股票</button>
+        <button data-k="fund">基金</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="lab">名称与代码</span>
+      <div class="pair">
+        <div><input class="inp" id="hName" maxlength="14" placeholder="名称，如：贵州茅台" aria-label="名称"></div>
+        <div><input class="inp" id="hCode" maxlength="10" placeholder="代码，如：600519" aria-label="代码"></div>
+      </div>
+    </div>
+    <div class="field">
+      <span class="lab">份额与价格</span>
+      <div class="pair">
+        <div>
+          <label for="hShares" style="font-size:10.5px;color:var(--ink3);display:block;margin-bottom:4px">持股数 / 份额</label>
+          <input class="inp" id="hShares" inputmode="decimal" placeholder="100" autocomplete="off">
+        </div>
+        <div>
+          <label for="hCost" style="font-size:10.5px;color:var(--ink3);display:block;margin-bottom:4px">成本单价</label>
+          <input class="inp" id="hCost" inputmode="decimal" placeholder="1500" autocomplete="off">
+        </div>
+      </div>
+      <div class="pair" style="margin-top:9px">
+        <div>
+          <label for="hPrice" style="font-size:10.5px;color:var(--ink3);display:block;margin-bottom:4px">现价 / 最新净值</label>
+          <input class="inp" id="hPrice" inputmode="decimal" placeholder="1680" autocomplete="off">
+        </div>
+        <div>
+          <label for="hStart" style="font-size:10.5px;color:var(--ink3);display:block;margin-bottom:4px">建仓日期</label>
+          <input class="inp" type="date" id="hStart">
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <span class="lab">定投与卖出</span>
+      <div class="pair">
+        <div>
+          <label for="hDca" style="font-size:10.5px;color:var(--ink3);display:block;margin-bottom:4px">每月定投（元）</label>
+          <input class="inp" id="hDca" inputmode="decimal" placeholder="3000" autocomplete="off">
+        </div>
+        <div>
+          <label for="hSell" style="font-size:10.5px;color:var(--ink3);display:block;margin-bottom:4px">卖出门限价</label>
+          <input class="inp" id="hSell" inputmode="decimal" placeholder="1900" autocomplete="off">
+        </div>
+      </div>
+      <p class="tip">现价达到或超过卖出门限时，「投资」页顶部会给提醒；门限填 0 表示不设。</p>
+    </div>
+
+    <details class="adv" id="hStockBox">
+      <summary><b>股票的估值因素</b>（选填，越全越利于让豆包判断贵还是便宜）</summary>
+      <div class="adv-b">
+        <div class="pair">
+          <div class="field"><label for="hPe">市盈率 PE</label><input class="inp" id="hPe" inputmode="decimal" placeholder="22.4"></div>
+          <div class="field"><label for="hPb">市净率 PB</label><input class="inp" id="hPb" inputmode="decimal" placeholder="3.2"></div>
+          <div class="field"><label for="hPs">市销率 PS</label><input class="inp" id="hPs" inputmode="decimal" placeholder="8.1"></div>
+          <div class="field"><label for="hPeg">PEG</label><input class="inp" id="hPeg" inputmode="decimal" placeholder="1.4"></div>
+          <div class="field"><label for="hRoe">ROE（%）</label><input class="inp" id="hRoe" inputmode="decimal" placeholder="28.5"></div>
+          <div class="field"><label for="hDiv">股息率（%）</label><input class="inp" id="hDiv" inputmode="decimal" placeholder="2.1"></div>
+          <div class="field"><label for="hEps">每股收益 EPS</label><input class="inp" id="hEps" inputmode="decimal" placeholder="75.2"></div>
+          <div class="field"><label for="hCap">总市值（亿）</label><input class="inp" id="hCap" inputmode="decimal" placeholder="21000"></div>
+          <div class="field"><label for="hRev">营收增速（%）</label><input class="inp" id="hRev" inputmode="decimal" placeholder="15"></div>
+          <div class="field"><label for="hProfit">净利增速（%）</label><input class="inp" id="hProfit" inputmode="decimal" placeholder="18"></div>
+          <div class="field"><label for="hDr">资产负债率（%）</label><input class="inp" id="hDr" inputmode="decimal" placeholder="22"></div>
+          <div class="field"><label for="hTarget">目标价</label><input class="inp" id="hTarget" inputmode="decimal" placeholder="2000"></div>
+        </div>
+        <div class="field"><label for="hInd">行业 / 板块</label><input class="inp" id="hInd" maxlength="12" placeholder="如：白酒、半导体"></div>
+        <p class="tip">还可以在备注里写：机构持仓变化、政策风险、分红方案等。</p>
+      </div>
+    </details>
+
+    <details class="adv" id="hFundBox">
+      <summary><b>基金的评估因素</b>（选填）</summary>
+      <div class="adv-b">
+        <div class="pair">
+          <div class="field"><label for="hAcc">累计净值</label><input class="inp" id="hAcc" inputmode="decimal" placeholder="2.35"></div>
+          <div class="field"><label for="hRet1y">近一年收益（%）</label><input class="inp" id="hRet1y" inputmode="decimal" placeholder="8.6"></div>
+          <div class="field"><label for="hMdd">最大回撤（%）</label><input class="inp" id="hMdd" inputmode="decimal" placeholder="12"></div>
+          <div class="field"><label for="hFee">管理费率（%）</label><input class="inp" id="hFee" inputmode="decimal" placeholder="0.5"></div>
+        </div>
+        <div class="field"><label for="hTrack">跟踪指数 / 基金类型</label><input class="inp" id="hTrack" maxlength="16" placeholder="如：沪深300、偏股混合"></div>
+      </div>
+    </details>
+
+    <div class="field">
+      <label for="hNote">备注</label>
+      <input class="inp" id="hNote" maxlength="80" placeholder="选填，如：分红再投、机构减持">
+    </div>
+
+    <div class="snap-row">
+      <button class="add" id="btnSnap">记一次今天的价格 / PE</button>
+      <span class="hint" id="snapHint"></span>
+    </div>
+  </div>
+  <div class="sheet-f">
+    <button class="btn-danger" id="btnHoldDel" style="display:none">删除</button>
+    <button class="btn-primary" id="btnHoldSave">保存</button>
+  </div>
+</section>
+
+<!-- ===== 面板：投资文本 ===== -->
+<section class="sheet" id="sheetInvText" aria-hidden="true">
+  <div class="sheet-h">
+    <h3>投资摘要（文本）</h3>
+    <button class="close-x" data-close aria-label="关闭">×</button>
+  </div>
+  <div class="sheet-b">
+    <pre class="txt" id="invTextPre"></pre>
+    <p class="tip">复制后直接粘给豆包，问「这只票现在贵还是便宜、这次定投该加还是该减」即可。</p>
+  </div>
+  <div class="sheet-f">
+    <button class="btn-danger" id="btnInvCopy">复制</button>
+    <button class="btn-primary" id="btnInvDownload">下载 .txt</button>
   </div>
 </section>
 
@@ -999,7 +1381,7 @@ function pieLabelLayout(slices, opt) {
 }
 
 /* ---------- 备份文件（换设备迁移） ---------- */
-const BK_VERSION = 2;
+const BK_VERSION = 3;
 const BK_MAX_ITEMS = 20000;
 
 // 去重指纹：日期 + 类型 + 金额(分) + 备注 + 花费人
@@ -1010,7 +1392,12 @@ function bkSignature(it) {
 // 校验备份对象；返回 {ok, error, items, cats, people, bad, count, total}
 function validateBackup(obj) {
   if (!obj || typeof obj !== 'object') return { ok: false, error: '文件内容不是有效的备份' };
-  const raw = Array.isArray(obj) ? obj : obj.items;
+  const isArr = Array.isArray(obj);
+  const rawList = isArr ? obj : (Array.isArray(obj.items) ? obj.items : null);
+  const bkA = isArr ? null : sanitizeAssets(obj.assets);
+  const bki = isArr ? null : sanitizeInvest(obj.invest);
+  if (!Array.isArray(rawList) && !bkA && !bki) return { ok: false, error: '备份里没有 items 记录列表' };
+  const raw = Array.isArray(rawList) ? rawList : [];
   if (!Array.isArray(raw)) return { ok: false, error: '备份里没有 items 记录列表' };
   if (raw.length > BK_MAX_ITEMS) return { ok: false, error: '备份记录过多（上限 ' + BK_MAX_ITEMS + ' 条）' };
   const items = [];
@@ -1038,12 +1425,13 @@ function validateBackup(obj) {
     if (t && people.indexOf(t) < 0) people.push(t);
   });
   items.forEach(function (x) { if (x.p && people.indexOf(x.p) < 0) people.push(x.p); });
-  if (!items.length) {
+  if (!items.length && !bkA && !bki) {
     return { ok: false, error: bad ? '备份里 ' + bad + ' 条记录全部无效（日期或金额格式不对）' : '备份里没有可导入的记录' };
   }
   return {
     ok: true, items: items, cats: cats, people: people, bad: bad, count: items.length,
     total: items.reduce(function (s, x) { return s + x.a; }, 0),
+    assets: bkA, invest: bki,
   };
 }
 
@@ -1071,6 +1459,298 @@ function bkDateRange(items) {
   let a = items[0].d, b = items[0].d;
   items.forEach(function (x) { if (x.d < a) a = x.d; if (x.d > b) b = x.d; });
   return a === b ? a : a + ' ~ ' + b;
+}
+
+/* ---------- 资产（净资产页） ---------- */
+const ASSET_KEY = 'jz_assets_v1';
+const ASSET_KINDS = ['cash', 'phys', 'debt'];
+const ASSET_NAME_MAX = 10;
+const ASSET_DEFS = [
+  { k: 'cash', label: '现金资产', names: ['支付宝', '微信零钱', '银行卡', '股票/基金账户', '现金'] },
+  { k: 'phys', label: '实物资产', names: ['房产', '车'] },
+  { k: 'debt', label: '负债', names: ['房贷', '车贷', '信用卡待还'] }
+];
+
+function defaultAssets() {
+  const a = { v: 1, seq: 1, at: '', income: 0, autoExpense: true, cash: [], phys: [], debt: [] };
+  ASSET_DEFS.forEach(function (d) {
+    d.names.forEach(function (n) { a[d.k].push({ id: a.seq++, name: n, a: 0 }); });
+  });
+  return a;
+}
+
+function sumCents(rows) {
+  let s = 0;
+  (rows || []).forEach(function (r) { s += Math.round(Number(r.a) || 0); });
+  return s;
+}
+
+// 净资产口径：现金 + 实物 − 负债（可选把本月账本支出当作信用卡待还一起扣）
+function assetSums(a, expenseCents) {
+  const cash = sumCents(a.cash);
+  const phys = sumCents(a.phys);
+  const debtOwn = sumCents(a.debt);
+  const exp = a.autoExpense ? Math.max(0, Math.round(Number(expenseCents) || 0)) : 0;
+  const income = Math.max(0, Math.round(Number(a.income) || 0));
+  return {
+    cash: cash, phys: phys, debtOwn: debtOwn, auto: exp, debt: debtOwn + exp,
+    net: cash + phys - (debtOwn + exp),
+    income: income, expense: Math.max(0, Math.round(Number(expenseCents) || 0)),
+    surplus: income - Math.max(0, Math.round(Number(expenseCents) || 0)),
+  };
+}
+
+/* ---------- 投资（持仓页） ---------- */
+const INV_KEY = 'jz_invest_v1';
+const INV_HIST_MAX = 24;
+const INV_TEXT_MAX = 4000;
+
+// 价格/份额/PE 这类带小数的输入：允许 4 位小数，去空格与千分位
+function numOf(v) {
+  if (v === null || v === undefined) return 0;
+  const s = String(v).replace(/[¥￥，,%＋+,\s]/g, '');
+  const n = parseFloat(s);
+  return isFinite(n) ? n : 0;
+}
+
+function fmtNum(v, d) {
+  const dp = d === undefined ? 2 : d;
+  const n = Number(v) || 0;
+  let s = n.toFixed(dp);
+  if (s.indexOf('.') >= 0) s = s.replace(/0+$/, '').replace(/\.$/, '');
+  return s;
+}
+
+function signedMoney(c) {
+  const n = Math.round(c || 0);
+  return (n < 0 ? '-¥' : '+¥') + fmtCents(Math.abs(n));
+}
+
+function signedPct(v, d) {
+  const n = Number(v) || 0;
+  return (n > 0 ? '+' : '') + fmtNum(n, d === undefined ? 2 : d) + '%';
+}
+
+function invCalc(h, today) {
+  const t = today || todayISO();
+  const shares = numOf(h.shares);
+  const price = numOf(h.price);
+  const cost = numOf(h.cost);
+  const mv = Math.round(shares * price * 100);
+  const cv = Math.round(shares * cost * 100);
+  const pnl = mv - cv;
+  const pnlPct = cv > 0 ? pnl / cv * 100 : 0;
+  const days = (h.start && isValidDate(h.start))
+    ? Math.max(0, Math.round((Date.parse(t + 'T00:00:00') - Date.parse(h.start + 'T00:00:00')) / DAY_MS)) : 0;
+  let annual = null, annualNote = '';
+  if (days > 0 && days < 30) annualNote = '持有不足 30 天';
+  else if (days >= 30 && cv > 0 && mv > 0) {
+    const v = (Math.pow(mv / cv, 365 / days) - 1) * 100;
+    if (isFinite(v)) {
+      annual = Math.max(-100, Math.min(v, 1000));
+      if (days < 90) annualNote = '样本不足 3 个月';
+    }
+  }
+  const sell = numOf(h.sell);
+  const toSell = sell > 0 && price > 0 && price >= sell;
+  const sellGap = (sell > 0 && price > 0) ? (sell / price - 1) * 100 : null;
+  return {
+    shares: shares, price: price, cost: cost, mv: mv, cv: cv, pnl: pnl, pnlPct: pnlPct,
+    days: days, annual: annual, annualNote: annualNote, sell: sell, toSell: toSell, sellGap: sellGap,
+  };
+}
+
+// 定投建议：当前 PE 与最近 6 次历史 PE 的均值比，低 10% 加大、高 10% 减少
+function peAdvice(h) {
+  const cur = numOf(h.pe);
+  const hs = (h.hist || []).filter(function (x) { return x && numOf(x.pe) > 0; });
+  if (!cur) return { level: 'none', label: '未填 PE', mult: 1, avg: null, n: hs.length, diff: null };
+  if (hs.length < 2) return { level: 'few', label: '样本不足', mult: 1, avg: null, n: hs.length, diff: null };
+  const last = hs.slice(-6);
+  const avg = last.reduce(function (s, x) { return s + numOf(x.pe); }, 0) / last.length;
+  const diff = Math.round((cur / avg - 1) * 10000) / 100; // 保留两位，避免浮点误差卡在 ±10% 边界
+  if (diff <= -10) return { level: 'more', label: '加大', mult: 1.5, avg: avg, n: last.length, diff: diff };
+  if (diff >= 10) return { level: 'less', label: '减少', mult: 0.6, avg: avg, n: last.length, diff: diff };
+  return { level: 'keep', label: '维持', mult: 1, avg: avg, n: last.length, diff: diff };
+}
+
+function invTotals(holdings, today) {
+  let mv = 0, cv = 0, dca = 0, suggest = 0, alerts = 0;
+  (holdings || []).forEach(function (h) {
+    const c = invCalc(h, today);
+    const ad = peAdvice(h);
+    mv += c.mv;
+    cv += c.cv;
+    const plan = Math.round(numOf(h.dca));
+    dca += plan;
+    suggest += Math.round(plan * ad.mult);
+    if (c.toSell) alerts++;
+  });
+  const pnl = mv - cv;
+  return {
+    mv: mv, cv: cv, pnl: pnl, pnlPct: cv > 0 ? pnl / cv * 100 : 0,
+    dca: dca, suggest: suggest, alerts: alerts, n: (holdings || []).length,
+  };
+}
+
+// 保存时自动记一条快照：同一天同价同 PE 不重复写；只保留最近 24 条
+function invSnapHist(hist, d, price, pe) {
+  const list = (hist || []).map(function (x) { return { d: x.d, price: numOf(x.price), pe: numOf(x.pe) }; });
+  const px = numOf(price), pv = numOf(pe);
+  if (!isValidDate(d) || !px) return list;
+  const last = list[list.length - 1];
+  if (last && last.d === d && last.price === px && last.pe === pv) return list;
+  list.push({ d: d, price: px, pe: pv });
+  while (list.length > INV_HIST_MAX) list.shift();
+  return list;
+}
+
+function holdingBlock(h, idx, today) {
+  const c = invCalc(h, today);
+  const ad = peAdvice(h);
+  const kind = h.kind === 'fund' ? '基金' : '股票';
+  const unit = h.kind === 'fund' ? '份' : '股';
+  const out = ['【' + idx + '】' + (h.name || '未命名') + (h.code ? '（' + h.code + '，' + kind + '）' : '（' + kind + '）')];
+  out.push('  持有 ' + fmtNum(c.shares, 4) + ' ' + unit + ' ｜ 成本 ' + fmtNum(c.cost, 3) +
+    ' ｜ 现价 ' + fmtNum(c.price, 3) + ' ｜ 市值 ¥' + fmtCents(c.mv));
+  out.push('  盈亏 ' + signedMoney(c.pnl) + '（' + signedPct(c.pnlPct) + '）' +
+    (c.days ? ' ｜ 持有 ' + c.days + ' 天' +
+      (c.annual !== null ? '，年化约 ' + signedPct(c.annual, 2) + (c.annualNote ? '（' + c.annualNote + '）' : '') : '') : ''));
+  const plan = Math.round(numOf(h.dca));
+  let dcaLine = '  定投计划 ¥' + fmtCents(plan) + ' / 月';
+  if (ad.level === 'more' || ad.level === 'keep' || ad.level === 'less') {
+    dcaLine += ' ｜ 当前 PE ' + fmtNum(numOf(h.pe), 2) + '，前 ' + ad.n + ' 次均值 ' + fmtNum(ad.avg, 2) +
+      '（' + (ad.diff >= 0 ? '高' : '低') + fmtNum(Math.abs(ad.diff), 1) + '%）→ 建议' + ad.label +
+      '，约 ¥' + fmtCents(Math.round(plan * ad.mult));
+  } else {
+    dcaLine += ' ｜ PE 历史只有 ' + ad.n + ' 次，样本不足，建议按月保存一次价格';
+  }
+  out.push(dcaLine);
+  if (c.sell > 0) {
+    out.push('  卖出门限 ' + fmtNum(c.sell, 3) +
+      (c.toSell ? ' ｜ 已到门限' : ' ｜ 距门限 ' + signedPct(c.sellGap, 1)));
+  }
+  const ext = [];
+  if (h.kind === 'fund') {
+    if (numOf(h.acc)) ext.push('累计净值 ' + fmtNum(numOf(h.acc), 3));
+    if (numOf(h.ret1y)) ext.push('近一年 ' + signedPct(numOf(h.ret1y)));
+    if (numOf(h.mdd)) ext.push('最大回撤 ' + fmtNum(numOf(h.mdd), 1) + '%');
+    if (numOf(h.fee)) ext.push('费率 ' + fmtNum(numOf(h.fee), 2) + '%');
+    if (h.track) ext.push('跟踪/类型 ' + h.track);
+  } else {
+    if (numOf(h.pe)) ext.push('PE ' + fmtNum(numOf(h.pe), 2));
+    if (numOf(h.pb)) ext.push('PB ' + fmtNum(numOf(h.pb), 2));
+    if (numOf(h.ps)) ext.push('PS ' + fmtNum(numOf(h.ps), 2));
+    if (numOf(h.peg)) ext.push('PEG ' + fmtNum(numOf(h.peg), 2));
+    if (numOf(h.roe)) ext.push('ROE ' + fmtNum(numOf(h.roe), 1) + '%');
+    if (numOf(h.div)) ext.push('股息率 ' + fmtNum(numOf(h.div), 2) + '%');
+    if (numOf(h.eps)) ext.push('EPS ' + fmtNum(numOf(h.eps), 2));
+    if (numOf(h.cap)) ext.push('市值 ' + fmtNum(numOf(h.cap), 0) + ' 亿');
+    if (numOf(h.rev)) ext.push('营收增速 ' + signedPct(numOf(h.rev)));
+    if (numOf(h.profit)) ext.push('净利增速 ' + signedPct(numOf(h.profit)));
+    if (numOf(h.dr)) ext.push('负债率 ' + fmtNum(numOf(h.dr), 1) + '%');
+    if (numOf(h.target)) ext.push('目标价 ' + fmtNum(numOf(h.target), 2));
+    if (h.ind) ext.push('行业 ' + h.ind);
+  }
+  if (ext.length) out.push('  估值：' + ext.join(' ｜ '));
+  if (h.hist && h.hist.length) {
+    const hs = h.hist.slice(-4);
+    out.push('  历史：' + hs.map(function (x) {
+      return x.d + ' 价 ' + fmtNum(numOf(x.price), 3) + ' / PE ' + (numOf(x.pe) ? fmtNum(numOf(x.pe), 2) : '—');
+    }).join('；'));
+  }
+  if (h.note) out.push('  备注：' + h.note);
+  return out.join('\n');
+}
+
+// 一键导出、供豆包分析的纯文本
+function invText(holdings, assets, expenseCents, today) {
+  const t = today || todayISO();
+  const tt = invTotals(holdings, t);
+  const lines = [];
+  lines.push('记账分析 · 投资摘要');
+  lines.push('导出 ' + t + ' ｜ 持仓 ' + tt.n + ' 只 ｜ 以下数据由本人手工填写');
+  lines.push('');
+  lines.push('【合计】市值 ¥' + fmtCents(tt.mv) + ' ｜ 成本 ¥' + fmtCents(tt.cv) +
+    ' ｜ 浮动盈亏 ' + signedMoney(tt.pnl) + '（' + signedPct(tt.pnlPct) + '）');
+  lines.push('        本月定投计划 ¥' + fmtCents(tt.dca) + ' ｜ 按当前估值建议 ¥' + fmtCents(tt.suggest) +
+    (tt.alerts ? ' ｜ 有 ' + tt.alerts + ' 只已达卖出门限' : ''));
+  if (assets) {
+    const s = assetSums(assets, expenseCents);
+    lines.push('【净资产】' + (s.net < 0 ? '-¥' : '¥') + fmtCents(Math.abs(s.net)) + '（现金 ¥' + fmtCents(s.cash) +
+      ' / 实物 ¥' + fmtCents(s.phys) + ' / 负债 ¥' + fmtCents(s.debt) + '）');
+  }
+  lines.push('');
+  (holdings || []).forEach(function (h, i) {
+    lines.push(holdingBlock(h, i + 1, t));
+    lines.push('');
+  });
+  lines.push('（以上为手工记录，请据此判断估值贵贱与本次定投该加还是减；不构成投资建议）');
+  return lines.join('\n');
+}
+
+/* ---------- 备份里的资产 / 持仓校验 ---------- */
+function sanitizeAssets(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const out = { v: 1, seq: 1, at: '', income: 0, autoExpense: raw.autoExpense !== false, cash: [], phys: [], debt: [] };
+  out.at = (typeof raw.at === 'string' && isValidDate(raw.at)) ? raw.at : '';
+  out.income = Math.max(0, Math.min(999999999, Math.round(Number(raw.income) || 0)));
+  let id = 0;
+  ASSET_KINDS.forEach(function (k) {
+    (Array.isArray(raw[k]) ? raw[k] : []).forEach(function (r) {
+      if (!r || typeof r !== 'object') return;
+      const name = String(r.name === undefined ? '' : r.name).trim().slice(0, ASSET_NAME_MAX);
+      if (!name) return;
+      const a = Math.round(Number(r.a) || 0);
+      if (!isFinite(a) || a < 0 || a > 999999999999) return;
+      out[k].push({ id: ++id, name: name, a: a });
+    });
+  });
+  out.seq = id + 1;
+  return id ? out : null;
+}
+
+function sanitizeInvest(raw) {
+  if (!raw || typeof raw !== 'object' || !Array.isArray(raw.holdings)) return null;
+  const out = { v: 1, seq: 1, at: '', holdings: [] };
+  let id = 0;
+  raw.holdings.slice(0, 300).forEach(function (h) {
+    if (!h || typeof h !== 'object') return;
+    const name = String(h.name === undefined ? '' : h.name).trim().slice(0, 14);
+    if (!name) return;
+    const item = {
+      id: ++id, kind: h.kind === 'fund' ? 'fund' : 'stock', name: name,
+      code: String(h.code || '').trim().slice(0, 10),
+    };
+    ['shares', 'cost', 'price', 'pe', 'pb', 'ps', 'peg', 'roe', 'div', 'eps', 'cap', 'rev',
+      'profit', 'dr', 'target', 'acc', 'ret1y', 'mdd', 'fee', 'sell'].forEach(function (f) {
+      const n = Number(h[f]);
+      item[f] = isFinite(n) && n >= 0 ? Math.min(n, 1e9) : 0;
+    });
+    item.dca = Math.max(0, Math.min(999999999, Math.round(Number(h.dca) || 0)));
+    item.start = (typeof h.start === 'string' && isValidDate(h.start)) ? h.start : '';
+    item.note = String(h.note || '').slice(0, 80);
+    item.ind = String(h.ind || '').slice(0, 12);
+    item.track = String(h.track || '').slice(0, 16);
+    item.hist = [];
+    (Array.isArray(h.hist) ? h.hist : []).slice(-INV_HIST_MAX).forEach(function (x) {
+      if (!x || !isValidDate(x.d)) return;
+      item.hist.push({
+        d: x.d, price: Math.max(0, Number(x.price) || 0), pe: Math.max(0, Number(x.pe) || 0),
+      });
+    });
+    out.holdings.push(item);
+  });
+  out.seq = id + 1;
+  out.at = (typeof raw.at === 'string' && isValidDate(raw.at)) ? raw.at : '';
+  return id ? out : null;
+}
+
+// 本机资产是否已经有实际数字（全 0 视为还没填）
+function assetsMeaningful(a) {
+  if (!a) return false;
+  return sumCents(a.cash) > 0 || sumCents(a.phys) > 0 || sumCents(a.debt) > 0 ||
+    Math.round(Number(a.income) || 0) > 0;
 }
 
 /*__BOOT__*/
@@ -1103,6 +1783,10 @@ const state = {
   editP: '',
   png: ''
 };
+
+// 资产与持仓：独立存储键，和账本互不影响
+let assets = defaultAssets();
+let invest = { v: 1, seq: 1, at: '', holdings: [] };
 
 let openId = null;
 let delArmed = false;
@@ -1197,6 +1881,42 @@ function save() {
   } catch (e) {
     toast('本机存储不可用，这次改动可能丢失');
   }
+}
+
+function loadAssets() {
+  assets = defaultAssets();
+  let raw = null;
+  try { raw = localStorage.getItem(ASSET_KEY); } catch (e) { return; }
+  if (!raw) return;
+  try {
+    const d = sanitizeAssets(JSON.parse(raw));
+    if (!d) return;
+    assets = d;
+  } catch (e) { /* 损坏时回到默认空资产 */ }
+}
+
+function saveAssets() {
+  try {
+    localStorage.setItem(ASSET_KEY, JSON.stringify(assets));
+  } catch (e) { toast('本机存储不可用，资产改动可能丢失'); }
+}
+
+function loadInvest() {
+  invest = { v: 1, seq: 1, at: '', holdings: [] };
+  let raw = null;
+  try { raw = localStorage.getItem(INV_KEY); } catch (e) { return; }
+  if (!raw) return;
+  try {
+    const d = sanitizeInvest(JSON.parse(raw));
+    if (!d) return;
+    invest = d;
+  } catch (e) { /* 损坏时回到空持仓 */ }
+}
+
+function saveInvest() {
+  try {
+    localStorage.setItem(INV_KEY, JSON.stringify(invest));
+  } catch (e) { toast('本机存储不可用，持仓改动可能丢失'); }
 }
 
 /* ============================================================
@@ -1426,6 +2146,426 @@ function renderTable(v) {
   } else {
     more.style.display = 'none';
   }
+}
+
+/* ============================================================
+   资产页
+   ============================================================ */
+const ARR_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>';
+const ASSET_LABEL = { cash: '现金资产', phys: '实物资产', debt: '负债' };
+
+// 账本里「本月」的支出合计（资产页固定按自然月算，不受筛选影响）
+function bookMonthExpense() {
+  const r = monthRange(todayISO().slice(0, 7));
+  return sumItems(state.items.filter(function (it) { return it.d >= r.from && it.d <= r.to; }));
+}
+
+function switchView(name) {
+  ['book', 'assets', 'invest'].forEach(function (k) {
+    const box = el('#view' + k.charAt(0).toUpperCase() + k.slice(1));
+    if (box) box.classList.toggle('on', k === name);
+  });
+  els('#tabs .tab').forEach(function (b) { b.classList.toggle('on', b.dataset.view === name); });
+  el('#btnAdd').style.display = name === 'book' ? 'flex' : 'none';
+  state.view = name;
+  if (name === 'assets') renderAssets();
+  if (name === 'invest') renderInvest();
+}
+
+function assetRowsHtml(kind) {
+  return (assets[kind] || []).map(function (r) {
+    return '<button class="arow" data-asset="' + kind + '" data-id="' + r.id + '">' +
+      '<span class="a-name">' + esc(r.name) + '</span>' +
+      '<span class="a-amt' + (kind === 'debt' ? ' neg' : '') + '">' + fmtCents(r.a) + '</span>' +
+      '<span class="arr">' + ARR_SVG + '</span></button>';
+  }).join('');
+}
+
+// 只刷新数字（收入输入框改变时不能整块重绘，否则光标会跳）
+function paintAssetNumbers() {
+  const exp = bookMonthExpense();
+  const s = assetSums(assets, exp);
+  const ym = todayISO().slice(0, 7);
+  el('#assetDate').textContent = (assets.at || todayISO()) + ' 更新';
+  const net = el('#netNum');
+  net.textContent = fmtCents(s.net);
+  net.style.color = s.net < 0 ? 'var(--warm)' : '';
+  el('#cashNum').textContent = fmtCents(s.cash);
+  el('#physNum').textContent = fmtCents(s.phys);
+  el('#debtNum').textContent = fmtCents(s.debt);
+  el('#cashTotal').textContent = fmtCents(s.cash);
+  el('#physTotal').textContent = fmtCents(s.phys);
+  el('#debtTotal').textContent = fmtCents(s.debt);
+  el('#asExpense').textContent = fmtCents(s.expense);
+  const sur = el('#asSurplus');
+  sur.textContent = fmtCents(s.surplus);
+  sur.className = 'num ' + (s.surplus >= 0 ? 'up' : 'down');
+  el('#ioHint').textContent = Number(ym.slice(5, 7)) + ' 月支出';
+  el('#autoRows').innerHTML = (assets.autoExpense && exp > 0)
+    ? '<div class="arow auto"><span class="a-name">信用卡本月开销<small>自动取账本本月支出</small></span>' +
+      '<span class="a-amt neg">' + fmtCents(exp) + '</span><span></span></div>'
+    : '';
+  return s;
+}
+
+function renderAssets() {
+  paintAssetNumbers();
+  el('#asIncome').value = assets.income ? (assets.income / 100).toFixed(2) : '';
+  el('#asAuto').checked = !!assets.autoExpense;
+
+  el('#cashRows').innerHTML = assetRowsHtml('cash') || '<p class="tip" style="margin:0 0 6px">还没有现金账户，点「添加」登记。</p>';
+  el('#physRows').innerHTML = assetRowsHtml('phys') || '<p class="tip" style="margin:0 0 6px">还没有实物资产，如房产、车。</p>';
+  el('#debtRows').innerHTML = assetRowsHtml('debt') || '<p class="tip" style="margin:0 0 6px">还没有负债，如房贷、车贷。</p>';
+
+  els('.arow[data-asset]').forEach(function (b) {
+    b.onclick = function () { openAsset(b.dataset.asset, +b.dataset.id); };
+  });
+}
+
+let assetEdit = { kind: 'cash', id: 0 };
+let assetDelArmed = false;
+let assetDelTimer = null;
+
+function paintAssetKind() {
+  els('#asKind button').forEach(function (b) {
+    b.classList.toggle('on', b.dataset.k === assetEdit.kind);
+  });
+  el('#assetTitle').textContent = (assetEdit.id ? '编辑' : '添加') + ASSET_LABEL[assetEdit.kind];
+  el('#asTip').textContent = assetEdit.kind === 'debt'
+    ? '负债填剩余未还金额（不是月供），填正数，系统会从净资产里减掉它。'
+    : assetEdit.kind === 'phys'
+      ? '实物按你认可的估值填，比如现在大概能卖多少。'
+      : '填当前余额，正数即可。';
+}
+
+function openAsset(kind, id) {
+  assetEdit = { kind: kind || 'cash', id: id || 0 };
+  const row = id ? (assets[assetEdit.kind] || []).find(function (r) { return r.id === id; }) : null;
+  el('#asName').value = row ? row.name : '';
+  el('#asValue').value = row ? (row.a / 100).toFixed(2) : '';
+  const del = el('#btnAssetDel');
+  del.style.display = row ? 'block' : 'none';
+  del.textContent = '删除';
+  del.classList.remove('armed');
+  assetDelArmed = false;
+  clearTimeout(assetDelTimer);
+  paintAssetKind();
+  openSheet('sheetAsset');
+}
+
+function saveAsset() {
+  const name = el('#asName').value.trim();
+  if (!name) { toast('请填名称'); return; }
+  if (name.length > ASSET_NAME_MAX) { toast('名称最多 ' + ASSET_NAME_MAX + ' 个字'); return; }
+  const a = parseAmount(el('#asValue').value);
+  if (a === null) { toast('金额请填数字，最多两位小数'); return; }
+  const kind = assetEdit.kind;
+  const id = assetEdit.id;
+  if (id) {
+    // 改归属时把这一行搬到新分类里
+    ASSET_KINDS.forEach(function (k) {
+      assets[k] = (assets[k] || []).filter(function (r) { return r.id !== id; });
+    });
+    assets[kind].push({ id: id, name: name, a: a });
+  } else {
+    assets[kind].push({ id: assets.seq++, name: name, a: a });
+  }
+  assets.at = todayISO();
+  saveAssets();
+  renderAssets();
+  closeAll();
+  toast(id ? '已更新' + ASSET_LABEL[kind] : '已添加' + ASSET_LABEL[kind]);
+}
+
+function onAssetDelete() {
+  if (!assetEdit.id) return;
+  const b = el('#btnAssetDel');
+  if (!assetDelArmed) {
+    assetDelArmed = true;
+    b.textContent = '确认删除';
+    b.classList.add('armed');
+    clearTimeout(assetDelTimer);
+    assetDelTimer = setTimeout(function () {
+      assetDelArmed = false;
+      b.textContent = '删除';
+      b.classList.remove('armed');
+    }, 2600);
+    return;
+  }
+  const id = assetEdit.id;
+  ASSET_KINDS.forEach(function (k) {
+    assets[k] = (assets[k] || []).filter(function (r) { return r.id !== id; });
+  });
+  assetDelArmed = false;
+  clearTimeout(assetDelTimer);
+  assets.at = todayISO();
+  saveAssets();
+  renderAssets();
+  closeAll();
+  toast('已删除该条目');
+}
+
+/* ============================================================
+   投资页
+   ============================================================ */
+function holdingCard(h) {
+  const c = invCalc(h);
+  const ad = peAdvice(h);
+  const plan = Math.round(numOf(h.dca));
+  const kind = h.kind === 'fund' ? '基金' : '股票';
+  const unit = h.kind === 'fund' ? '份' : '股';
+  const tags = [];
+  if (numOf(h.pe)) tags.push('<span class="htag">PE ' + fmtNum(numOf(h.pe), 2) + '</span>');
+  if (ad.level === 'more') tags.push('<span class="htag add">定投加大 ' + fmtNum(ad.mult, 1) + '× 约¥' + fmtCents(Math.round(plan * ad.mult)) + '</span>');
+  else if (ad.level === 'less') tags.push('<span class="htag less">定投减少 ' + fmtNum(ad.mult, 1) + '× 约¥' + fmtCents(Math.round(plan * ad.mult)) + '</span>');
+  else if (ad.level === 'keep') tags.push('<span class="htag">定投维持</span>');
+  else tags.push('<span class="htag ghost">PE 记录不足</span>');
+  if (c.toSell) tags.push('<span class="htag sell">已达卖出门限</span>');
+  else if (c.sell > 0) tags.push('<span class="htag">距门限 ' + signedPct(c.sellGap, 1) + '</span>');
+
+  return '<div class="hcard' + (c.toSell ? ' on' : '') + '" data-id="' + h.id + '" role="button" tabindex="0">' +
+    '<div class="hcard-h">' +
+      '<div class="hcard-l"><span class="hkind' + (h.kind === 'fund' ? ' fund' : '') + '">' + kind + '</span>' +
+        '<span class="hname">' + esc(h.name) + '</span>' +
+        (h.code ? '<span class="hcode">' + esc(h.code) + '</span>' : '') + '</div>' +
+      '<div class="hpnl"><b class="' + (c.pnl >= 0 ? 'up' : 'down') + '">' + signedMoney(c.pnl) + '</b>' +
+        '<em>' + signedPct(c.pnlPct) + '</em></div>' +
+    '</div>' +
+    '<div class="hgrid">' +
+      '<div class="hcell"><em>持有(' + unit + ')</em><b>' + fmtNum(c.shares, 4) + '</b></div>' +
+      '<div class="hcell"><em>成本</em><b>' + fmtNum(c.cost, 3) + '</b></div>' +
+      '<div class="hcell"><em>现价</em><b>' + fmtNum(c.price, 3) + '</b></div>' +
+      '<div class="hcell"><em>市值</em><b>¥' + fmtCents(c.mv) + '</b></div>' +
+      '<div class="hcell"><em>年化</em><b>' + (c.annual === null ? '—' : signedPct(c.annual, 1)) + '</b></div>' +
+      '<div class="hcell"><em>定投/月</em><b>' + (plan ? '¥' + fmtCents(plan) : '—') + '</b></div>' +
+    '</div>' +
+    '<div class="htags">' + tags.join('') + '</div>' +
+    '</div>';
+}
+
+function renderInvest() {
+  const tt = invTotals(invest.holdings);
+  el('#invDate').textContent = invest.at ? '更新 ' + invest.at : todayISO() + ' 更新';
+  el('#invMv').textContent = fmtCents(tt.mv);
+  const pnl = el('#invPnl');
+  pnl.textContent = tt.n ? signedMoney(tt.pnl) : '—';
+  pnl.style.color = !tt.n ? '' : (tt.pnl >= 0 ? 'var(--accent)' : 'var(--warm)');
+  el('#invPct').textContent = tt.n ? signedPct(tt.pnlPct) : '—';
+  el('#invDca').textContent = tt.n ? '¥' + fmtCents(tt.suggest) : '—';
+
+  const hits = invest.holdings.filter(function (h) { return invCalc(h).toSell; });
+  const sec = el('#secAlert');
+  sec.style.display = hits.length ? 'block' : 'none';
+  el('#alertHint').textContent = hits.length ? hits.length + ' 只已达门限' : '';
+  el('#alertList').innerHTML = hits.map(function (h) {
+    const c = invCalc(h);
+    return '<div class="alert-row"><span>' + esc(h.name) + ' 现价 ' + fmtNum(c.price, 3) +
+      ' ≥ 门限 ' + fmtNum(c.sell, 3) + '</span><b>考虑分批卖出</b></div>';
+  }).join('');
+
+  el('#invList').innerHTML = invest.holdings.map(holdingCard).join('');
+  el('#invEmpty').style.display = invest.holdings.length ? 'none' : 'block';
+  els('#invList .hcard').forEach(function (card) {
+    card.onclick = function () { openHolding(+card.dataset.id); };
+    card.onkeydown = function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openHolding(+card.dataset.id); }
+    };
+  });
+}
+
+let holdEditId = 0;
+let holdDelArmed = false;
+let holdDelTimer = null;
+
+function paintHoldKind() {
+  els('#hKind button').forEach(function (b) {
+    b.classList.toggle('on', b.dataset.k === state.hKind);
+  });
+  el('#hStockBox').open = state.hKind === 'stock';
+  el('#hFundBox').open = state.hKind === 'fund';
+}
+
+function fillHolding(h) {
+  el('#hName').value = h ? h.name : '';
+  el('#hCode').value = h ? (h.code || '') : '';
+  el('#hStart').value = h ? (h.start || '') : '';
+  el('#hNote').value = h ? (h.note || '') : '';
+  el('#hInd').value = h ? (h.ind || '') : '';
+  el('#hTrack').value = h ? (h.track || '') : '';
+  el('#hShares').value = h ? fmtNum(h.shares, 4) : '';
+  el('#hCost').value = h ? fmtNum(h.cost, 3) : '';
+  el('#hPrice').value = h ? fmtNum(h.price, 3) : '';
+  el('#hDca').value = h && h.dca ? (h.dca / 100).toFixed(2) : '';
+  el('#hSell').value = h && h.sell ? fmtNum(h.sell, 3) : '';
+  el('#hPe').value = h && h.pe ? fmtNum(h.pe, 2) : '';
+  el('#hPb').value = h && h.pb ? fmtNum(h.pb, 2) : '';
+  el('#hPs').value = h && h.ps ? fmtNum(h.ps, 2) : '';
+  el('#hPeg').value = h && h.peg ? fmtNum(h.peg, 2) : '';
+  el('#hRoe').value = h && h.roe ? fmtNum(h.roe, 1) : '';
+  el('#hDiv').value = h && h.div ? fmtNum(h.div, 2) : '';
+  el('#hEps').value = h && h.eps ? fmtNum(h.eps, 2) : '';
+  el('#hCap').value = h && h.cap ? fmtNum(h.cap, 0) : '';
+  el('#hRev').value = h && h.rev ? fmtNum(h.rev, 2) : '';
+  el('#hProfit').value = h && h.profit ? fmtNum(h.profit, 2) : '';
+  el('#hDr').value = h && h.dr ? fmtNum(h.dr, 1) : '';
+  el('#hTarget').value = h && h.target ? fmtNum(h.target, 2) : '';
+  el('#hAcc').value = h && h.acc ? fmtNum(h.acc, 3) : '';
+  el('#hRet1y').value = h && h.ret1y ? fmtNum(h.ret1y, 2) : '';
+  el('#hMdd').value = h && h.mdd ? fmtNum(h.mdd, 1) : '';
+  el('#hFee').value = h && h.fee ? fmtNum(h.fee, 3) : '';
+  el('#snapHint').textContent = (h && h.hist && h.hist.length)
+    ? '已有 ' + h.hist.length + ' 条快照，最近 ' + h.hist[h.hist.length - 1].d
+    : '还没有快照';
+}
+
+function openHolding(id) {
+  const h = id ? invest.holdings.find(function (x) { return x.id === id; }) : null;
+  holdEditId = h ? h.id : 0;
+  state.hKind = h ? h.kind : 'stock';
+  el('#hTitle').textContent = h ? '编辑持仓' : '添加持仓';
+  fillHolding(h);
+  const del = el('#btnHoldDel');
+  del.style.display = h ? 'block' : 'none';
+  del.textContent = '删除';
+  del.classList.remove('armed');
+  holdDelArmed = false;
+  clearTimeout(holdDelTimer);
+  paintHoldKind();
+  openSheet('sheetHolding');
+}
+
+// 只接受纯数字（最多 4 位小数）：空返回 null，非法返回 NaN
+function parseDec(raw) {
+  const s = String(raw === null || raw === undefined ? '' : raw).replace(/[¥￥,，\s]/g, '');
+  if (!s) return null;
+  if (!/^[0-9]{1,9}(\.[0-9]{1,4})?$/.test(s)) return NaN;
+  return Number(s);
+}
+
+function readHoldingForm() {
+  const name = el('#hName').value.trim();
+  if (!name) return { err: '请填名称' };
+  if (name.length > 14) return { err: '名称最多 14 个字' };
+  const shares = parseDec(el('#hShares').value);
+  const cost = parseDec(el('#hCost').value);
+  const price = parseDec(el('#hPrice').value);
+  if (!shares || isNaN(shares) || shares <= 0) return { err: '持股数/份额请填大于 0 的数字' };
+  if (cost === null || isNaN(cost) || cost < 0) return { err: '成本单价请填数字（可为 0）' };
+  if (!price || isNaN(price) || price <= 0) return { err: '现价/净值请填大于 0 的数字' };
+  const dcaYuan = parseDec(el('#hDca').value);
+  if (dcaYuan !== null && (isNaN(dcaYuan) || dcaYuan < 0)) return { err: '每月定投请填数字' };
+  const sell = parseDec(el('#hSell').value);
+  if (sell !== null && (isNaN(sell) || sell < 0)) return { err: '卖出门限请填数字（0 表示不设）' };
+  const nums = {};
+  const map = [
+    ['pe', '#hPe'], ['pb', '#hPb'], ['ps', '#hPs'], ['peg', '#hPeg'], ['roe', '#hRoe'],
+    ['div', '#hDiv'], ['eps', '#hEps'], ['cap', '#hCap'], ['rev', '#hRev'], ['profit', '#hProfit'],
+    ['dr', '#hDr'], ['target', '#hTarget'], ['acc', '#hAcc'], ['ret1y', '#hRet1y'],
+    ['mdd', '#hMdd'], ['fee', '#hFee'],
+  ];
+  for (const m of map) {
+    const v = parseDec(el(m[1]).value);
+    if (v !== null && isNaN(v)) return { err: '「' + m[0] + '」请填数字' };
+    nums[m[0]] = v === null ? 0 : v;
+  }
+  const start = el('#hStart').value;
+  if (start && !isValidDate(start)) return { err: '建仓日期无效' };
+  return {
+    data: {
+      kind: state.hKind, name: name, code: el('#hCode').value.trim().slice(0, 10),
+      shares: shares, cost: cost, price: price, start: start,
+      dca: dcaYuan === null ? 0 : Math.round(dcaYuan * 100),
+      sell: sell === null ? 0 : sell,
+      note: el('#hNote').value.trim().slice(0, 80),
+      ind: el('#hInd').value.trim().slice(0, 12),
+      track: el('#hTrack').value.trim().slice(0, 16),
+      pe: nums.pe, pb: nums.pb, ps: nums.ps, peg: nums.peg, roe: nums.roe,
+      div: nums.div, eps: nums.eps, cap: nums.cap, rev: nums.rev,
+      profit: nums.profit, dr: nums.dr, target: nums.target,
+      acc: nums.acc, ret1y: nums.ret1y, mdd: nums.mdd, fee: nums.fee,
+    },
+  };
+}
+
+function saveHolding() {
+  const r = readHoldingForm();
+  if (r.err) { toast(r.err); return; }
+  const d = r.data;
+  const id = holdEditId;
+  let hist = id ? ((invest.holdings.find(function (x) { return x.id === id; }) || {}).hist) : [];
+  d.hist = invSnapHist(hist, todayISO(), d.price, d.pe);
+  d.id = id || invest.seq++;
+  if (id) {
+    invest.holdings = invest.holdings.map(function (x) { return x.id === id ? d : x; });
+  } else {
+    invest.holdings.push(d);
+  }
+  invest.at = todayISO();
+  saveInvest();
+  renderInvest();
+  closeAll();
+  toast(id ? '已更新「' + d.name + '」' : '已添加「' + d.name + '」');
+}
+
+function onHoldDelete() {
+  if (!holdEditId) return;
+  const b = el('#btnHoldDel');
+  if (!holdDelArmed) {
+    holdDelArmed = true;
+    b.textContent = '确认删除';
+    b.classList.add('armed');
+    clearTimeout(holdDelTimer);
+    holdDelTimer = setTimeout(function () {
+      holdDelArmed = false;
+      b.textContent = '删除';
+      b.classList.remove('armed');
+    }, 2600);
+    return;
+  }
+  const id = holdEditId;
+  invest.holdings = invest.holdings.filter(function (x) { return x.id !== id; });
+  invest.at = todayISO();
+  holdDelArmed = false;
+  clearTimeout(holdDelTimer);
+  saveInvest();
+  renderInvest();
+  closeAll();
+  toast('已删除该持仓');
+}
+
+function doInvTextOut() {
+  if (!invest.holdings.length) { toast('还没有持仓，先添加一只'); return; }
+  state.invText = invText(invest.holdings, assets, bookMonthExpense());
+  el('#invTextPre').textContent = state.invText;
+  openSheet('sheetInvText');
+}
+
+function copyInvText() {
+  const s = state.invText || el('#invTextPre').textContent || '';
+  if (!s) { toast('文本还没生成'); return; }
+  const done = function () { toast('已复制，可直接粘贴给豆包'); };
+  const fallback = function () {
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = s;
+      ta.style.position = 'fixed';
+      ta.style.left = '-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      ta.remove();
+      toast(ok ? '已复制，可直接粘贴给豆包' : '复制失败，请手动长按文本复制');
+    } catch (e) { toast('复制失败，请手动长按文本复制'); }
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(s).then(done, fallback);
+  } else fallback();
+}
+
+function doInvTextDownload() {
+  const s = state.invText || el('#invTextPre').textContent || '';
+  if (!s) { toast('文本还没生成'); return; }
+  download('投资摘要_' + todayISO() + '.txt', s, 'text/plain;charset=utf-8');
 }
 
 /* ============================================================
@@ -1841,30 +2981,39 @@ function resetWipe() {
   const b = el('#btnWipe');
   b.classList.remove('armed');
   const h = el('#wipeHint');
-  if (h) h.textContent = '删除后不可恢复，建议先导出 CSV';
+  if (h) h.textContent = '连资产与持仓一起删除，不可恢复；建议先导出备份';
   b.style.color = 'var(--warm)';
 }
 
 function doWipe() {
-  if (!state.items.length) { toast('本来就没有记录'); return; }
+  const assetCount = assets.cash.length + assets.phys.length + assets.debt.length;
+  const holdCount = invest.holdings.length;
+  if (!state.items.length && !assetsMeaningful(assets) && !holdCount) { toast('本来就没有数据'); return; }
   if (!wipeArmed) {
     wipeArmed = true;
     const b = el('#btnWipe');
     b.classList.add('armed');
     b.style.color = '#FFF';
-    el('#wipeHint').textContent = '再点一次即清空全部 ' + state.items.length + ' 条记录';
+    el('#wipeHint').textContent = '再点一次即清空：账本 ' + state.items.length + ' 条、资产 ' +
+      assetCount + ' 项、持仓 ' + holdCount + ' 只';
     clearTimeout(wipeTimer);
     wipeTimer = setTimeout(resetWipe, 3000);
     return;
   }
   state.items = [];
   state.nextId = 1;
+  assets = defaultAssets();
+  invest = { v: 1, seq: 1, at: '', holdings: [] };
   wipeArmed = false;
   save();
+  saveAssets();
+  saveInvest();
   refreshData();
+  renderAssets();
+  renderInvest();
   resetWipe();
   closeAll();
-  toast('已清空全部记录');
+  toast('已清空账本、资产与持仓');
 }
 
 /* ============================================================
@@ -1878,7 +3027,10 @@ let replaceArmed = false;
 let replaceTimer = null;
 
 function doBackupOut() {
-  if (!state.items.length) { toast('本机还没有记录，不需要备份'); return; }
+  if (!state.items.length && !assetsMeaningful(assets) && !invest.holdings.length) {
+    toast('本机还没有数据，不需要备份');
+    return;
+  }
   const payload = {
     app: '记账分析', v: BK_VERSION, exportedAt: new Date().toISOString(),
     count: state.items.length, total: sumItems(state.items),
@@ -1886,6 +3038,8 @@ function doBackupOut() {
     items: state.items.map(function (it) {
       return { id: it.id, d: it.d, c: it.c, a: it.a, n: it.n, p: it.p || '' };
     }),
+    assets: assets,
+    invest: invest,
   };
   download('记账备份_' + todayISO() + '.json', JSON.stringify(payload, null, 2), 'application/json');
 }
@@ -1906,8 +3060,12 @@ function renderImportPreview() {
   el('#impTotal').textContent = '¥' + fmtCents(p.total);
   el('#impDup').textContent = p.dup ? p.dup + ' 条' : '无';
   el('#impHave').textContent = state.items.length + ' 条';
+  el('#impAssets').textContent = p.assets
+    ? (p.assets.cash.length + p.assets.phys.length + p.assets.debt.length) + ' 项'
+    : '无';
+  el('#impInvest').textContent = p.invest ? p.invest.holdings.length + ' 只' : '无';
   el('#impTip').textContent = '「合并导入」把 ' + (p.count - p.dup) + ' 条新记录追加到现有记录之后，与本机重复的不会重复记账；' +
-    '「覆盖」用备份替换本机全部记录与类型。备份文件不含解锁密码，本机密码不变。';
+    '「覆盖」用备份替换本机账本、资产与持仓。备份文件不含解锁密码，本机密码不变。';
   settleReplaceBtn();
 }
 
@@ -1928,6 +3086,7 @@ function onBackupFile(e) {
     pendingImport = {
       name: f.name, items: res.items, cats: res.cats, people: res.people, count: res.count,
       total: res.total, bad: res.bad, dup: merged.skipped, range: bkDateRange(res.items),
+      assets: res.assets || null, invest: res.invest || null,
     };
     renderImportPreview();
     openSheet('sheetImp');
@@ -1935,7 +3094,7 @@ function onBackupFile(e) {
   rd.readAsText(f, 'utf-8');
 }
 
-function applyImport(items, nextId, added, skipped, cats, replaced, people) {
+function applyImport(items, nextId, added, skipped, cats, replaced, people, extraNote) {
   state.items = items;
   state.nextId = nextId;
   if (cats && cats.length) {
@@ -1953,17 +3112,24 @@ function applyImport(items, nextId, added, skipped, cats, replaced, people) {
   save();
   refreshData();
   syncFilterUI();
+  renderAssets();
+  renderInvest();
   closeAll();
-  toast(replaced
+  toast((replaced
     ? '已用备份覆盖，现有 ' + state.items.length + ' 条'
-    : '导入完成：新增 ' + added + ' 条' + (skipped ? '，跳过重复 ' + skipped + ' 条' : '') + '，现有 ' + state.items.length + ' 条');
+    : '导入完成：新增 ' + added + ' 条' + (skipped ? '，跳过重复 ' + skipped + ' 条' : '') + '，现有 ' + state.items.length + ' 条') +
+    (extraNote || ''));
 }
 
 function doImportMerge() {
   const p = pendingImport;
   if (!p) { toast('还没有选择备份文件'); return; }
   const m = mergeBackup(state.items, p.items, state.nextId);
-  applyImport(m.items, m.nextId, m.added, m.skipped, p.cats, false, p.people);
+  // 合并时资产/持仓只在本机还是空的时候补进来，不覆盖已填的数字
+  let mergeNote = '';
+  if (p.assets && !assetsMeaningful(assets)) { assets = p.assets; saveAssets(); mergeNote = '，资产已补入'; }
+  if (p.invest && !invest.holdings.length) { invest = p.invest; saveInvest(); mergeNote += '，持仓已补入'; }
+  applyImport(m.items, m.nextId, m.added, m.skipped, p.cats, false, p.people, mergeNote);
 }
 
 function doImportReplace() {
@@ -1980,7 +3146,10 @@ function doImportReplace() {
   const items = p.items.map(function (it) {
     return { id: id++, d: it.d, c: it.c, a: it.a, n: it.n || '', p: it.p || '' };
   });
-  applyImport(items, id, items.length, 0, p.cats, true, p.people);
+  let note = '';
+  if (p.assets) { assets = p.assets; saveAssets(); note = '，资产已覆盖'; }
+  if (p.invest) { invest = p.invest; saveInvest(); note += '，持仓已覆盖'; }
+  applyImport(items, id, items.length, 0, p.cats, true, p.people, note);
 }
 
 /* ============================================================
@@ -2336,6 +3505,60 @@ function wire() {
   el('#btnImpMerge').onclick = doImportMerge;
   el('#btnImpReplace').onclick = doImportReplace;
 
+  // 页签
+  els('#tabs .tab').forEach(function (b) {
+    b.onclick = function () { switchView(b.dataset.view); };
+  });
+
+  // 资产页
+  els('[data-addass]').forEach(function (b) {
+    b.onclick = function () { openAsset(b.dataset.addass, 0); };
+  });
+  els('#asKind button').forEach(function (b) {
+    b.onclick = function () { assetEdit.kind = b.dataset.k; paintAssetKind(); };
+  });
+  el('#btnAssetSave').onclick = saveAsset;
+  el('#btnAssetDel').onclick = onAssetDelete;
+  el('#asIncome').oninput = function (e) {
+    const raw = e.target.value.trim();
+    if (!raw) { assets.income = 0; saveAssets(); paintAssetNumbers(); return; }
+    const v = parseAmount(raw);
+    if (v === null) return;
+    assets.income = v;
+    saveAssets();
+    paintAssetNumbers();
+  };
+  el('#asAuto').onchange = function (e) {
+    assets.autoExpense = !!e.target.checked;
+    saveAssets();
+    paintAssetNumbers();
+  };
+
+  // 投资页
+  el('#btnInvAdd').onclick = function () { openHolding(0); };
+  el('#btnInvText').onclick = doInvTextOut;
+  el('#btnInvCopy').onclick = copyInvText;
+  el('#btnInvDownload').onclick = doInvTextDownload;
+  els('#hKind button').forEach(function (b) {
+    b.onclick = function () { state.hKind = b.dataset.k; paintHoldKind(); };
+  });
+  el('#btnHoldSave').onclick = saveHolding;
+  el('#btnHoldDel').onclick = onHoldDelete;
+  el('#btnSnap').onclick = function () {
+    if (!holdEditId) { toast('新持仓点保存时会自动记一条快照'); return; }
+    const price = parseDec(el('#hPrice').value);
+    if (!price || isNaN(price) || price <= 0) { toast('先填现价，再记快照'); return; }
+    const pe = parseDec(el('#hPe').value);
+    const h = invest.holdings.find(function (x) { return x.id === holdEditId; });
+    if (!h) { toast('持仓已不存在'); return; }
+    h.hist = invSnapHist(h.hist, todayISO(), price, pe === null || isNaN(pe) ? 0 : pe);
+    saveInvest();
+    renderInvest();
+    const last = h.hist[h.hist.length - 1] || {};
+    el('#snapHint').textContent = '已有 ' + h.hist.length + ' 条快照，最近 ' + (last.d || '');
+    toast('已记一条快照');
+  };
+
   // 锁屏
   els('#keypad .k').forEach(function (b) {
     b.onclick = function () { pressPin(b.dataset.k); };
@@ -2396,11 +3619,16 @@ function wire() {
 function boot() {
   const alive = storageAlive();
   load();
+  loadAssets();
+  loadInvest();
   wire();
   refreshData();
   syncFilterUI();
+  renderAssets();
+  renderInvest();
+  switchView('book');
   if (!alive) {
-    el('#storeNote').textContent = '提示：当前打开方式无法使用本机存储（常见于无痕模式），关闭页面后记录会丢失，请及时导出 CSV。';
+    el('#storeNote').textContent = '提示：当前打开方式无法使用本机存储（常见于无痕模式），关闭页面后记录会丢失，请及时导出备份。';
   }
   pinRec = readPinRec();
   pinFrom = 'first';

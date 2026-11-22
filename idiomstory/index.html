@@ -1,0 +1,2318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f0e3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="成语小书院">
+<meta name="description" content="按记忆曲线推送的儿童成语学习工具：听故事、做考点、看成绩曲线、自动复习错题。">
+<title>成语小书院 · 胡嘉逸的成语成长册</title>
+<style>
+/* ===== 成语小书院 · 视觉样式（移动端优先，无外部依赖） ===== */
+:root {
+  --paper: #f6f0e3;
+  --paper-2: #fffdf6;
+  --paper-3: #efe6d3;
+  --ink: #2e2822;
+  --ink-2: #6f6559;
+  --ink-3: #9c9182;
+  --red: #b5372c;
+  --red-2: #d2604f;
+  --gold: #bd8a2f;
+  --gold-2: #e0b458;
+  --green: #3d7a5b;
+  --green-2: #5ba37c;
+  --line: rgba(86, 68, 45, 0.14);
+  --shadow: 0 6px 20px rgba(80, 60, 35, 0.08);
+  --radius: 18px;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+html, body { margin: 0; padding: 0; }
+
+body {
+  background:
+    radial-gradient(1200px 600px at 12% -8%, #fffdf5 0%, rgba(255, 253, 245, 0) 60%),
+    radial-gradient(900px 500px at 100% 100%, #f0e5cf 0%, rgba(240, 229, 207, 0) 55%),
+    var(--paper);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: none;
+}
+
+.kai { font-family: "Kaiti SC", "STKaiti", "KaiTi", "Kaiti", "Songti SC", serif; }
+
+#app { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
+
+/* ---------- 顶栏 ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: 10px;
+  padding: calc(8px + env(safe-area-inset-top)) 16px 8px;
+  background: rgba(246, 240, 227, 0.92);
+  backdrop-filter: saturate(1.1) blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.brand-seal {
+  width: 36px; height: 36px; flex: 0 0 36px;
+  display: grid; place-items: center;
+  background: linear-gradient(160deg, var(--red-2), var(--red));
+  color: #fff8ec; border-radius: 9px;
+  font-family: "Kaiti SC", "KaiTi", serif; font-size: 21px; line-height: 1;
+  box-shadow: 0 3px 8px rgba(150, 50, 40, 0.25);
+}
+.brand-text { flex: 1; min-width: 0; }
+.brand-title { font-family: "Kaiti SC", "KaiTi", serif; font-size: 18px; letter-spacing: .5px; line-height: 1.25; }
+.brand-sub { font-size: 11px; color: var(--ink-3); letter-spacing: .3px; }
+.icon-btn {
+  width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.6); color: var(--ink-2);
+  display: grid; place-items: center; cursor: pointer; font-size: 15px;
+}
+.icon-btn:active { transform: scale(.96); }
+
+.shell {
+  width: 100%; max-width: 600px; margin: 0 auto;
+  padding: 14px 16px calc(84px + env(safe-area-inset-bottom));
+  flex: 1;
+}
+.shell.no-tabs { padding-bottom: calc(20px + env(safe-area-inset-bottom)); }
+
+/* ---------- 通用卡片 ---------- */
+.card {
+  background: linear-gradient(180deg, var(--paper-2), #fdf9ef);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  margin-bottom: 14px;
+}
+.card.flush { padding: 0; overflow: hidden; }
+
+.row { display: flex; align-items: center; gap: 10px; }
+.row.between { justify-content: space-between; }
+.wrap { flex-wrap: wrap; }
+.spacer { flex: 1; }
+
+h2.section {
+  font-family: "Kaiti SC", "KaiTi", serif;
+  font-size: 17px; font-weight: 600; margin: 4px 0 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+h2.section::before {
+  content: ""; width: 4px; height: 16px; border-radius: 2px;
+  background: linear-gradient(var(--red-2), var(--red));
+}
+
+.muted { color: var(--ink-2); }
+.tiny { font-size: 12px; color: var(--ink-3); }
+.center { text-align: center; }
+.mono { font-variant-numeric: tabular-nums; }
+
+/* ---------- 按钮 ---------- */
+.btn {
+  appearance: none; border: none; cursor: pointer;
+  font-family: inherit; font-size: 16px; font-weight: 600;
+  padding: 14px 16px; border-radius: 14px;
+  min-height: 48px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  transition: transform .12s ease, box-shadow .12s ease, background .15s;
+  text-align: center;
+}
+.btn:active { transform: translateY(1px) scale(.995); }
+.btn-primary {
+  background: linear-gradient(160deg, var(--red-2), var(--red));
+  color: #fff8ee;
+  box-shadow: 0 6px 16px rgba(170, 55, 42, 0.24);
+}
+.btn-gold {
+  background: linear-gradient(160deg, var(--gold-2), var(--gold));
+  color: #3a2a0d;
+  box-shadow: 0 6px 16px rgba(180, 130, 40, 0.22);
+}
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.66);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  box-shadow: none;
+}
+.btn-soft {
+  background: rgba(181, 55, 44, 0.08);
+  color: var(--red);
+  border: 1px solid rgba(181, 55, 44, 0.18);
+  box-shadow: none;
+}
+.btn-block { width: 100%; }
+.btn-sm { font-size: 13px; padding: 9px 12px; min-height: 38px; border-radius: 11px; font-weight: 500; }
+.btn:disabled { opacity: .5; pointer-events: none; }
+
+/* ---------- 首页 ---------- */
+.hero {
+  position: relative; overflow: hidden;
+  padding: 20px 18px 18px;
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgba(224, 180, 88, 0.20), rgba(224, 180, 88, 0) 60%),
+    linear-gradient(160deg, #fffdf6 0%, #fbf4e4 100%);
+}
+.hero::after {
+  content: "成";
+  position: absolute; right: -10px; bottom: -42px;
+  font-family: "Kaiti SC", "KaiTi", serif; font-size: 116px;
+  color: rgba(181, 55, 44, 0.05); line-height: 1;
+  pointer-events: none;
+}
+.hero .btn-ghost { background: #fffdf6; }
+.hero > * { position: relative; z-index: 1; }
+.hero::after { z-index: 0; }
+.hero-date { font-size: 12px; color: var(--ink-3); letter-spacing: .5px; }
+.hero-greet { font-family: "Kaiti SC", "KaiTi", serif; font-size: 24px; margin: 6px 0 4px; letter-spacing: 1px; }
+.hero-greet em { font-style: normal; color: var(--red); }
+.hero-desc { font-size: 13px; color: var(--ink-2); }
+
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 16px 0 18px; }
+.stat {
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid var(--line); border-radius: 14px;
+  padding: 10px 8px; text-align: center;
+}
+.stat-num { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.stat-num small { font-size: 12px; font-weight: 500; color: var(--ink-3); }
+.stat-label { font-size: 11px; color: var(--ink-3); margin-top: 2px; }
+
+.cta-stack { display: grid; gap: 10px; }
+.cta-note { font-size: 12px; color: var(--ink-3); text-align: center; margin-top: 2px; }
+
+/* ---------- 进度 ---------- */
+.level-block { margin-top: 4px; }
+.level-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.level-tag {
+  flex: 0 0 auto; font-size: 11px; padding: 3px 8px; border-radius: 999px;
+  background: rgba(189, 138, 47, 0.12); color: #8a6417; border: 1px solid rgba(189, 138, 47, 0.25);
+  white-space: nowrap;
+}
+.bar { flex: 1; height: 8px; border-radius: 999px; background: rgba(86, 68, 45, 0.10); overflow: hidden; }
+.bar > i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--gold-2), var(--gold)); width: 0; transition: width .5s ease; }
+.level-num { flex: 0 0 auto; font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+/* ---------- 听故事 ---------- */
+.listen-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.dots { display: flex; gap: 4px; flex-wrap: wrap; }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(86, 68, 45, 0.16); }
+.dot.on { background: var(--red-2); }
+.dot.cur { background: var(--gold); box-shadow: 0 0 0 3px rgba(224, 180, 88, 0.28); }
+
+.word-hero { text-align: center; padding: 6px 0 2px; }
+.word-hero .word {
+  font-family: "Kaiti SC", "KaiTi", serif;
+  font-size: clamp(38px, 12vw, 50px); letter-spacing: 6px;
+  line-height: 1.2; color: var(--ink);
+}
+.word-hero .pinyin { font-size: 13px; color: var(--ink-3); letter-spacing: 1px; margin-top: 2px; }
+.word-hero .badge {
+  display: inline-block; margin-top: 8px; font-size: 11px; padding: 3px 9px;
+  border-radius: 999px; background: rgba(61, 122, 91, 0.10); color: #33684f;
+  border: 1px solid rgba(61, 122, 91, 0.20);
+}
+
+.speak-bar { display: flex; gap: 8px; margin: 14px 0 4px; }
+.speak-bar .btn { flex: 1; }
+
+.meta-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  margin: 14px 0 4px;
+}
+.meta-item {
+  background: rgba(255, 255, 255, 0.55); border: 1px solid var(--line);
+  border-radius: 12px; padding: 8px 10px;
+}
+.meta-item .k { font-size: 11px; color: var(--ink-3); margin-bottom: 2px; }
+.meta-item .v { font-size: 13.5px; color: var(--ink); line-height: 1.5; word-break: break-word; }
+.meta-item.wide { grid-column: 1 / -1; }
+
+.story-box {
+  margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line);
+}
+.story-box h3, .lesson-box h3 {
+  font-family: "Kaiti SC", "KaiTi", serif; font-size: 15px; margin: 0 0 8px;
+  color: var(--red); letter-spacing: .5px;
+}
+.story-text { font-size: 15.5px; line-height: 1.95; text-align: justify; color: #3a332b; }
+.story-text::first-letter { font-size: 1.35em; color: var(--red); font-family: "Kaiti SC", "KaiTi", serif; }
+.lesson-box {
+  margin-top: 14px; padding: 12px 14px; border-radius: 12px;
+  background: linear-gradient(160deg, rgba(189, 138, 47, 0.10), rgba(189, 138, 47, 0.04));
+  border: 1px solid rgba(189, 138, 47, 0.20);
+}
+.lesson-box .txt { font-size: 14px; color: #6a4d12; line-height: 1.75; }
+
+.nav-btns { display: flex; gap: 10px; margin-top: 16px; }
+.nav-btns .btn { flex: 1; }
+
+/* ---------- 测试 ---------- */
+.test-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 12px; color: var(--ink-3); }
+.test-bar { height: 5px; border-radius: 999px; background: rgba(86, 68, 45, 0.10); overflow: hidden; margin-bottom: 16px; }
+.test-bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--red-2), var(--red)); width: 0; transition: width .3s; }
+
+.q-word { font-family: "Kaiti SC", "KaiTi", serif; font-size: 18px; letter-spacing: 3px; color: var(--ink-2); text-align: center; }
+.q-text { font-family: "Kaiti SC", "KaiTi", serif; font-size: 21px; line-height: 1.55; margin: 8px 0 16px; text-align: center; letter-spacing: .5px; }
+
+.opts { display: grid; gap: 9px; }
+.opt {
+  display: flex; align-items: flex-start; gap: 10px;
+  width: 100%; text-align: left;
+  padding: 13px 14px; border-radius: 13px; min-height: 50px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--line); color: var(--ink);
+  font-family: inherit; font-size: 15.5px; line-height: 1.5;
+  cursor: pointer; transition: border-color .12s, background .12s, transform .1s;
+}
+.opt:active { transform: scale(.99); }
+.opt .k {
+  flex: 0 0 22px; height: 22px; border-radius: 50%;
+  display: grid; place-items: center; font-size: 12px; font-weight: 700;
+  background: rgba(86, 68, 45, 0.08); color: var(--ink-2);
+}
+.opt.right { border-color: rgba(61, 122, 91, 0.55); background: rgba(91, 163, 124, 0.14); }
+.opt.right .k { background: var(--green); color: #fff; }
+.opt.wrong { border-color: rgba(181, 55, 44, 0.55); background: rgba(210, 96, 79, 0.13); }
+.opt.wrong .k { background: var(--red); color: #fff; }
+.opt.dim { opacity: .55; }
+
+.input-wrap { margin-top: 4px; }
+.answer-input {
+  width: 100%; padding: 14px 16px; font-size: 18px;
+  font-family: inherit; color: var(--ink);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1.5px solid rgba(181, 55, 44, 0.28);
+  border-radius: 13px; outline: none;
+  text-align: center; letter-spacing: 2px;
+}
+.answer-input:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(181, 55, 44, 0.10); }
+.answer-input:disabled { opacity: .8; }
+.input-tip { text-align: center; font-size: 12px; color: var(--ink-3); margin-top: 8px; }
+.input-row { display: flex; gap: 10px; margin-top: 10px; }
+.input-row .btn { flex: 1; }
+
+.feedback {
+  margin-top: 16px; padding: 14px; border-radius: 14px;
+  animation: fadeUp .25s ease both;
+}
+.feedback.ok { background: rgba(91, 163, 124, 0.12); border: 1px solid rgba(61, 122, 91, 0.25); }
+.feedback.no { background: rgba(210, 96, 79, 0.10); border: 1px solid rgba(181, 55, 44, 0.22); }
+.feedback .fb-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+.feedback.ok .fb-title { color: #2f6b4d; }
+.feedback.no .fb-title { color: var(--red); }
+.feedback .fb-answer { font-size: 14px; color: var(--ink); }
+.feedback .fb-note { font-size: 12.5px; color: var(--ink-2); margin-top: 8px; line-height: 1.7; }
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ---------- 结算 ---------- */
+.result-card { text-align: center; padding: 22px 18px 20px; position: relative; overflow: hidden; }
+.score-ring { width: 148px; height: 148px; margin: 4px auto 6px; position: relative; }
+.score-ring svg { width: 100%; height: 100%; }
+.score-num {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-size: 42px; font-weight: 800; font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.score-num small { font-size: 13px; font-weight: 500; color: var(--ink-3); margin-left: 2px; }
+.result-title { font-family: "Kaiti SC", "KaiTi", serif; font-size: 22px; margin: 6px 0 4px; letter-spacing: .5px; }
+.result-sub { font-size: 14px; color: var(--ink-2); line-height: 1.7; padding: 0 6px; }
+.result-sub.low { color: var(--red); }
+
+.thumb-wrap { display: flex; justify-content: center; margin: 10px 0 2px; }
+.thumb-emoji { font-size: 84px; line-height: 1; animation: pop 1.4s cubic-bezier(.2, .9, .2, 1) infinite alternate; filter: drop-shadow(0 8px 14px rgba(180, 130, 40, 0.28)); }
+@keyframes pop { from { transform: scale(.94) rotate(-3deg); } to { transform: scale(1.06) rotate(3deg); } }
+.stars { font-size: 20px; color: var(--gold); letter-spacing: 3px; margin-top: 2px; }
+
+.wrong-list { margin-top: 16px; text-align: left; }
+.wrong-item {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 10px 12px; border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6); border: 1px solid var(--line); margin-bottom: 8px;
+}
+.wrong-item .w { font-family: "Kaiti SC", "KaiTi", serif; font-size: 16px; letter-spacing: 2px; flex: 0 0 auto; }
+.wrong-item .d { font-size: 12.5px; color: var(--ink-2); line-height: 1.6; }
+
+/* ---------- 曲线 ---------- */
+.chart-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+.chart { display: block; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px; color: var(--ink-3); margin-top: 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
+
+.record-list { margin-top: 6px; }
+.record {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 2px; border-bottom: 1px dashed var(--line); font-size: 13px;
+}
+.record:last-child { border-bottom: none; }
+.record .no { flex: 0 0 34px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.record .type { flex: 0 0 auto; font-size: 11px; padding: 2px 7px; border-radius: 999px; background: rgba(86, 68, 45, 0.07); color: var(--ink-2); }
+.record .sc { flex: 1; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums; }
+.record .sc.great { color: var(--gold); }
+.record .sc.good { color: var(--green); }
+.record .sc.low { color: var(--red); }
+
+/* ---------- 错题本 ---------- */
+.wb-item { padding: 12px 0; border-bottom: 1px dashed var(--line); }
+.wb-item:last-child { border-bottom: none; }
+.wb-head { display: flex; align-items: center; gap: 8px; }
+.wb-word { font-family: "Kaiti SC", "KaiTi", serif; font-size: 19px; letter-spacing: 2px; }
+.wb-badge { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: rgba(181, 55, 44, 0.10); color: var(--red); }
+.wb-meta { font-size: 12px; color: var(--ink-3); margin-top: 4px; }
+
+/* ---------- 设置 ---------- */
+.set-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px dashed var(--line); }
+.set-row:last-child { border-bottom: none; }
+.set-row .t { font-size: 14px; }
+.set-row .d { font-size: 11.5px; color: var(--ink-3); margin-top: 2px; }
+.switch {
+  position: relative; width: 48px; height: 28px; border-radius: 999px; border: none;
+  background: rgba(86, 68, 45, 0.16); cursor: pointer; transition: background .2s; flex: 0 0 48px;
+}
+.switch::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px;
+  background: #fff; border-radius: 50%; transition: transform .2s; box-shadow: 0 1px 4px rgba(0,0,0,.18);
+}
+.switch.on { background: var(--green-2); }
+.switch.on::after { transform: translateX(20px); }
+.seg { display: flex; gap: 6px; }
+.seg button {
+  border: 1px solid var(--line); background: rgba(255,255,255,.6); color: var(--ink-2);
+  padding: 6px 10px; border-radius: 9px; font-size: 12px; cursor: pointer; font-family: inherit;
+}
+.seg button.on { background: var(--red); color: #fff; border-color: var(--red); }
+
+/* ---------- 底部导航 ---------- */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  background: rgba(255, 253, 246, 0.94);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tabbar button {
+  appearance: none; border: none; background: none; cursor: pointer;
+  padding: 7px 4px 5px; color: var(--ink-3); font-family: inherit; font-size: 11px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+}
+.tabbar button > span:last-child { line-height: 1.3; }
+.tabbar button .ic { width: 22px; height: 22px; display: grid; place-items: center; }
+.tabbar button.on { color: var(--red); }
+.tabbar button.on .ic { color: var(--red); }
+.tabbar .badge-dot {
+  position: absolute; transform: translate(14px, -2px);
+  min-width: 15px; height: 15px; border-radius: 999px; background: var(--red);
+  color: #fff; font-size: 9px; line-height: 15px; text-align: center; padding: 0 4px;
+}
+
+/* ---------- 提示 ---------- */
+.toast {
+  position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom));
+  transform: translateX(-50%) translateY(8px);
+  background: rgba(46, 40, 34, 0.92); color: #fff8ec;
+  padding: 10px 16px; border-radius: 12px; font-size: 13px;
+  max-width: 80vw; text-align: center; line-height: 1.5;
+  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 90;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+.modal {
+  position: fixed; inset: 0; z-index: 80;
+  background: rgba(38, 32, 26, 0.45);
+  display: flex; align-items: flex-end; justify-content: center;
+  padding: 0; animation: fadeUp .2s ease both;
+}
+.modal-box {
+  width: 100%; max-width: 600px; max-height: 86vh; overflow-y: auto;
+  background: var(--paper-2); border-radius: 20px 20px 0 0;
+  padding: 18px 18px calc(18px + env(safe-area-inset-bottom));
+  box-shadow: 0 -8px 30px rgba(0,0,0,.18);
+}
+.modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.modal-head h3 { font-family: "Kaiti SC", "KaiTi", serif; font-size: 18px; margin: 0; }
+
+.empty { text-align: center; padding: 34px 12px; color: var(--ink-3); }
+.empty .big { font-size: 30px; margin-bottom: 8px; }
+
+.hint-strip {
+  display: flex; gap: 8px; align-items: flex-start;
+  font-size: 12.5px; color: var(--ink-2);
+  background: rgba(189, 138, 47, 0.08);
+  border: 1px solid rgba(189, 138, 47, 0.18);
+  border-radius: 12px; padding: 10px 12px; margin-bottom: 14px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+</style>
+</head>
+<body>
+<div id="app">
+  <header id="topbar" class="topbar"></header>
+  <main id="view" class="shell"></main>
+  <nav id="tabbar" class="tabbar"></nav>
+  <div id="toast" class="toast"></div>
+  <div id="modal"></div>
+</div>
+<script>
+window.IDIOM_DATA = (window.IDIOM_DATA || []).concat([
+  {
+    id: "shouzhu", word: "守株待兔", pinyin: "shǒu zhū dài tù", level: 1,
+    source: "《韩非子·五蠹》", dynasty: "战国",
+    people: "宋国农夫", official: "", place: "宋国的田边（树桩旁）",
+    meaning: "守着树桩等兔子撞上来。比喻不劳动、靠运气，妄想不劳而获。",
+    story: "战国时，宋国有个农夫在田里干活。一只兔子跑得太快，一头撞在田边的树桩上死了。他白捡了一只兔子，高兴极了，从此不再种地，天天守在树桩旁等下一只兔子。等了一天又一天，兔子没再来，田里的庄稼却全荒了。",
+    lesson: "好运气不会天天有，想要有收获，就得自己动手去做。",
+    q: [
+      { t: "input", q: "故事里的主人公是谁？", a: "农夫", accept: ["农夫", "宋国农夫", "宋人", "种田人"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "汉朝"], a: 1 },
+      { t: "choice", q: "农夫每天守在哪里等兔子？", o: ["田边的树桩旁", "河边", "城门口", "山顶上"], a: 0 },
+      { t: "choice", q: "那只兔子是怎么死的？", o: ["跑得太快，撞在树桩上", "被农夫抓住", "掉进河里淹死", "被人用箭射中"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["不能靠运气等好处，要靠自己努力", "只要等得够久，总会有收获", "兔子比庄稼更值钱", "种树比种地更轻松"], a: 0 }
+    ]
+  },
+  {
+    id: "kezhou", word: "刻舟求剑", pinyin: "kè zhōu qiú jiàn", level: 1,
+    source: "《吕氏春秋·察今》", dynasty: "战国",
+    people: "过江的楚国人", official: "", place: "江上的船",
+    meaning: "在船上刻记号去找掉进水里的剑。比喻情况变了，还用老办法办事。",
+    story: "战国时，一个楚国人坐船过江。他的宝剑不小心掉进了水里，他却不着急，在船边刻了一个记号，说：“我的剑是从这里掉下去的，等船靠岸再下去找。”船一直往前走，靠岸后他照着记号下水去捞，捞了半天也没找到——船早就走远了，剑还留在原来的地方。",
+    lesson: "事情在变化，办法也要跟着变，不能死守老经验。",
+    q: [
+      { t: "input", q: "是谁在船边刻记号？", a: "楚人", accept: ["楚人", "楚国人", "渡江人", "坐船的人"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "唐朝"], a: 1 },
+      { t: "choice", q: "他的宝剑掉进了哪里？", o: ["江水里", "船上", "岸上", "集市里"], a: 0 },
+      { t: "choice", q: "他为什么按记号找不到剑？", o: ["船已经往前走了，剑还在原处", "记号刻错了地方", "江水太深了", "剑被别人捡走了"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["要根据变化想办法，不能死守老经验", "坐船一定要带宝剑", "掉东西要马上哭", "刻记号很有用"], a: 0 }
+    ]
+  },
+  {
+    id: "yaner", word: "掩耳盗铃", pinyin: "yǎn ěr dào líng", level: 1,
+    source: "《吕氏春秋·自知》", dynasty: "战国",
+    people: "偷钟的人", official: "", place: "别人家的院子里",
+    meaning: "捂住自己的耳朵去偷铃铛。比喻自己骗自己，明明骗不了别人。",
+    story: "古时候，有个人看中了别人家的一口大钟，想偷偷搬走。他怕敲钟时发出声音被别人听见，就把自己的耳朵捂住，以为这样别人也听不见了。结果钟声一响，传得很远，主人和邻居都听见了，当场把他抓住。",
+    lesson: "自己骗自己是没有用的，做了坏事总会被人发现。",
+    q: [
+      { t: "choice", q: "这个人想偷走什么？", o: ["一口大钟", "一只鸡", "一袋米", "一匹马"], a: 0 },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["战国", "唐朝", "宋朝", "清朝"], a: 0 },
+      { t: "choice", q: "他捂住了谁的耳朵？", o: ["自己的耳朵", "主人的耳朵", "邻居的耳朵", "钟的耳朵"], a: 0 },
+      { t: "choice", q: "他为什么捂住耳朵？", o: ["以为别人也听不见钟声", "怕钟声太吵", "怕耳朵冻着", "想听得更清楚"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["自欺欺人没有用，坏事总会暴露", "偷东西要先捂耳朵", "钟声很好听", "邻居的耳朵很灵"], a: 0 }
+    ]
+  },
+  {
+    id: "huashe", word: "画蛇添足", pinyin: "huà shé tiān zú", level: 1,
+    source: "《战国策·齐策二》", dynasty: "战国",
+    people: "楚国的门客", official: "", place: "祭祀后的地上",
+    meaning: "给画好的蛇添上脚。比喻做了多余的事，反而把事情弄坏。",
+    story: "楚国有几个人分到一壶酒，人多酒少，就约定：谁先在地上画好一条蛇，酒就归谁。一个人很快画完了，他得意地又给蛇添上四只脚。这时另一个人也画完了，一把拿过酒壶说：“蛇本来没有脚，你画的不是蛇。”结果酒被人家喝了，添脚的人什么也没得到。",
+    lesson: "做事要恰到好处，画蛇添足反而坏事。",
+    q: [
+      { t: "input", q: "这个故事是哪个国家的人？", a: "楚国", accept: ["楚国", "楚人", "楚国人"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "汉朝"], a: 1 },
+      { t: "choice", q: "他们在哪里画蛇？", o: ["地上", "纸上", "墙上", "桌上"], a: 0 },
+      { t: "choice", q: "先画完的人为什么没喝到酒？", o: ["他给蛇添了脚，画的就不像蛇了", "他画得太慢了", "他把酒打翻了", "他说自己不喝酒"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["做事不要做多余的事，恰到好处最好", "画蛇一定要画脚", "酒要留给别人喝", "画得越快越好"], a: 0 }
+    ]
+  },
+  {
+    id: "maodun", word: "自相矛盾", pinyin: "zì xiāng máo dùn", level: 1,
+    source: "《韩非子·难一》", dynasty: "战国",
+    people: "卖矛和盾的楚国人", official: "", place: "集市",
+    meaning: "自己说的话前后打架，不能自圆其说。",
+    story: "战国时，楚国有个卖兵器的人，先夸自己的盾：“我的盾最结实，什么都刺不穿。”又夸自己的矛：“我的矛最锋利，什么都能刺穿。”旁边有人问：“那用你的矛刺你的盾，会怎么样？”他张着嘴，一句话也答不上来。",
+    lesson: "说话做事要前后一致，不能自己打自己的嘴巴。",
+    q: [
+      { t: "choice", q: "这个人卖的是什么？", o: ["矛和盾", "刀和剑", "弓和箭", "锤和斧"], a: 0 },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "三国"], a: 1 },
+      { t: "choice", q: "故事发生在哪里？", o: ["集市", "军营", "皇宫", "船上"], a: 0 },
+      { t: "input", q: "他说自己的盾什么都刺不穿，那用什么去刺它呢？", a: "矛", accept: ["矛", "他的矛", "用矛", "自己的矛"] },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["说话做事要前后一致，不能自相矛盾", "卖东西要大声吆喝", "盾比矛更值钱", "有矛盾就要吵架"], a: 0 }
+    ]
+  },
+  {
+    id: "wanyang", word: "亡羊补牢", pinyin: "wáng yáng bǔ láo", level: 1,
+    source: "《战国策·楚策四》", dynasty: "战国",
+    people: "牧羊人", official: "", place: "羊圈",
+    meaning: "羊丢了才修补羊圈。比喻出了问题及时补救，还不算晚。",
+    story: "从前有个牧羊人，羊圈破了个洞。夜里狼从洞里叼走了一只羊。邻居劝他赶紧把洞补上，他却说：“羊都丢了，补它干什么？”第二天狼又来叼走一只羊。他这才后悔，马上把洞补好，此后再也没丢过羊。",
+    lesson: "出了问题及时补救，还不算晚；怕的是错了还不改。",
+    q: [
+      { t: "input", q: "是谁丢了羊？", a: "牧羊人", accept: ["牧羊人", "放羊人", "羊倌", "农夫"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "唐朝"], a: 1 },
+      { t: "choice", q: "狼是从哪里进羊圈的？", o: ["羊圈上的破洞", "羊圈大门", "屋顶", "窗户"], a: 0 },
+      { t: "choice", q: "他为什么第二次又丢了羊？", o: ["他没有及时补羊圈", "狼太厉害了", "羊自己跑出去了", "他睡着了没听见"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["出了问题要及时补救，还不算晚", "羊丢了就不要管了", "狼比羊厉害", "羊圈不用修"], a: 0 }
+    ]
+  },
+  {
+    id: "yamiao", word: "揠苗助长", pinyin: "yà miáo zhù zhǎng", level: 1,
+    source: "《孟子·公孙丑上》", dynasty: "战国",
+    people: "宋国农夫", official: "", place: "田里",
+    meaning: "把禾苗往上拔，想帮它长高。比喻急于求成，反而把事情弄坏。",
+    story: "宋国有个农夫，嫌田里的禾苗长得太慢，就把每一棵禾苗都往上拔高一点。忙了一天，他累得腰酸背痛，回家还得意地说：“今天我帮禾苗长高了！”第二天儿子跑到田里一看，禾苗全都枯死了。",
+    lesson: "做事不能着急，违反规律反而会把事情弄坏。",
+    q: [
+      { t: "input", q: "这个农夫是哪国人？", a: "宋人", accept: ["宋人", "宋国农夫", "宋国人", "农夫"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "汉朝"], a: 1 },
+      { t: "choice", q: "故事发生在哪里？", o: ["田里", "院子里", "河边", "山上"], a: 0 },
+      { t: "choice", q: "他是怎么“帮”禾苗长高的？", o: ["把禾苗一棵一棵往上拔", "给禾苗浇了很多水", "给禾苗施了很多肥", "把禾苗搬到阴凉处"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["做事不能急于求成，要按规律来", "禾苗要经常拔一拔", "干活越累越好", "种田不用管天气"], a: 0 }
+    ]
+  },
+  {
+    id: "hujia", word: "狐假虎威", pinyin: "hú jiǎ hǔ wēi", level: 1,
+    source: "《战国策·楚策一》", dynasty: "战国",
+    people: "狐狸和老虎", official: "", place: "森林里",
+    meaning: "狐狸借着老虎的威风吓唬别人。比喻倚仗别人的势力欺压人。",
+    story: "老虎抓住了一只狐狸，要吃它。狐狸说：“我是天帝派来管百兽的，你吃我就是违抗天命。不信，你跟我走一趟。”老虎跟着狐狸走进森林，野兽们见了都吓得四处逃跑。老虎不知道大家怕的是自己，还以为它们真的怕狐狸。",
+    lesson: "借别人的威风吓唬人，自己并没有真本事。",
+    q: [
+      { t: "input", q: "是谁借着老虎的威风？", a: "狐狸", accept: ["狐狸", "小狐狸", "狐"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "唐朝"], a: 1 },
+      { t: "choice", q: "故事发生在哪里？", o: ["森林里", "河边", "村庄里", "皇宫里"], a: 0 },
+      { t: "choice", q: "野兽们为什么到处逃跑？", o: ["它们怕的是后面的老虎", "它们怕的是狐狸", "它们怕猎人", "它们怕下雨"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["借别人的势力吓唬人，自己没真本事", "狐狸比老虎厉害", "森林里很危险", "老虎不吃狐狸"], a: 0 }
+    ]
+  },
+  {
+    id: "jingwa", word: "井底之蛙", pinyin: "jǐng dǐ zhī wā", level: 1,
+    source: "《庄子·秋水》", dynasty: "战国",
+    people: "井里的青蛙", official: "", place: "井底",
+    meaning: "井底的青蛙只看得见井口那么大的天。比喻见识短浅、眼界狭窄。",
+    story: "井里住着一只青蛙，它觉得自己的小天地最舒服。一天，一只从东海来的大鳖路过，青蛙得意地请它参观。大鳖的左脚还没伸进井口，右腿就被卡住了。它告诉青蛙：大海宽广得看不到边，深得摸不到底。青蛙听了，惊讶得说不出话来。",
+    lesson: "眼界要开阔，不能把自己看到的一小块天地当成全世界。",
+    q: [
+      { t: "input", q: "故事里的小动物是什么？", a: "青蛙", accept: ["青蛙", "井底之蛙", "蛙"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "汉朝"], a: 1 },
+      { t: "choice", q: "青蛙住在哪里？", o: ["井底", "池塘里", "大海里", "河里"], a: 0 },
+      { t: "choice", q: "那只大鳖是从哪里来的？", o: ["东海", "西山", "南湖", "北河"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["见识太少会自满，要开阔眼界", "井底最舒服", "青蛙比大鳖厉害", "大海没有井深"], a: 0 }
+    ]
+  },
+  {
+    id: "tiechu", word: "铁杵成针", pinyin: "tiě chǔ chéng zhēn", level: 1,
+    source: "《方舆胜览》及民间传说", dynasty: "唐朝",
+    people: "李白", official: "", place: "象耳山下的小溪边",
+    meaning: "把铁棒磨成绣花针。比喻只要有恒心，再难的事也能做成。",
+    story: "李白小时候不爱读书，常常逃学。一天，他在山下小溪边看见一位老奶奶，正拿着一根粗铁棒在石头上磨。李白好奇地问：“您磨这个做什么？”老奶奶说：“我要把它磨成一根绣花针。”李白很吃惊：“这么粗的铁棒，什么时候才能磨成针？”老奶奶笑着说：“只要天天磨，总有一天能磨成。”李白听了很惭愧，从此用功读书。",
+    lesson: "只要坚持不懈，再难的事也能做成。",
+    q: [
+      { t: "input", q: "故事里不爱读书的孩子是谁？", a: "李白", accept: ["李白", "李太白", "少年李白"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["唐朝", "宋朝", "汉朝", "秦朝"], a: 0 },
+      { t: "choice", q: "老奶奶在哪里磨铁棒？", o: ["山下的小溪边", "集市上", "学堂里", "山顶上"], a: 0 },
+      { t: "choice", q: "老奶奶要把铁棒磨成什么？", o: ["绣花针", "大刀", "铁锅", "锄头"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["只要有恒心，再难的事也能做成", "铁棒比针好看", "读书没有用", "磨东西要找老奶奶"], a: 0 }
+    ]
+  },
+  {
+    id: "kongrong", word: "孔融让梨", pinyin: "kǒng róng ràng lí", level: 1,
+    source: "《后汉书·孔融传》", dynasty: "东汉",
+    people: "孔融", official: "", place: "家中",
+    meaning: "孔融把大梨让给哥哥弟弟。形容懂得谦让、尊敬兄长。",
+    story: "东汉末年，孔融四岁，和哥哥们一起吃梨。他总是挑最小的那个。父亲问他为什么，他说：“我年纪小，应该吃小的，大的留给哥哥们。”父亲又问：“那弟弟呢？”他说：“弟弟比我更小，更应该让着他。”家里人都很感动。",
+    lesson: "懂得谦让、关心别人，是一种很好的品德。",
+    q: [
+      { t: "input", q: "四岁让梨的孩子是谁？", a: "孔融", accept: ["孔融", "小孔融"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["东汉", "唐朝", "宋朝", "明朝"], a: 0 },
+      { t: "choice", q: "故事发生在哪里？", o: ["家里", "学堂", "集市", "皇宫"], a: 0 },
+      { t: "choice", q: "孔融挑的是哪个梨？", o: ["最小的", "最大的", "最甜的", "最红的"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["要懂得谦让，关心别人", "吃梨要挑最小的", "年纪小就可以多吃", "让梨会吃亏"], a: 0 }
+    ]
+  },
+  {
+    id: "mengmu", word: "孟母三迁", pinyin: "mèng mǔ sān qiān", level: 1,
+    source: "《列女传·母仪传》", dynasty: "战国",
+    people: "孟母和孟子", official: "", place: "墓地旁→集市旁→学堂旁",
+    meaning: "孟子的母亲三次搬家，为给孩子好的成长环境。",
+    story: "孟子小时候，家住在墓地旁，他常学人家办丧事的样子。孟母觉得这样不好，就搬到集市旁，孟子又学商人叫卖。孟母又搬家，这次搬到学堂旁。孟子每天看学生读书行礼，也认真读起书来。孟母高兴地说：“这里才是适合孩子住的地方。”",
+    lesson: "环境对孩子的成长影响很大，要选好环境、交好朋友。",
+    q: [
+      { t: "input", q: "为了孩子一次次搬家的是谁？", a: "孟母", accept: ["孟母", "孟子的母亲", "孟母仉氏"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "汉朝"], a: 1 },
+      { t: "choice", q: "孟母最后把家搬到了哪里？", o: ["学堂旁", "墓地旁", "集市旁", "河边"], a: 0 },
+      { t: "choice", q: "孟母为什么三次搬家？", o: ["想给孟子一个好的成长环境", "房子太旧了", "家里没有水喝", "想做买卖"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["环境对成长影响很大，要选好环境", "搬家越多越好", "住在墓地旁最安静", "商人叫卖很好玩"], a: 0 }
+    ]
+  }
+]);
+
+window.IDIOM_DATA = (window.IDIOM_DATA || []).concat([
+  {
+    id: "woxin", word: "卧薪尝胆", pinyin: "wò xīn cháng dǎn", level: 2,
+    source: "《史记·越王勾践世家》", dynasty: "春秋",
+    people: "勾践、夫差", official: "越国国君（越王）", place: "会稽（今浙江绍兴一带）",
+    meaning: "睡在柴草上，吃饭前先尝苦胆。形容刻苦自励、发愤图强。",
+    story: "春秋时，越国被吴国打败，越王勾践被围在会稽山，只好向吴王夫差求和。回国后，他立志报仇：睡在柴草上，屋里挂着苦胆，每天吃饭前先尝一口，提醒自己不忘耻辱。他还和百姓一起种田、练兵。多年后，越国强大起来，终于打败了吴国。",
+    lesson: "失败不可怕，怕的是忘了教训、不肯努力。",
+    q: [
+      { t: "input", q: "睡柴草、尝苦胆的是谁？", a: "勾践", accept: ["勾践", "越王勾践", "越王"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "三国"], a: 0 },
+      { t: "choice", q: "勾践当时是什么身份？", o: ["越国国君", "吴国将军", "楚国丞相", "齐国大夫"], a: 0 },
+      { t: "choice", q: "他为什么每天要尝一口苦胆？", o: ["提醒自己不忘战败的耻辱", "为了治胃病", "为了练胆子", "想尝尝苦味"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["失败后要发愤图强、坚持努力", "失败了就不要再努力", "尝苦胆能让人变强", "打仗要靠运气"], a: 0 }
+    ]
+  },
+  {
+    id: "tuibi", word: "退避三舍", pinyin: "tuì bì sān shè", level: 2,
+    source: "《左传·僖公二十三年》", dynasty: "春秋",
+    people: "晋文公重耳、楚成王", official: "晋国国君（晋文公）", place: "城濮（今山东鄄城一带）",
+    meaning: "主动后退九十里。比喻退让、回避，不与人相争。",
+    story: "春秋时，晋公子重耳流亡到楚国，楚成王待他很好。重耳承诺：将来两国交战，我一定退避三舍（九十里）报答您。后来重耳回国当上晋文公，晋楚在城濮相遇，他真的下令军队后退九十里。楚军以为晋军害怕，追了上来，结果被晋军打败。",
+    lesson: "答应别人的事就要做到，守信的人才能赢得尊重。",
+    q: [
+      { t: "input", q: "下令“退避三舍”的是谁？", a: "重耳", accept: ["重耳", "晋文公", "公子重耳"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "汉朝"], a: 0 },
+      { t: "choice", q: "重耳回国后当上了什么？", o: ["晋国国君", "楚国丞相", "秦国将军", "齐国大夫"], a: 0 },
+      { t: "choice", q: "他为什么主动后退九十里？", o: ["报答楚成王当年的恩情、履行承诺", "因为害怕楚军", "因为走错了路", "想把楚军引到河边"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["答应别人的事要努力做到，守信很重要", "打仗一定要先后退", "楚国比晋国强大", "流亡的人都很有本事"], a: 0 }
+    ]
+  },
+  {
+    id: "yiming", word: "一鸣惊人", pinyin: "yī míng jīng rén", level: 2,
+    source: "《史记·楚世家》", dynasty: "春秋",
+    people: "楚庄王、伍举", official: "楚国国君（楚庄王）", place: "楚国都城郢",
+    meaning: "平时没有特别的表现，一下子做出惊人的成绩。",
+    story: "楚庄王即位后三年不理朝政，还下令不许大臣劝谏。大臣伍举用谜语问他：“有只鸟三年不飞也不叫，这是什么鸟？”楚庄王答：“这只鸟不飞则已，一飞冲天；不鸣则已，一鸣惊人。”此后他整顿朝政、任用贤才，楚国越来越强大。",
+    lesson: "平时默默积累，关键时刻才能一鸣惊人。",
+    q: [
+      { t: "input", q: "三年不理朝政、后来一鸣惊人的人是谁？", a: "楚庄王", accept: ["楚庄王", "庄王"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "三国"], a: 0 },
+      { t: "choice", q: "楚庄王是什么身份？", o: ["楚国国君", "晋国将军", "周天子", "齐国丞相"], a: 0 },
+      { t: "choice", q: "大臣伍举用哪种鸟来打比方？", o: ["三年不飞不叫的鸟", "会说话的鹦鹉", "飞得最高的鹰", "夜里叫的猫头鹰"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["默默积累，关键时刻就能做出惊人成绩", "国君可以一直不管事", "鸟叫得响才厉害", "三年不说话最好"], a: 0 }
+    ]
+  },
+  {
+    id: "wanbi", word: "完璧归赵", pinyin: "wán bì guī zhào", level: 2,
+    source: "《史记·廉颇蔺相如列传》", dynasty: "战国",
+    people: "蔺相如、秦昭王", official: "赵国大夫（后封上大夫）", place: "秦国咸阳宫",
+    meaning: "把和氏璧完整地送回赵国。比喻把原物完好无损地归还。",
+    story: "战国时，秦王说愿意用十五座城换赵国的和氏璧。蔺相如带着璧来到秦国，发现秦王只想抢璧、不想给城。他机智地说璧上有瑕疵，把璧要了回来，又让随从扮成商人，把璧悄悄送回赵国。秦王拿他没办法，只好放他回去。",
+    lesson: "遇到强大的对手，要机智勇敢，既守信用又保护好自己。",
+    q: [
+      { t: "input", q: "带着和氏璧出使秦国的是谁？", a: "蔺相如", accept: ["蔺相如", "相如"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "汉朝"], a: 1 },
+      { t: "choice", q: "完璧归赵后，赵王封蔺相如做了什么官？", o: ["上大夫", "大将军", "丞相", "县令"], a: 0 },
+      { t: "choice", q: "蔺相如用什么办法把璧送回赵国？", o: ["让随从扮成商人悄悄送回", "自己抱着璧跑回去", "请秦王派人送回去", "把璧藏在帽子里带回去"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["面对强手要机智勇敢、有礼有节", "有好东西就要藏起来", "秦王说话不算数", "出使别国很危险"], a: 0 }
+    ]
+  },
+  {
+    id: "fujing", word: "负荆请罪", pinyin: "fù jīng qǐng zuì", level: 2,
+    source: "《史记·廉颇蔺相如列传》", dynasty: "战国",
+    people: "廉颇、蔺相如", official: "赵国大将军（廉颇）", place: "蔺相如家门前",
+    meaning: "背着荆条去请罪。形容主动认错、诚心悔过。",
+    story: "战国时，蔺相如因为功劳大，官位排在廉颇之上。廉颇很不服气，扬言要羞辱他。蔺相如却处处避让，说：“秦国怕的是我们赵国文武齐心，我不能因私怨误了国家。”廉颇听说后十分惭愧，就背着荆条到蔺相如门前请罪，两人从此成了好朋友。",
+    lesson: "知道自己错了就要主动认错，团结比面子更重要。",
+    q: [
+      { t: "input", q: "背着荆条去请罪的是谁？", a: "廉颇", accept: ["廉颇", "老将廉颇"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "三国"], a: 1 },
+      { t: "choice", q: "廉颇当时是什么身份？", o: ["赵国大将军", "秦国丞相", "燕国大夫", "楚国令尹"], a: 0 },
+      { t: "choice", q: "廉颇背着荆条去哪里？", o: ["到蔺相如家门前请罪", "到赵王宫里告状", "到秦国去打仗", "回家去反省"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["知错就改、主动认错，团结最重要", "官大就一定有理", "打架才能解决问题", "面子比国家重要"], a: 0 }
+    ]
+  },
+  {
+    id: "zhishang", word: "纸上谈兵", pinyin: "zhǐ shàng tán bīng", level: 2,
+    source: "《史记·廉颇蔺相如列传》", dynasty: "战国",
+    people: "赵括", official: "赵国将军（赵军主帅）", place: "长平（今山西高平一带）",
+    meaning: "在纸面上谈论打仗。比喻只会空谈理论，不能解决实际问题。",
+    story: "战国时，赵国名将赵奢的儿子赵括，从小熟读兵书，说起打仗来头头是道，连父亲都难不倒他。后来秦国攻打赵国，赵王让赵括代替廉颇当主帅。赵括只会照着兵书办事，不会随机应变，结果在长平被秦军打得大败，四十多万赵军被围困。",
+    lesson: "书本上的知识要和实际结合，光会背书本是没有用的。",
+    q: [
+      { t: "input", q: "只会照着兵书打仗的赵军主帅是谁？", a: "赵括", accept: ["赵括", "马服子"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "汉朝"], a: 1 },
+      { t: "choice", q: "赵括担任什么职务？", o: ["赵国将军", "赵国丞相", "秦国大夫", "燕国国君"], a: 0 },
+      { t: "choice", q: "赵括为什么会大败？", o: ["只会照兵书办事，不会随机应变", "他的士兵太少了", "他不认识路", "秦军用了火攻"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["理论要和实际结合，不能只会空谈", "兵书读得越多越好", "打仗不用动脑筋", "年轻人不能当将军"], a: 0 }
+    ]
+  },
+  {
+    id: "pofu", word: "破釜沉舟", pinyin: "pò fǔ chén zhōu", level: 2,
+    source: "《史记·项羽本纪》", dynasty: "秦朝末年",
+    people: "项羽", official: "楚军上将军", place: "巨鹿（今河北平乡一带）",
+    meaning: "砸破锅、沉掉船。比喻下定决心，不留退路，一定要成功。",
+    story: "秦朝末年，项羽带兵去救巨鹿。渡过漳河后，他下令把做饭的锅全部砸破，把渡河的船全部沉掉，每人只带三天的干粮。他对将士们说：“我们已经没有退路了，只能向前打胜仗！”楚军个个奋勇，最终大败秦军。",
+    lesson: "下定决心、全力以赴，才能克服困难取得成功。",
+    q: [
+      { t: "input", q: "破釜沉舟的将军是谁？", a: "项羽", accept: ["项羽", "西楚霸王", "项王"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["秦朝末年", "西汉", "战国", "三国"], a: 0 },
+      { t: "choice", q: "项羽当时担任什么职务？", o: ["楚军上将军", "秦军大将", "齐国丞相", "赵国大夫"], a: 0 },
+      { t: "choice", q: "他让士兵砸锅、沉船，是为了什么？", o: ["表示没有退路，只能拼死取胜", "锅和船都坏了", "不想让敌人用", "准备回家"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["下定决心、全力以赴才能成功", "打仗要先毁掉工具", "船和锅不重要", "干粮带得越少越好"], a: 0 }
+    ]
+  },
+  {
+    id: "simian", word: "四面楚歌", pinyin: "sì miàn chǔ gē", level: 2,
+    source: "《史记·项羽本纪》", dynasty: "秦朝末年",
+    people: "项羽", official: "西楚霸王", place: "垓下（今安徽灵璧一带）",
+    meaning: "四周都响起楚地的歌声。比喻处在孤立无援、四面受敌的处境。",
+    story: "楚汉相争的最后，项羽被汉军围困在垓下。夜里，汉军从四面唱起楚地的歌。楚军士兵听到家乡的歌，以为楚地已经被汉军占领，纷纷伤心流泪，失去了斗志。项羽见大势已去，带着少数人马突围，最后在乌江边自刎。",
+    lesson: "人心和士气很重要；孤立无援时，再强的人也难成功。",
+    q: [
+      { t: "input", q: "被围在垓下的是谁？", a: "项羽", accept: ["项羽", "项王", "西楚霸王"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["秦朝末年", "西汉", "战国", "唐朝"], a: 0 },
+      { t: "choice", q: "项羽自称什么？", o: ["西楚霸王", "汉王", "秦皇", "齐王"], a: 0 },
+      { t: "choice", q: "楚军为什么失去斗志？", o: ["听到四面唱起楚歌，以为家乡已被占领", "他们太饿了", "项羽下令撤退", "天下起了大雪"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["人心和士气很重要，不能让人失去信心", "唱歌能打胜仗", "被围住就一定会赢", "打仗要靠天气"], a: 0 }
+    ]
+  },
+  {
+    id: "wangmei", word: "望梅止渴", pinyin: "wàng méi zhǐ kě", level: 2,
+    source: "《世说新语·假谲》", dynasty: "东汉末年",
+    people: "曹操", official: "丞相", place: "行军途中的山道",
+    meaning: "用想象中的梅子解渴。比喻用空想安慰自己，也指用希望鼓舞人心。",
+    story: "东汉末年，曹操带兵行军，天气很热，路上又找不到水，士兵们渴得走不动。曹操灵机一动，指着前方说：“前面有一片梅林，梅子又酸又甜，可以解渴！”士兵们一听，嘴里都流出了口水，顿时有了精神，继续前进，终于找到了水源。",
+    lesson: "遇到困难时，给人希望就能鼓舞士气；但空想不能真正解决问题。",
+    q: [
+      { t: "input", q: "用“前面有梅林”鼓舞士兵的是谁？", a: "曹操", accept: ["曹操", "曹丞相", "魏武"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["东汉末年", "唐朝", "宋朝", "清朝"], a: 0 },
+      { t: "choice", q: "曹操在东汉朝廷担任过什么要职？", o: ["丞相", "大将军", "太尉", "刺史"], a: 0 },
+      { t: "choice", q: "士兵们为什么突然有了精神？", o: ["想到酸梅子，嘴里流口水，不那么渴了", "他们真的吃到了梅子", "下了一场大雨", "曹操给他们发了水"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["困难时要给人希望、鼓舞士气", "说谎一定不好", "梅子比水好喝", "渴了可以不吃东西"], a: 0 }
+    ]
+  },
+  {
+    id: "caomu", word: "草木皆兵", pinyin: "cǎo mù jiē bīng", level: 2,
+    source: "《晋书·苻坚载记》", dynasty: "东晋",
+    people: "苻坚", official: "前秦皇帝", place: "淝水、八公山（今安徽寿县一带）",
+    meaning: "把山上的草木都当成了敌兵。形容惊慌时疑神疑鬼。",
+    story: "东晋时，前秦皇帝苻坚带领大军南下，想攻打东晋。他登上城楼远望，见晋军阵容整齐，心里有些害怕；再看八公山上，草木茂盛，风一吹摇摇晃晃，他竟以为山上藏满了晋兵，回头对弟弟说：“晋军也很强大啊！”后来前秦军在淝水大败。",
+    lesson: "惊慌失措会让人判断失误，遇事要冷静。",
+    q: [
+      { t: "input", q: "把草木当成敌兵的是谁？", a: "苻坚", accept: ["苻坚", "前秦皇帝苻坚"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["东晋", "西汉", "唐朝", "明朝"], a: 0 },
+      { t: "choice", q: "苻坚是什么身份？", o: ["前秦皇帝", "东晋皇帝", "北魏丞相", "西楚霸王"], a: 0 },
+      { t: "choice", q: "他为什么把草木看成了士兵？", o: ["心里害怕，疑神疑鬼", "草木真的会动", "他眼睛不好", "有人躲在山上"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["遇事要冷静，惊慌会让人判断失误", "草木也会打仗", "山上的风景很好", "打仗要先登高"], a: 0 }
+    ]
+  },
+  {
+    id: "zhilu", word: "指鹿为马", pinyin: "zhǐ lù wéi mǎ", level: 2,
+    source: "《史记·秦始皇本纪》", dynasty: "秦朝",
+    people: "赵高、秦二世", official: "秦朝丞相", place: "咸阳宫",
+    meaning: "指着鹿说是马。比喻故意颠倒黑白、混淆是非。",
+    story: "秦朝时，丞相赵高想试探大臣们听不听他的话。一天上朝，他牵来一只鹿，对秦二世说：“这是一匹好马。”秦二世笑着说：“丞相弄错了吧，这是鹿。”赵高问大臣们，有人沉默，有人跟着说是马，也有人坚持说是鹿。后来，说是鹿的人都被赵高想办法陷害了。",
+    lesson: "故意颠倒黑白的人很可怕；我们要敢于说真话。",
+    q: [
+      { t: "input", q: "牵着鹿说是马的是谁？", a: "赵高", accept: ["赵高", "丞相赵高"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["秦朝", "汉朝", "唐朝", "宋朝"], a: 0 },
+      { t: "choice", q: "赵高担任什么官职？", o: ["丞相", "大将军", "太尉", "县令"], a: 0 },
+      { t: "choice", q: "赵高为什么把鹿说成马？", o: ["试探大臣们听不听他的话", "他分不清鹿和马", "他想把鹿送给皇帝", "他在开玩笑"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["不能故意颠倒黑白，要敢于说真话", "鹿和马长得一样", "丞相说什么都对", "上朝很好玩"], a: 0 }
+    ]
+  },
+  {
+    id: "tuqiong", word: "图穷匕见", pinyin: "tú qióng bǐ xiàn", level: 2,
+    source: "《史记·刺客列传》", dynasty: "战国",
+    people: "荆轲、秦王", official: "", place: "秦国咸阳宫",
+    meaning: "地图展开到最后，匕首露了出来。比喻事情发展到最后，真相或本意显露出来。",
+    story: "战国末年，燕国太子丹派荆轲去刺杀秦王。荆轲带着装着樊於期人头的匣子和燕国地图来到咸阳宫。他慢慢展开地图，图卷到最后，藏在里面的匕首露了出来。荆轲抓起匕首刺向秦王，却没有刺中，最后被秦王的卫士杀死。",
+    lesson: "伪装得再好，真相也总有露出来的时候。",
+    q: [
+      { t: "input", q: "奉命去刺杀秦王的是谁？", a: "荆轲", accept: ["荆轲", "荆卿"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "汉朝"], a: 1 },
+      { t: "choice", q: "故事发生在哪里？", o: ["秦国咸阳宫", "燕国都城", "赵国邯郸", "齐国临淄"], a: 0 },
+      { t: "choice", q: "匕首藏在哪里？", o: ["地图卷的末尾", "衣袖里", "靴子里", "帽子里"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["伪装终会露馅，真相总会显露", "送地图很危险", "匕首要藏好", "秦王很好骗"], a: 0 }
+    ]
+  }
+]);
+
+window.IDIOM_DATA = (window.IDIOM_DATA || []).concat([
+  {
+    id: "sangu", word: "三顾茅庐", pinyin: "sān gù máo lú", level: 3,
+    source: "《三国志·诸葛亮传》", dynasty: "东汉末年",
+    people: "刘备、诸葛亮、关羽、张飞", official: "刘备：蜀汉皇帝；诸葛亮：蜀汉丞相", place: "隆中草庐（今湖北襄阳）",
+    meaning: "三次到草庐拜访。比喻真心诚意地一再邀请、求教有才能的人。",
+    story: "东汉末年，刘备听说诸葛亮很有才华，就和关羽、张飞一起去隆中拜访。第一次、第二次都没见到，第三次去时，诸葛亮正在睡觉，刘备就在门外静静等候。诸葛亮醒来后被他的诚心打动，答应出山帮助他。后来诸葛亮做了蜀汉的丞相，帮刘备建立了蜀汉。",
+    lesson: "真心诚意、尊重人才，才能请到真正有本事的人。",
+    q: [
+      { t: "input", q: "三次去请诸葛亮出山的是谁？", a: "刘备", accept: ["刘备", "刘玄德", "玄德"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["东汉末年", "西汉", "唐朝", "北宋"], a: 0 },
+      { t: "choice", q: "诸葛亮后来担任什么官职？", o: ["蜀汉丞相", "东吴大都督", "曹魏大将军", "东汉太尉"], a: 0 },
+      { t: "choice", q: "诸葛亮住在哪里？", o: ["隆中草庐", "成都皇宫", "荆州城", "江东柴桑"], a: 0 },
+      { t: "choice", q: "刘备第三次去时，在门外做什么？", o: ["静静等候诸葛亮睡醒", "大喊大叫", "转身回去了", "和诸葛亮吵架"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["诚心诚意、尊重人才，才能请到有本事的人", "请人帮忙要去三次", "睡觉的人最有本事", "刘备没有本事"], a: 0 }
+    ]
+  },
+  {
+    id: "guamu", word: "刮目相看", pinyin: "guā mù xiāng kàn", level: 3,
+    source: "《三国志·吕蒙传》", dynasty: "三国",
+    people: "吕蒙、鲁肃", official: "吴国大将", place: "吴国军营",
+    meaning: "擦亮眼睛重新看待。指别人有了进步，要用新的眼光看待他。",
+    story: "三国时，吴国大将吕蒙起初不爱读书。孙权劝他多读书，他就刻苦学习。后来鲁肃路过，和吕蒙讨论军事，发现他见解高明，非常吃惊。吕蒙说：“读书人分别几天，就要重新看待他了。”鲁肃从此对他刮目相看。",
+    lesson: "人是在不断进步的，要用发展的眼光看待别人。",
+    q: [
+      { t: "input", q: "被鲁肃“刮目相看”的吴国大将是谁？", a: "吕蒙", accept: ["吕蒙", "吕子明"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "三国", "唐朝"], a: 2 },
+      { t: "choice", q: "吕蒙是什么身份？", o: ["吴国大将", "蜀国丞相", "魏国将军", "吴国丞相"], a: 0 },
+      { t: "choice", q: "鲁肃为什么对吕蒙刮目相看？", o: ["吕蒙读书后见识大大提高了", "吕蒙长高了", "吕蒙打了胜仗", "吕蒙送了礼物"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["要用发展的眼光看待别人", "读书没有用", "大将不用学习", "鲁肃看不起人"], a: 0 }
+    ]
+  },
+  {
+    id: "lebu", word: "乐不思蜀", pinyin: "lè bù sī shǔ", level: 3,
+    source: "《三国志·后主传》", dynasty: "三国",
+    people: "刘禅、司马昭", official: "蜀汉后主（皇帝）", place: "洛阳",
+    meaning: "在这里很快乐，不想念蜀国。比喻贪图享乐，忘了本分和家乡。",
+    story: "三国后期，蜀汉被魏国灭掉，后主刘禅投降后被带到洛阳。一天，司马昭设宴，故意让人演奏蜀地的音乐，蜀国旧臣都很伤心，刘禅却说说笑笑。司马昭问他：“你很想念蜀国吗？”刘禅答：“这里很快乐，不想蜀国。”旧臣听了都很失望。",
+    lesson: "不能贪图享乐、忘了本分，更不能忘记自己的家乡和亲人。",
+    q: [
+      { t: "input", q: "说出“此间乐，不思蜀”的人是谁？", a: "刘禅", accept: ["刘禅", "蜀汉后主", "阿斗"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["三国", "西汉", "唐朝", "北宋"], a: 0 },
+      { t: "choice", q: "刘禅是什么身份？", o: ["蜀汉后主（皇帝）", "蜀汉丞相", "魏国将军", "吴国国君"], a: 0 },
+      { t: "choice", q: "刘禅投降后被带到哪里？", o: ["洛阳", "成都", "建业", "长安"], a: 0 },
+      { t: "choice", q: "司马昭用什么试探刘禅？", o: ["让人演奏蜀地音乐，问他是否想念蜀国", "请他吃饭", "让他写文章", "让他带兵打仗"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["不能贪图享乐、忘了本分和家乡", "投降就能过好日子", "音乐让人想家", "皇帝不用管事"], a: 0 }
+    ]
+  },
+  {
+    id: "qinqin", word: "七擒七纵", pinyin: "qī qín qī zòng", level: 3,
+    source: "《三国志·诸葛亮传》及《汉晋春秋》", dynasty: "三国",
+    people: "诸葛亮、孟获", official: "蜀汉丞相", place: "南中（今云南、贵州一带）",
+    meaning: "七次抓住又七次放掉。比喻用宽容和诚意使人真心服气。",
+    story: "三国时，南中地区的首领孟获起兵反叛。诸葛亮带兵前去，先后七次抓住孟获，又七次把他放回去。孟获每次都被诸葛亮的宽容和诚意感动，最后一次终于心服口服，说：“丞相天威，我们再也不反叛了。”南中从此安定下来。",
+    lesson: "用宽容和诚意待人，才能让人真心服气。",
+    q: [
+      { t: "input", q: "七次抓住又放走孟获的是谁？", a: "诸葛亮", accept: ["诸葛亮", "孔明", "诸葛孔明"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["三国", "秦朝", "唐朝", "北宋"], a: 0 },
+      { t: "choice", q: "诸葛亮担任什么官职？", o: ["蜀汉丞相", "东吴大都督", "曹魏将军", "东汉太尉"], a: 0 },
+      { t: "choice", q: "孟获是什么人？", o: ["南中地区的首领", "蜀汉的丞相", "魏国的大将", "东吴的国君"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["用宽容和诚意才能让人真心服气", "抓住敌人就要杀掉", "打仗要靠人多", "南中很危险"], a: 0 }
+    ]
+  },
+  {
+    id: "toubi", word: "投笔从戎", pinyin: "tóu bǐ cóng róng", level: 3,
+    source: "《后汉书·班超传》", dynasty: "东汉",
+    people: "班超", official: "西域都护（封定远侯）", place: "西域（今新疆及中亚一带）",
+    meaning: "扔掉笔去参军。指文人放弃文职，投身军旅、报效国家。",
+    story: "东汉时，班超家里穷，靠替官府抄书养家。有一天，他写着写着，把笔一扔，感叹道：“大丈夫应该到边疆立功，怎么能天天抄抄写写呢？”后来他参军出征西域，立下大功，做了西域都护，被封为定远侯。",
+    lesson: "人要有志气，敢于选择适合自己的道路，并为之努力。",
+    q: [
+      { t: "input", q: "扔下笔去参军的文人是谁？", a: "班超", accept: ["班超", "班仲升"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["东汉", "西汉", "唐朝", "北宋"], a: 0 },
+      { t: "choice", q: "班超后来担任什么官职？", o: ["西域都护", "大汉丞相", "骠骑将军", "洛阳县令"], a: 0 },
+      { t: "choice", q: "他为什么把笔扔掉？", o: ["想效仿英雄到边疆立功", "笔坏了", "他不想写字", "他要回家种田"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["人要有志气，敢于为理想努力", "抄书没有用", "参军比读书轻松", "穷人就该抄书"], a: 0 }
+    ]
+  },
+  {
+    id: "wenji", word: "闻鸡起舞", pinyin: "wén jī qǐ wǔ", level: 3,
+    source: "《晋书·祖逖传》", dynasty: "东晋",
+    people: "祖逖、刘琨", official: "将军（豫州刺史）", place: "两人同住的住所",
+    meaning: "听到鸡叫就起床练剑。形容有志气的人勤奋努力、及时奋起。",
+    story: "东晋时，祖逖和刘琨是好朋友，两人都立志报效国家。半夜听到鸡叫，祖逖就叫醒刘琨：“这不是坏声音，是催我们起来练武的！”两人立刻起床舞剑。后来祖逖带兵北伐，成为有名的将军。",
+    lesson: "有志向还要勤奋，抓紧时间练好本领。",
+    q: [
+      { t: "input", q: "听到鸡叫就起床练剑的是谁？", a: "祖逖", accept: ["祖逖", "祖士稚"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["东晋", "西汉", "唐朝", "北宋"], a: 0 },
+      { t: "choice", q: "祖逖后来担任什么？", o: ["将军（豫州刺史）", "丞相", "县令", "太尉"], a: 0 },
+      { t: "choice", q: "他们听到鸡叫后做什么？", o: ["起床舞剑练武", "继续睡觉", "起来做饭", "去院子里抓鸡"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["有志向还要勤奋，抓紧时间练本领", "鸡叫会吵人睡觉", "练武比读书重要", "晚上不用睡觉"], a: 0 }
+    ]
+  },
+  {
+    id: "zaobi", word: "凿壁偷光", pinyin: "záo bì tōu guāng", level: 3,
+    source: "《西京杂记》", dynasty: "西汉",
+    people: "匡衡", official: "丞相", place: "匡衡家中（墙壁）",
+    meaning: "在墙上凿洞，借邻居的灯光读书。形容家境贫寒仍刻苦学习。",
+    story: "西汉时，匡衡家里很穷，白天要帮人干活，晚上想读书却点不起蜡烛。他发现隔壁邻居家有灯光，就在墙上凿了一个小洞，借着透过来的光读书。光线很暗，他就把书凑得很近，一个字一个字地看。他这样刻苦学习，后来成了很有学问的人，还做了丞相。",
+    lesson: "条件再艰苦，只要肯努力，也能学有所成。",
+    q: [
+      { t: "input", q: "在墙上凿洞借光读书的是谁？", a: "匡衡", accept: ["匡衡", "匡稚圭"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["西汉", "东汉", "唐朝", "宋朝"], a: 0 },
+      { t: "choice", q: "匡衡后来担任什么官职？", o: ["丞相", "大将军", "县令", "太尉"], a: 0 },
+      { t: "choice", q: "他为什么要在墙上凿洞？", o: ["借邻居家的灯光读书", "想让房间更亮", "想看看邻居在做什么", "墙上有个洞要修"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["条件艰苦也能刻苦学习、学有所成", "凿墙很不安全", "晚上不该读书", "邻居家的灯很亮"], a: 0 }
+    ]
+  },
+  {
+    id: "xuanliang", word: "悬梁刺股", pinyin: "xuán liáng cì gǔ", level: 3,
+    source: "《战国策·秦策一》《太平御览》", dynasty: "战国·东汉",
+    people: "苏秦、孙敬", official: "苏秦：佩六国相印（纵横家）", place: "书房",
+    meaning: "把头发系在屋梁上，用锥子刺大腿。形容非常刻苦地学习。",
+    story: "战国时，苏秦游说各国失败，回家后发愤读书。夜里困了，他就用锥子刺自己的大腿，用疼痛提醒自己别睡。东汉的孙敬读书时，把头发用绳子系在屋梁上，一打瞌睡就会被扯醒。两个人后来都很有成就。",
+    lesson: "想要学有所成，就要下苦功夫、坚持不懈。",
+    q: [
+      { t: "input", q: "用锥子刺大腿提神读书的是谁？", a: "苏秦", accept: ["苏秦", "苏子"] },
+      { t: "choice", q: "苏秦是哪个时期的人？", o: ["春秋", "战国", "秦朝", "三国"], a: 1 },
+      { t: "choice", q: "苏秦后来取得了什么成就？", o: ["佩六国相印", "当上丞相", "做了大将军", "成为皇帝"], a: 0 },
+      { t: "choice", q: "“悬梁”说的是谁？", o: ["孙敬", "苏秦", "匡衡", "祖逖"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["想学有所成，就要下苦功夫", "读书要伤害自己", "困了就该睡觉", "绳子很有用"], a: 0 }
+    ]
+  },
+  {
+    id: "chengmen", word: "程门立雪", pinyin: "chéng mén lì xuě", level: 3,
+    source: "《宋史·杨时传》", dynasty: "北宋",
+    people: "杨时、游酢、程颐", official: "杨时：龙图阁直学士", place: "程颐家门外（洛阳）",
+    meaning: "站在程颐门外的雪地里等候。形容尊敬老师、诚心求教。",
+    story: "北宋时，杨时和同学游酢去拜访老师程颐。到了门口，程颐正在闭目养神。两人不敢打扰，就静静地站在门外等候。等程颐醒来，门外的雪已经下了一尺深。程颐很感动，认真给他们讲解学问。",
+    lesson: "尊敬老师、诚心求教，是读书人应有的态度。",
+    q: [
+      { t: "input", q: "站在雪地里等候老师的是谁？", a: "杨时", accept: ["杨时", "杨龟山"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["北宋", "唐朝", "西汉", "明朝"], a: 0 },
+      { t: "choice", q: "杨时后来担任什么官职？", o: ["龙图阁直学士", "丞相", "大将军", "县令"], a: 0 },
+      { t: "choice", q: "他们站在哪里等候？", o: ["程颐家门外", "学堂门口", "皇宫门前", "城门口"], a: 0 },
+      { t: "choice", q: "程颐醒来时，门外的雪有多深？", o: ["一尺深", "一寸深", "刚刚下雪", "雪已经化了"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["要尊敬老师、诚心求教", "下雪天不要出门", "站得久老师就会教", "程颐爱睡觉"], a: 0 }
+    ]
+  },
+  {
+    id: "luoyang", word: "洛阳纸贵", pinyin: "luò yáng zhǐ guì", level: 3,
+    source: "《晋书·左思传》", dynasty: "西晋",
+    people: "左思", official: "秘书郎", place: "洛阳",
+    meaning: "洛阳的纸都涨价了。形容文章写得好，被大家争相传抄。",
+    story: "西晋时，左思花了很多年写《三都赋》。他在院子里、篱笆旁都放着纸笔，想到好句子就马上记下来。起初没人看好，他就到处请教，反复修改。文章写成后，名人作序推荐，京城的人争着传抄。抄的人太多，洛阳的纸都涨价了。",
+    lesson: "好作品要靠长期努力和反复修改，真本事会被大家看见。",
+    q: [
+      { t: "input", q: "写出《三都赋》的是谁？", a: "左思", accept: ["左思", "左太冲"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["西晋", "西汉", "唐朝", "北宋"], a: 0 },
+      { t: "choice", q: "左思担任什么官职？", o: ["秘书郎", "丞相", "大将军", "县令"], a: 0 },
+      { t: "choice", q: "洛阳的纸为什么涨价？", o: ["大家都在争着抄写《三都赋》", "造纸的原料不够", "纸厂关门了", "皇帝下令涨价"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["好作品靠长期努力，真本事会被看见", "写文章能赚钱", "纸越贵越好", "洛阳的纸最好"], a: 0 }
+    ]
+  },
+  {
+    id: "rumu", word: "入木三分", pinyin: "rù mù sān fēn", level: 3,
+    source: "《书断·王羲之》", dynasty: "东晋",
+    people: "王羲之", official: "右军将军（会稽内史）", place: "木板上",
+    meaning: "墨迹渗进木板三分深。形容书法笔力强劲，也比喻见解深刻。",
+    story: "东晋时，王羲之每天练字，写完的纸堆得像小山一样。有一次，他在木板上写字，笔力又稳又重。后来工匠要刻这块木板，削了一层又一层，发现墨迹已经渗进木头三分深，大家都赞叹他的笔力惊人。",
+    lesson: "真功夫是长期练习出来的，下得越深，成就越高。",
+    q: [
+      { t: "input", q: "写字“入木三分”的书法家是谁？", a: "王羲之", accept: ["王羲之", "王右军", "书圣王羲之"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["东晋", "西汉", "唐朝", "北宋"], a: 0 },
+      { t: "choice", q: "王羲之担任过什么官职？", o: ["右军将军", "丞相", "太尉", "刺史"], a: 0 },
+      { t: "choice", q: "工匠削开木板后发现了什么？", o: ["墨迹渗进木头三分深", "木板里藏着字帖", "木头是空的", "板上有只虫子"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["真功夫靠长期练习，功夫越深成就越高", "写字要用力", "木板比纸好写", "工匠很厉害"], a: 0 }
+    ]
+  },
+  {
+    id: "dongshan", word: "东山再起", pinyin: "dōng shān zài qǐ", level: 3,
+    source: "《晋书·谢安传》", dynasty: "东晋",
+    people: "谢安", official: "宰相（司徒）", place: "东山（今浙江上虞一带）",
+    meaning: "隐退后重新出来做官或重新振作。比喻失败后重新开始。",
+    story: "东晋时，谢安年轻时很有才华，却不愿做官，隐居在东山，和朋友们游山玩水。后来国家有难，朝廷几次请他出山，他才在五十多岁时重新做官。他指挥淝水之战，以少胜多打败前秦大军，成了有名的宰相。",
+    lesson: "失败或退隐之后，只要不放弃，仍然可以重新振作。",
+    q: [
+      { t: "input", q: "隐居东山后又出来做官的是谁？", a: "谢安", accept: ["谢安", "谢安石"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["东晋", "西汉", "唐朝", "北宋"], a: 0 },
+      { t: "choice", q: "谢安后来做到什么官职？", o: ["宰相", "大将军", "县令", "太尉"], a: 0 },
+      { t: "choice", q: "他隐居的地方叫什么？", o: ["东山", "南山", "庐山", "泰山"], a: 0 },
+      { t: "choice", q: "他重新出山后指挥了哪场大战？", o: ["淝水之战", "巨鹿之战", "长平之战", "赤壁之战"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["失败或退隐后仍可重新振作", "隐居才能有才华", "年纪大了不能做事", "东山风景很好"], a: 0 }
+    ]
+  }
+]);
+
+window.IDIOM_DATA = (window.IDIOM_DATA || []).concat([
+  {
+    id: "weibian", word: "韦编三绝", pinyin: "wéi biān sān jué", level: 4,
+    source: "《史记·孔子世家》", dynasty: "春秋",
+    people: "孔子", official: "鲁国大司寇", place: "鲁国曲阜",
+    meaning: "串竹简的皮绳断了三次。形容读书勤奋刻苦、反复研读。",
+    story: "春秋时，孔子晚年特别喜欢读《周易》。那时候的书是用竹简做的，用皮绳串起来。孔子反复读，翻来翻去，把串竹简的皮绳磨断了三次。他说：“再给我几年时间，我对这本书就能理解得更透彻了。”",
+    lesson: "好书要反复读、认真想，才能学到真本领。",
+    q: [
+      { t: "input", q: "反复读《周易》，把皮绳磨断三次的是谁？", a: "孔子", accept: ["孔子", "孔丘", "仲尼"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "东汉"], a: 0 },
+      { t: "choice", q: "孔子在鲁国做过什么官？", o: ["大司寇", "丞相", "大将军", "县令"], a: 0 },
+      { t: "choice", q: "“韦编”指的是什么？", o: ["串竹简的皮绳", "书上的绳子装饰", "一种笔", "一种书箱"], a: 0 },
+      { t: "choice", q: "皮绳为什么断了三次？", o: ["孔子反复翻阅，磨断了", "绳子太旧了", "被人剪断了", "老鼠咬断了"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["读书要勤奋，反复研读才能学透", "竹简不如纸好", "书读一遍就够了", "皮绳质量不好"], a: 0 }
+    ]
+  },
+  {
+    id: "nangying", word: "囊萤映雪", pinyin: "náng yíng yìng xuě", level: 4,
+    source: "《晋书·车胤传》《孙氏世录》", dynasty: "东晋",
+    people: "车胤、孙康", official: "车胤：吏部尚书", place: "家中（萤火虫的光、雪光）",
+    meaning: "用口袋装萤火虫照明，借雪的反光读书。形容家贫仍刻苦读书。",
+    story: "东晋时，车胤家里穷，买不起灯油。夏天的夜晚，他用白纱布做成口袋，捉来许多萤火虫装进去，借着萤火虫的光读书。同是晋朝的孙康，冬天夜里借着雪光读书。两个人后来都成了有学问的人。",
+    lesson: "条件再苦，只要肯想办法、肯努力，也能读好书。",
+    q: [
+      { t: "input", q: "用萤火虫的光读书的是谁？", a: "车胤", accept: ["车胤", "车武子"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["东晋", "西汉", "唐朝", "北宋"], a: 0 },
+      { t: "choice", q: "车胤后来担任什么官职？", o: ["吏部尚书", "丞相", "大将军", "县令"], a: 0 },
+      { t: "choice", q: "“映雪”说的是谁？", o: ["孙康", "车胤", "匡衡", "祖逖"], a: 0 },
+      { t: "choice", q: "车胤为什么用萤火虫照明？", o: ["家里穷，买不起灯油", "他喜欢萤火虫", "灯油太亮了", "晚上不能点灯"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["条件再苦，肯努力也能读好书", "萤火虫很亮", "冬天不能读书", "穷人不该读书"], a: 0 }
+    ]
+  },
+  {
+    id: "huadi", word: "画荻教子", pinyin: "huà dí jiào zǐ", level: 4,
+    source: "《宋史·欧阳修传》", dynasty: "北宋",
+    people: "欧阳修的母亲郑氏、欧阳修", official: "欧阳修：参知政事（副宰相）", place: "欧阳修家中（沙地）",
+    meaning: "用荻草秆在地上写字教孩子。形容母亲在艰苦中用心教育子女。",
+    story: "北宋时，欧阳修四岁就没了父亲，家里很穷。母亲买不起纸笔，就用荻草秆在沙地上教他写字，还教他背诵古人的诗文。夜里母亲纺线，他就在旁边读书。欧阳修很用功，长大后成了著名的文学家，还做到参知政事。",
+    lesson: "母爱很伟大；再苦的条件也挡不住认真求学的心。",
+    q: [
+      { t: "choice", q: "用荻草秆教孩子写字的是谁？", o: ["欧阳修的母亲", "孟子的母亲", "岳飞的母亲", "孔子的母亲"], a: 0 },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["北宋", "唐朝", "西汉", "明朝"], a: 0 },
+      { t: "choice", q: "欧阳修后来做到什么官职？", o: ["参知政事", "大将军", "丞相", "县令"], a: 0 },
+      { t: "choice", q: "母亲用什么在地上教他写字？", o: ["荻草秆", "毛笔", "树枝", "炭条"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["母爱伟大，再苦的条件也挡不住求学的心", "写字要用好笔", "穷孩子不能读书", "沙地比纸好写"], a: 0 }
+    ]
+  },
+  {
+    id: "zhongliu", word: "中流击楫", pinyin: "zhōng liú jī jí", level: 4,
+    source: "《晋书·祖逖传》", dynasty: "东晋",
+    people: "祖逖", official: "豫州刺史、奋威将军", place: "长江中流",
+    meaning: "在江心敲击船桨发誓。形容下定决心，立志收复失地、报效国家。",
+    story: "东晋时，祖逖请求北伐，带着队伍渡过长江。船到江心，他敲着船桨发誓：“我如果不能收复中原，就像这大江一样，绝不回头！”将士们听了都很振奋。后来他多次打败敌人，收复了不少失地。",
+    lesson: "立下志向就要下定决心，坚持到底。",
+    q: [
+      { t: "input", q: "在江心敲着船桨发誓的是谁？", a: "祖逖", accept: ["祖逖", "祖士稚"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["东晋", "西汉", "唐朝", "南宋"], a: 0 },
+      { t: "choice", q: "祖逖担任什么职务？", o: ["豫州刺史、奋威将军", "丞相", "县令", "太尉"], a: 0 },
+      { t: "choice", q: "他在哪里发誓？", o: ["长江江心", "黄河岸边", "洛阳城外", "建康宫中"], a: 0 },
+      { t: "choice", q: "他发誓要做什么？", o: ["收复中原，绝不回头", "渡江去游玩", "回家乡种田", "打败东晋"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["立下志向就要下定决心、坚持到底", "坐船要小心", "发誓不用当真", "长江很宽"], a: 0 }
+    ]
+  },
+  {
+    id: "yifan", word: "一饭千金", pinyin: "yī fàn qiān jīn", level: 4,
+    source: "《史记·淮阴侯列传》", dynasty: "西汉",
+    people: "韩信、漂母", official: "大将军", place: "淮水边",
+    meaning: "受人一顿饭的恩惠，用千金来报答。形容受人恩惠不忘报答。",
+    story: "西汉时，韩信年轻时很穷，在淮水边钓鱼充饥。一位洗衣服的老妇人心疼他，常常分饭给他吃。韩信说：“我以后一定重重报答您。”后来他做了大将军，找到那位老妇人，送给她一千金。",
+    lesson: "别人帮过我们，要记在心里，懂得感恩。",
+    q: [
+      { t: "input", q: "后来用千金报答一顿饭的人是谁？", a: "韩信", accept: ["韩信", "淮阴侯"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["西汉", "东汉", "唐朝", "北宋"], a: 0 },
+      { t: "choice", q: "韩信后来担任什么官职？", o: ["大将军", "丞相", "县令", "太尉"], a: 0 },
+      { t: "choice", q: "给他饭吃的是一位什么人？", o: ["在河边洗衣的老妇人", "饭馆老板", "他的邻居", "路过的商人"], a: 0 },
+      { t: "choice", q: "韩信为什么送她一千金？", o: ["报答她当年分饭的恩情", "请她帮忙干活", "想买她的房子", "让她教自己读书"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["受人恩惠要记在心里，懂得感恩", "有钱就要送人", "钓鱼能钓到金子", "老妇人很有钱"], a: 0 }
+    ]
+  },
+  {
+    id: "kuaxia", word: "胯下之辱", pinyin: "kuà xià zhī rǔ", level: 4,
+    source: "《史记·淮阴侯列传》", dynasty: "西汉",
+    people: "韩信、淮阴少年", official: "大将军", place: "淮阴街市",
+    meaning: "从别人胯下爬过去的耻辱。形容能忍受屈辱，为大局着想。",
+    story: "西汉时，韩信年轻时穷，却喜欢佩剑。淮阴街市上有个年轻人嘲笑他：“你虽然高大，还带着剑，其实胆子很小。”他让韩信要么刺他，要么从他胯下爬过去。韩信看了看他，忍住怒气，从他胯下爬了过去。后来韩信做了大将军。",
+    lesson: "能忍受一时的屈辱，才能做成大事。",
+    q: [
+      { t: "input", q: "从别人胯下爬过去的是谁？", a: "韩信", accept: ["韩信", "淮阴侯"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["西汉", "东汉", "唐朝", "北宋"], a: 0 },
+      { t: "choice", q: "韩信后来担任什么官职？", o: ["大将军", "丞相", "县令", "太尉"], a: 0 },
+      { t: "choice", q: "韩信从哪里爬过去？", o: ["那个年轻人的胯下", "一堵矮墙", "一条小河", "一辆马车"], a: 0 },
+      { t: "choice", q: "韩信为什么选择忍受？", o: ["不想因小事误了大事", "他打不过对方", "他觉得好玩", "他怕弄脏衣服"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["能忍受一时屈辱，才能做成大事", "受人欺负就要忍着", "佩剑没有用", "街市上很热闹"], a: 0 }
+    ]
+  },
+  {
+    id: "xiaogui", word: "萧规曹随", pinyin: "xiāo guī cáo suí", level: 4,
+    source: "《史记·曹相国世家》", dynasty: "西汉",
+    people: "萧何、曹参", official: "丞相", place: "长安朝堂",
+    meaning: "萧何定的规矩，曹参照着做。比喻照前人的好办法办事。",
+    story: "西汉时，萧何做丞相，定下一套治国的好规矩。萧何死后，曹参接任丞相，什么事都按萧何的老规矩办，自己不多改动。汉惠帝问他为什么，他说：“萧何定的规矩已经很好，我们照着做好就是了。”国家因此安定。",
+    lesson: "好的经验要继承；不要为了显示自己而乱改好办法。",
+    q: [
+      { t: "input", q: "接任丞相后照着萧何规矩办事的是谁？", a: "曹参", accept: ["曹参", "曹相国"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["西汉", "东汉", "唐朝", "北宋"], a: 0 },
+      { t: "choice", q: "曹参担任什么官职？", o: ["丞相", "大将军", "太尉", "刺史"], a: 0 },
+      { t: "choice", q: "曹参为什么不多改规矩？", o: ["萧何定的规矩已经很好", "他不会写规矩", "皇帝不让他改", "他太忙了"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["好的经验要继承，不要为显示自己乱改", "新官上任必须改规矩", "丞相不用做事", "萧何比曹参厉害"], a: 0 }
+    ]
+  },
+  {
+    id: "koumi", word: "口蜜腹剑", pinyin: "kǒu mì fù jiàn", level: 4,
+    source: "《资治通鉴·唐纪》", dynasty: "唐朝",
+    people: "李林甫", official: "宰相", place: "长安",
+    meaning: "嘴上甜如蜜，心里藏着剑。形容嘴上说得好听，心里却想着害人。",
+    story: "唐朝时，宰相李林甫表面上对人很和气，说话像抹了蜜一样甜，心里却常常盘算着怎么害人。谁有才能、可能威胁到他，他就想办法排挤。时间久了，大家都看清了他的真面目，说他是“口有蜜，腹有剑”。",
+    lesson: "要提防嘴上一套、背后一套的人；自己也要做真诚的人。",
+    q: [
+      { t: "input", q: "被说成“口有蜜，腹有剑”的宰相是谁？", a: "李林甫", accept: ["李林甫"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["唐朝", "汉朝", "宋朝", "明朝"], a: 0 },
+      { t: "choice", q: "李林甫担任什么官职？", o: ["宰相", "大将军", "县令", "太尉"], a: 0 },
+      { t: "choice", q: "他表面上对人怎么样？", o: ["很和气，说话很甜", "很凶，经常骂人", "很冷淡，不理人", "很害羞，不敢说话"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["要提防嘴甜心坏的人，自己要做真诚的人", "说话甜就是好人", "宰相不能笑", "有才能就要藏着"], a: 0 }
+    ]
+  },
+  {
+    id: "qingjun", word: "请君入瓮", pinyin: "qǐng jūn rù wèng", level: 4,
+    source: "《资治通鉴·唐纪》", dynasty: "唐朝",
+    people: "来俊臣、周兴", official: "御史（酷吏）", place: "洛阳",
+    meaning: "请对方钻进大瓮里。比喻用对方对付别人的办法来对付他自己。",
+    story: "唐朝武则天时，有两个出名的酷吏。一天，来俊臣接到命令审问周兴。他先请周兴吃饭，问：“犯人要是不肯招，怎么办？”周兴说：“把大瓮烧热，让他进去，就什么都招了。”来俊臣立刻让人烧好大瓮，说：“请老兄进去吧。”周兴吓得当场认罪。",
+    lesson: "用坏主意害人，最后可能害到自己。",
+    q: [
+      { t: "input", q: "请周兴钻进大瓮的是谁？", a: "来俊臣", accept: ["来俊臣"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["唐朝", "汉朝", "宋朝", "秦朝"], a: 0 },
+      { t: "choice", q: "来俊臣是什么身份？", o: ["御史（酷吏）", "宰相", "大将军", "县令"], a: 0 },
+      { t: "choice", q: "大瓮是谁想出来用来审犯人的？", o: ["周兴", "来俊臣", "武则天", "皇帝"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["用坏主意害人，最后可能害到自己", "审犯人要用大瓮", "请客吃饭很重要", "唐朝没有好人"], a: 0 }
+    ]
+  },
+  {
+    id: "qugao", word: "曲高和寡", pinyin: "qǔ gāo hè guǎ", level: 4,
+    source: "宋玉《对楚王问》", dynasty: "战国",
+    people: "宋玉", official: "楚国大夫", place: "楚国郢都",
+    meaning: "曲调越高雅，能跟着唱的人越少。比喻言论或作品太深奥，懂的人很少。",
+    story: "战国时，楚国的宋玉很会写文章，有人却说他不合群。宋玉打了个比方：有人在郢都唱歌，先唱通俗的曲子，几千人跟着唱；后来唱越来越高雅的曲子，能跟着唱的只剩几个人。他说：“曲调越高雅，能跟着唱的人就越少。”",
+    lesson: "太深奥的东西不容易被理解；表达要考虑别人能不能听懂。",
+    q: [
+      { t: "input", q: "用唱歌打比方的是谁？", a: "宋玉", accept: ["宋玉"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["春秋", "战国", "秦朝", "汉朝"], a: 1 },
+      { t: "choice", q: "宋玉是什么身份？", o: ["楚国大夫", "秦国丞相", "齐国将军", "燕国国君"], a: 0 },
+      { t: "choice", q: "唱通俗曲子时，有多少人跟着唱？", o: ["几千人", "几个人", "一个人", "没有人"], a: 0 },
+      { t: "choice", q: "唱高雅的曲子时，为什么跟着唱的人少？", o: ["曲子太高雅，会唱的人少", "大家不喜欢唱歌", "唱歌的人嗓子哑了", "天已经黑了"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["太深奥的东西懂的人少，表达要考虑别人", "唱歌要唱得高", "人多就唱得好", "宋玉不会唱歌"], a: 0 }
+    ]
+  },
+  {
+    id: "zhenge", word: "枕戈待旦", pinyin: "zhěn gē dài dàn", level: 4,
+    source: "《晋书·刘琨传》", dynasty: "西晋",
+    people: "刘琨", official: "并州刺史", place: "并州军营",
+    meaning: "枕着兵器等待天亮。形容时刻警惕，准备战斗。",
+    story: "西晋末年，刘琨在并州带兵守边，常常和敌人打仗。他给朋友写信说：我每天枕着兵器等着天亮，一心想着消灭敌人，连睡觉都不敢放松。后来人们用“枕戈待旦”形容时刻准备战斗。",
+    lesson: "有目标就要时刻准备，不能松懈。",
+    q: [
+      { t: "input", q: "枕着兵器等天亮的是谁？", a: "刘琨", accept: ["刘琨", "刘越石"] },
+      { t: "choice", q: "这个故事发生在哪个朝代？", o: ["西晋", "西汉", "唐朝", "北宋"], a: 0 },
+      { t: "choice", q: "刘琨担任什么官职？", o: ["并州刺史", "丞相", "县令", "太尉"], a: 0 },
+      { t: "choice", q: "“枕戈”是什么意思？", o: ["枕着兵器睡觉", "枕着枕头睡觉", "把兵器藏起来", "抱着兵器唱歌"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["有目标就要时刻准备，不能松懈", "睡觉要枕着兵器", "打仗很辛苦", "写信能打胜仗"], a: 0 }
+    ]
+  },
+  {
+    id: "jianglang", word: "江郎才尽", pinyin: "jiāng láng cái jìn", level: 4,
+    source: "《南史·江淹传》", dynasty: "南北朝",
+    people: "江淹、郭璞", official: "金紫光禄大夫", place: "建康（今江苏南京）",
+    meaning: "江淹的才华用完了。比喻才思减退，写不出好文章。",
+    story: "南北朝时，江淹年轻时写文章很有名，人称“江郎”。后来他做了大官，文章却越写越差。传说他梦见一个叫郭璞的人来要回一支五色笔，从此他再也写不出好文章。人们就说他“江郎才尽”了。",
+    lesson: "才华要持续努力才能保持，停下就会退步。",
+    q: [
+      { t: "input", q: "被称为“江郎”的是谁？", a: "江淹", accept: ["江淹", "江文通"] },
+      { t: "choice", q: "这个故事发生在哪个时期？", o: ["南北朝", "西汉", "唐朝", "北宋"], a: 0 },
+      { t: "choice", q: "江淹后来担任什么官职？", o: ["金紫光禄大夫", "大将军", "丞相", "县令"], a: 0 },
+      { t: "choice", q: "传说中，谁要回了五色笔？", o: ["郭璞", "江淹", "皇帝", "他的老师"], a: 0 },
+      { t: "choice", q: "这个故事告诉我们什么道理？", o: ["才华要靠持续努力，停下就会退步", "做梦能决定才华", "当官就不用写文章", "五色笔很神奇"], a: 0 }
+    ]
+  }
+]);
+
+</script>
+<script>
+(function () {
+'use strict';
+
+/* ============ 第 1 部分：数据、状态、记忆曲线、语音、会话 ============ */
+
+var IDIOMS = (window.IDIOM_DATA || []).slice().sort(function (a, b) { return a.level - b.level; });
+var BY_ID = {};
+IDIOMS.forEach(function (it, i) { it._order = i; BY_ID[it.id] = it; });
+
+var STORE_KEY = 'hj_chengyu_v1';
+var DAY = 24 * 60 * 60 * 1000;
+var MIN10 = 10 * 60 * 1000;
+var GROUP_SIZE = 10;
+var MAX_STAGE = 7;
+// 记忆曲线排期：第 1~7 轮分别间隔 1/2/4/7/15/30/60 天
+var STAGE_DAYS = { 1: 1, 2: 2, 3: 4, 4: 7, 5: 15, 6: 30, 7: 60 };
+
+var state;
+var storageOK = true;
+var view = 'home';
+var toastTimer = null;
+var ttsOK = typeof window.speechSynthesis !== 'undefined';
+var voices = [];
+var audioCtx = null;
+
+var ICONS = {
+  home: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3.5 10.6 12 3.6l8.5 7"/><path d="M5.6 9.4V20.4h12.8V9.4"/><path d="M9.6 20.4v-6.2h4.8v6.2"/></svg>',
+  chart: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20V4"/><path d="M4 20h16"/><polyline points="7.5,15 11,10.5 14.5,12.5 19.5,6.5"/></svg>',
+  wrong: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4.5" y="3" width="15" height="18" rx="2.5"/><path d="M8 7.5h8M8 11.5h8M8 15.5h5"/></svg>',
+  gear: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="3.2"/><path d="M12 3.2v2.2M12 18.6v2.2M3.2 12h2.2M18.6 12h2.2M5.8 5.8l1.6 1.6M16.6 16.6l1.6 1.6M18.2 5.8l-1.6 1.6M7.4 16.6l-1.6 1.6"/></svg>'
+};
+
+/* ---------------- 工具 ---------------- */
+function $(sel, root) { return (root || document).querySelector(sel); }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+function fmtDate(ts) { var d = new Date(ts); return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+function fmtMD(ts) { var d = new Date(ts); return (d.getMonth() + 1) + '月' + d.getDate() + '日'; }
+function fmtTime(ts) { var d = new Date(ts); return pad2(d.getHours()) + ':' + pad2(d.getMinutes()); }
+function weekdayCN(ts) { return '星期' + '日一二三四五六'.charAt(new Date(ts).getDay()); }
+function norm(s) {
+  return String(s == null ? '' : s).toLowerCase()
+    .replace(/[\s\u3000，,。.、；;：:！!？?“”"'‘’（）()《》<>·\-—_~`]/g, '');
+}
+function pct(a, b) { return b > 0 ? Math.round(a / b * 100) : 0; }
+function shuffleIdx(n) {
+  var arr = [], i, j, tmp;
+  for (i = 0; i < n; i++) arr.push(i);
+  for (i = n - 1; i > 0; i--) { j = Math.floor(Math.random() * (i + 1)); tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp; }
+  return arr;
+}
+
+/* ---------------- 状态 ---------------- */
+function defaultState() {
+  return {
+    v: 1,
+    child: '胡嘉逸',
+    parent: '胡先鸽',
+    settings: { tts: true, rate: 0.9, autoRead: true, sfx: true },
+    learned: {},
+    wrong: {},
+    scores: [],
+    session: null,
+    groupSeq: 0
+  };
+}
+function deepMerge(base, extra) {
+  if (!extra || typeof extra !== 'object') return base;
+  Object.keys(extra).forEach(function (k) {
+    var a = base[k], b = extra[k];
+    if (b && typeof b === 'object' && !Array.isArray(b) && a && typeof a === 'object' && !Array.isArray(a)) {
+      base[k] = deepMerge(a, b);
+    } else {
+      base[k] = b;
+    }
+  });
+  return base;
+}
+function loadState() {
+  var base = defaultState();
+  try {
+    var raw = localStorage.getItem(STORE_KEY);
+    if (raw) base = deepMerge(base, JSON.parse(raw));
+  } catch (e) { storageOK = false; }
+  return base;
+}
+function save() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    storageOK = true;
+    return true;
+  } catch (e) { storageOK = false; return false; }
+}
+
+/* ---------------- 记忆曲线 ---------------- */
+function stageLabel(stage) {
+  if (!stage) return '未开始';
+  if (stage >= MAX_STAGE) return '已稳固';
+  return '第' + stage + '轮复习';
+}
+function dueText(ts) {
+  var diff = ts - Date.now();
+  if (diff <= 0) return '现在该复习';
+  var h = Math.round(diff / 3600000);
+  if (h < 24) return h <= 1 ? '约 1 小时后' : '约 ' + h + ' 小时后';
+  return '约 ' + Math.round(diff / DAY) + ' 天后';
+}
+function dueList() {
+  var now = Date.now();
+  return Object.keys(state.learned).filter(function (id) {
+    var p = state.learned[id];
+    return BY_ID[id] && p && p.due && p.due <= now;
+  }).sort(function (a, b) {
+    var wa = state.wrong[a] ? state.wrong[a].count : 0;
+    var wb = state.wrong[b] ? state.wrong[b].count : 0;
+    if (wa !== wb) return wb - wa;
+    return (state.learned[a].due || 0) - (state.learned[b].due || 0);
+  });
+}
+function updateProgress(id, res) {
+  var now = Date.now();
+  var p = state.learned[id];
+  if (!p) p = state.learned[id] = { stage: 1, due: now, right: 0, wrong: 0, created: now, last: now };
+  p.last = now;
+  if (res.ok === res.total) {
+    p.stage = Math.min(MAX_STAGE, (p.stage || 1) + 1);
+    p.due = now + (STAGE_DAYS[p.stage] || 60) * DAY;
+    p.right = (p.right || 0) + res.ok;
+    if (state.wrong[id]) state.wrong[id].cleared = now;
+  } else {
+    p.stage = Math.max(1, (p.stage || 1) - 2);
+    p.due = now + MIN10;
+    var bad = res.total - res.ok;
+    p.wrong = (p.wrong || 0) + bad;
+    var w = state.wrong[id] || (state.wrong[id] = { count: 0, first: now });
+    w.count += bad;
+    w.last = now;
+  }
+}
+
+/* ---------------- 语音 ---------------- */
+function refreshVoices() {
+  if (!ttsOK) return;
+  try { voices = window.speechSynthesis.getVoices() || []; } catch (e) { voices = []; }
+}
+if (ttsOK) {
+  try {
+    refreshVoices();
+    window.speechSynthesis.onvoiceschanged = refreshVoices;
+  } catch (e) { }
+}
+function zhVoice() {
+  var list = voices || [];
+  var zh = list.filter(function (v) { return /zh[-_]?CN|Chinese|中文|普通话/i.test((v.lang || '') + ' ' + (v.name || '')); });
+  return zh[0] || list[0] || null;
+}
+function stopSpeak() {
+  if (!ttsOK) return;
+  try { window.speechSynthesis.cancel(); } catch (e) { }
+}
+function speak(text) {
+  if (!state.settings.tts) { toast('朗读已关闭，可在“设置”里打开'); return; }
+  if (!ttsOK) { toast('当前浏览器不支持语音朗读，可以先看文字'); return; }
+  try {
+    window.speechSynthesis.cancel();
+    var u = new window.SpeechSynthesisUtterance(String(text));
+    u.lang = 'zh-CN';
+    u.rate = state.settings.rate || 0.9;
+    u.pitch = 1.03;
+    var v = zhVoice();
+    if (v) u.voice = v;
+    u.onerror = function () { toast('语音播放失败，可以先看文字'); };
+    window.speechSynthesis.speak(u);
+  } catch (e) { toast('语音播放失败，可以先看文字'); }
+}
+function speakIdiom(it) { speak(it.word + '。' + it.meaning + '。' + it.story); }
+function autoReadCurrent() {
+  if (view !== 'listen') return;
+  var s = state.session;
+  if (!s || !s.ids[s.listenIdx]) return;
+  speakIdiom(BY_ID[s.ids[s.listenIdx]]);
+}
+
+/* ---------------- 音效 ---------------- */
+function sfx(kind) {
+  if (!state.settings.sfx) return;
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    var t0 = audioCtx.currentTime;
+    function tone(freq, start, dur, type, vol) {
+      var o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = type || 'sine';
+      o.frequency.setValueAtTime(freq, t0 + start);
+      g.gain.setValueAtTime(vol || 0.15, t0 + start);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + start + dur);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t0 + start); o.stop(t0 + start + dur + 0.02);
+    }
+    if (kind === 'ok') { tone(880, 0, 0.16); tone(1180, 0.1, 0.22); }
+    else if (kind === 'no') { tone(320, 0, 0.16, 'triangle', 0.12); tone(220, 0.14, 0.26, 'triangle', 0.12); }
+    else if (kind === 'win') { tone(660, 0, 0.2); tone(880, 0.16, 0.2); tone(1100, 0.32, 0.34); }
+  } catch (e) { }
+}
+
+function toast(msg, ms) {
+  var t = $('#toast');
+  if (!t) return;
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.classList.remove('show'); }, ms || 2600);
+}
+
+/* ---------------- 会话 ---------------- */
+function pickNewIds(n) {
+  var ids = [];
+  IDIOMS.forEach(function (it) { if (!state.learned[it.id]) ids.push(it.id); });
+  return ids.slice(0, n || GROUP_SIZE);
+}
+function buildQueue(ids, kind) {
+  var out = [];
+  ids.forEach(function (id) {
+    var it = BY_ID[id];
+    if (!it) return;
+    var entries = it.q.map(function (q, i) { return { q: q, i: i }; });
+    if (kind === 'review') {
+      var mid = entries.filter(function (e) { return e.i > 0 && e.i < entries.length - 1; });
+      var pick = mid.length ? mid[Math.floor(Math.random() * mid.length)] : entries[0];
+      entries = [entries[0], pick, entries[entries.length - 1]];
+    } else if (kind === 'wrong') {
+      entries = entries.slice(0, 6);
+    }
+    entries.forEach(function (e) {
+      out.push({
+        id: id, qi: e.i,
+        order: e.q.t === 'choice' ? shuffleIdx(e.q.o.length) : null
+      });
+    });
+  });
+  return out;
+}
+function newSession(kind, ids) {
+  return {
+    kind: kind, ids: ids,
+    phase: kind === 'new' ? 'listen' : 'test',
+    listenIdx: 0,
+    queue: buildQueue(ids, kind),
+    idx: 0,
+    responses: {},
+    startedAt: Date.now(),
+    score: null, correct: 0, total: 0,
+    wrongDetails: []
+  };
+}
+function startNewGroup() {
+  stopSpeak();
+  var ids = pickNewIds(GROUP_SIZE);
+  if (!ids.length) { toast('48 个成语都学过了，去“错题本 / 复习”里巩固吧'); return; }
+  state.groupSeq = (state.groupSeq || 0) + 1;
+  state.session = newSession('new', ids);
+  view = 'listen';
+  save(); render();
+  if (state.settings.autoRead) setTimeout(autoReadCurrent, 300);
+}
+function startReview() {
+  stopSpeak();
+  var due = dueList();
+  if (!due.length) { toast('现在没有到期要复习的成语，先学一组新的吧'); return; }
+  var ids = due.slice(0, GROUP_SIZE);
+  state.session = newSession('review', ids);
+  view = 'test';
+  save(); render();
+}
+function startDrill(ids) {
+  stopSpeak();
+  var list = (ids && ids.length) ? ids : Object.keys(state.wrong);
+  if (!list.length) { toast('暂时没有错题'); return; }
+  state.session = newSession('wrong', list.slice(0, GROUP_SIZE));
+  view = 'test';
+  save(); render();
+}
+function resumeSession() {
+  var s = state.session;
+  if (!s) { view = 'home'; render(); return; }
+  view = s.phase === 'result' ? 'result' : (s.phase === 'listen' ? 'listen' : 'test');
+  render();
+  if (view === 'listen' && state.settings.autoRead) setTimeout(autoReadCurrent, 300);
+}
+function exitSession() {
+  if (view === 'listen' || view === 'test') {
+    if (!window.confirm('确定退出这一组吗？还没做完的题目不会计入成绩。')) return;
+  }
+  stopSpeak();
+  state.session = null;
+  view = 'home';
+  save(); render();
+}
+
+/* ---------------- 作答与结算 ---------------- */
+function currentItem() {
+  var s = state.session;
+  return s ? s.queue[s.idx] : null;
+}
+function submitAnswer(ok, userText) {
+  var s = state.session, item = currentItem();
+  if (!s || !item || s.responses[s.idx]) return;
+  s.responses[s.idx] = { ok: !!ok, user: userText == null ? '' : String(userText), at: Date.now() };
+  sfx(ok ? 'ok' : 'no');
+  save(); render();
+}
+function checkInput(q, val) {
+  var v = norm(val);
+  if (!v) return false;
+  var accepts = q.accept || [q.a];
+  return accepts.some(function (a) {
+    var t = norm(a);
+    if (!t) return false;
+    if (v === t) return true;
+    if (t.length >= 2 && v.length >= 2 && (v.indexOf(t) !== -1 || t.indexOf(v) !== -1)) return true;
+    return false;
+  });
+}
+function nextQuestion() {
+  var s = state.session;
+  if (!s) return;
+  if (s.idx < s.queue.length - 1) { s.idx += 1; save(); render(); }
+  else finishTest();
+}
+function finishTest() {
+  var s = state.session;
+  if (!s) return;
+  var byId = {}, correct = 0, total = 0;
+  s.queue.forEach(function (item, idx) {
+    var it = BY_ID[item.id];
+    if (!it) return;
+    var q = it.q[item.qi];
+    var r = s.responses[idx];
+    total += 1;
+    var ok = !!(r && r.ok);
+    if (ok) correct += 1;
+    var o = byId[item.id] || (byId[item.id] = { total: 0, ok: 0, wrongItems: [] });
+    o.total += 1;
+    if (ok) o.ok += 1;
+    else o.wrongItems.push({ ask: q.q, correct: q.t === 'choice' ? q.o[q.a] : q.a });
+  });
+  s.total = total; s.correct = correct; s.score = total ? pct(correct, total) : 0;
+  Object.keys(byId).forEach(function (id) { updateProgress(id, byId[id]); });
+  s.wrongDetails = Object.keys(byId).filter(function (id) { return byId[id].ok < byId[id].total; })
+    .map(function (id) { return { id: id, items: byId[id].wrongItems }; });
+  state.scores.push({
+    t: Date.now(), score: s.score, type: s.kind, total: total, correct: correct,
+    ids: s.ids.slice(), wrongIds: s.wrongDetails.map(function (w) { return w.id; })
+  });
+  s.phase = 'result';
+  save();
+  view = 'result';
+  render();
+  var g = gradeOf(s.score);
+  sfx(g === 'great' ? 'win' : (g === 'low' ? 'no' : 'ok'));
+  setTimeout(function () {
+    if (g === 'great') speak('胡嘉逸你好厉害，' + s.score + '分，大拇指送给你！');
+    else if (g === 'low') speak('胡嘉逸你还需要再努力，再仔细复习一遍，看你能把能过关，不行就告诉胡先鸽打你屁股！');
+    else speak('胡嘉逸，进步啦，' + s.score + '分，再复习一下错题，下次一定更好。');
+  }, 600);
+}
+function gradeOf(score) { return score >= 90 ? 'great' : (score >= 70 ? 'good' : 'low'); }
+
+state = loadState();
+
+
+/* ============ 第 2 部分：页面路由、首页、听故事、测试 ============ */
+
+var _lastView = '';
+
+function render() {
+  renderTopbar();
+  var main = $('#view');
+  var map = {
+    home: renderHome, listen: renderListen, test: renderTest,
+    result: renderResult, curve: renderCurve, wrong: renderWrongBook, settings: renderSettings
+  };
+  main.className = 'shell' + (['home', 'curve', 'wrong', 'settings'].indexOf(view) >= 0 ? '' : ' no-tabs');
+  main.innerHTML = (map[view] || renderHome)();
+  renderTabs();
+
+  if (view !== _lastView) {
+    _lastView = view;
+    window.scrollTo(0, 0);
+  } else if (view === 'test') {
+    var s = state.session;
+    if (s && s.responses[s.idx]) {
+      var fb = $('.feedback');
+      if (fb) setTimeout(function () { try { fb.scrollIntoView({ block: 'nearest' }); } catch (e) { } }, 60);
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }
+}
+
+function renderTopbar() {
+  var inSession = ['listen', 'test', 'result'].indexOf(view) >= 0;
+  $('#topbar').innerHTML =
+    '<div class="brand-seal kai">成</div>' +
+    '<div class="brand-text"><div class="brand-title">成语小书院</div>' +
+    '<div class="brand-sub">' + esc(state.child) + ' · 成语成长册</div></div>' +
+    (inSession
+      ? '<button class="icon-btn" data-act="exitSession" aria-label="退出本组">✕</button>'
+      : '<button class="icon-btn" data-act="go" data-view="settings" aria-label="设置">' + ICONS.gear + '</button>');
+}
+
+function renderTabs() {
+  var nav = $('#tabbar');
+  if (['home', 'curve', 'wrong', 'settings'].indexOf(view) < 0) { nav.style.display = 'none'; return; }
+  nav.style.display = 'grid';
+  var due = dueList().length;
+  var wrongCount = Object.keys(state.wrong).length;
+  var items = [
+    { v: 'home', ic: ICONS.home, t: '书院' },
+    { v: 'curve', ic: ICONS.chart, t: '成绩曲线' },
+    { v: 'wrong', ic: ICONS.wrong, t: '错题本', n: wrongCount },
+    { v: 'settings', ic: ICONS.gear, t: '设置' }
+  ];
+  nav.innerHTML = items.map(function (it) {
+    var badge = '';
+    if (it.v === 'home' && due) badge = '<span class="badge-dot">' + Math.min(due, 99) + '</span>';
+    if (it.v === 'wrong' && it.n) badge = '<span class="badge-dot">' + Math.min(it.n, 99) + '</span>';
+    return '<button data-act="go" data-view="' + it.v + '"' + (view === it.v ? ' class="on"' : '') + '>' +
+      '<span class="ic" style="position:relative">' + it.ic + badge + '</span><span>' + it.t + '</span></button>';
+  }).join('');
+}
+
+function knowledgeHTML(it) {
+  return '<div class="meta-grid">' +
+    '<div class="meta-item"><div class="k">出处</div><div class="v">' + esc(it.source) + '</div></div>' +
+    '<div class="meta-item"><div class="k">朝代 / 时期</div><div class="v">' + esc(it.dynasty) + '</div></div>' +
+    '<div class="meta-item"><div class="k">人物</div><div class="v">' + esc(it.people) + '</div></div>' +
+    (it.official ? '<div class="meta-item"><div class="k">官职 / 身份</div><div class="v">' + esc(it.official) + '</div></div>' : '') +
+    '<div class="meta-item wide"><div class="k">地点</div><div class="v">' + esc(it.place) + '</div></div>' +
+    '<div class="meta-item wide"><div class="k">释义</div><div class="v">' + esc(it.meaning) + '</div></div>' +
+    '</div>';
+}
+
+/* ---------------- 首页 ---------------- */
+function renderHome() {
+  var now = Date.now();
+  var due = dueList();
+  var learnedCount = Object.keys(state.learned).filter(function (id) { return BY_ID[id]; }).length;
+  var scores = state.scores || [];
+  var avg = scores.length ? Math.round(scores.reduce(function (s, r) { return s + r.score; }, 0) / scores.length) : null;
+  var newIds = pickNewIds(GROUP_SIZE);
+  var hour = new Date().getHours();
+  var greet = hour < 11 ? '早上好' : (hour < 14 ? '中午好' : (hour < 18 ? '下午好' : '晚上好'));
+
+  var lvHtml = [1, 2, 3, 4].map(function (lv) {
+    var all = IDIOMS.filter(function (it) { return it.level === lv; });
+    var learned = all.filter(function (it) { return state.learned[it.id]; });
+    var mastered = learned.filter(function (it) { return state.learned[it.id].stage >= MAX_STAGE; });
+    var names = ['启蒙', '入门', '进阶', '挑战'];
+    return '<div class="level-row">' +
+      '<span class="level-tag">L' + lv + ' ' + names[lv - 1] + '</span>' +
+      '<span class="bar"><i style="width:' + pct(learned.length, all.length) + '%"></i></span>' +
+      '<span class="level-num">' + learned.length + '/' + all.length + (mastered.length ? ' · 稳' + mastered.length : '') + '</span>' +
+      '</div>';
+  }).join('');
+
+  var session = state.session;
+  var resumeHtml = '';
+  if (session) {
+    if (session.phase === 'result') {
+      resumeHtml = '<button class="btn btn-ghost btn-block" data-act="resumeSession">查看上一轮成绩（' +
+        (session.score == null ? '—' : session.score) + ' 分）</button>';
+    } else {
+      var pos = session.phase === 'listen'
+        ? '第 ' + (session.listenIdx + 1) + '/' + session.ids.length + ' 个故事'
+        : '第 ' + (session.idx + 1) + '/' + session.queue.length + ' 题';
+      resumeHtml = '<button class="btn btn-gold btn-block" data-act="resumeSession">继续上次学习 · ' + pos + '</button>';
+    }
+  }
+
+  var cta = '';
+  if (due.length) {
+    cta += '<button class="btn btn-primary btn-block" data-act="startReview">按记忆曲线复习 ' + due.length + ' 个成语</button>';
+    if (newIds.length) cta += '<button class="btn btn-ghost btn-block" data-act="startNew">再学一组新的（' + newIds.length + ' 个）</button>';
+  } else if (newIds.length) {
+    cta += '<button class="btn btn-primary btn-block" data-act="startNew">开始今天的新课 · ' + newIds.length + ' 个成语</button>' +
+      '<div class="cta-note">听故事 → 做考点 → 出成绩，大约 20 分钟</div>';
+  } else {
+    cta += '<button class="btn btn-primary btn-block" data-act="startReview">全部学完啦，继续复习</button>';
+  }
+
+  var lastHtml = '';
+  if (scores.length) {
+    var last = scores[scores.length - 1];
+    lastHtml = '<section class="card">' +
+      '<div class="row between"><h2 class="section" style="margin:0">最近一轮</h2>' +
+      '<button class="btn btn-ghost btn-sm" data-act="go" data-view="curve">看曲线</button></div>' +
+      '<div class="row" style="margin-top:8px">' +
+      '<div style="font-size:30px;font-weight:800" class="mono">' + last.score + '<span class="tiny"> 分</span></div>' +
+      '<div class="spacer"></div>' +
+      '<div class="tiny" style="text-align:right">' + fmtMD(last.t) + ' ' + fmtTime(last.t) + '<br>' +
+      (last.type === 'new' ? '新学一组' : last.type === 'review' ? '到期复习' : '错题重练') + '</div>' +
+      '</div>' + miniChart(scores.slice(-8)) + '</section>';
+  }
+
+  return '<section class="card hero">' +
+    '<div class="hero-date">' + fmtDate(now) + ' · ' + weekdayCN(now) + '</div>' +
+    '<div class="hero-greet kai">' + greet + '，<em>' + esc(state.child) + '</em></div>' +
+    '<div class="hero-desc">' + (due.length
+      ? '记忆曲线提醒：' + due.length + ' 个成语该复习了。先复习，再学新的，记得更牢。'
+      : '今天的复习已完成，可以开始新的一组成语故事。') + '</div>' +
+    '<div class="stats">' +
+    '<div class="stat"><div class="stat-num">' + learnedCount + '<small>/' + IDIOMS.length + '</small></div><div class="stat-label">已学成语</div></div>' +
+    '<div class="stat"><div class="stat-num">' + due.length + '</div><div class="stat-label">待复习</div></div>' +
+    '<div class="stat"><div class="stat-num">' + (avg == null ? '—' : avg) + '<small>' + (avg == null ? '' : ' 分') + '</small></div><div class="stat-label">平均成绩</div></div>' +
+    '</div>' +
+    '<div class="cta-stack">' + cta + resumeHtml + '</div>' +
+    '</section>' +
+
+    '<section class="card">' +
+    '<h2 class="section">四个难度等级的进度</h2>' + lvHtml +
+    '<div class="tiny" style="margin-top:8px;line-height:1.8">数字越小越简单：L1 启蒙是寓言和生活道理，L2 入门是历史人物，L3 进阶是三国魏晋，L4 挑战是典故细节。</div>' +
+    '</section>' +
+
+    lastHtml +
+
+    '<section class="card">' +
+    '<h2 class="section">怎么才能不忘记</h2>' +
+    '<div class="tiny" style="line-height:1.9">' +
+    '按照艾宾浩斯遗忘曲线排期：学完先测一次，之后在第 1、2、4、7、15、30 天复习。答错就退回前面的轮次，并在 10 分钟后再出现一次；全部答对才会升到下一轮。' +
+    '</div>' +
+    '<div class="hint-strip" style="margin:12px 0 0">' +
+    '<span>小提示</span><span>先点“听故事”听一遍，再翻到下一页；做题时先自己想一想，再看选项。</span>' +
+    '</div>' +
+    '</section>';
+}
+
+/* ---------------- 听故事 ---------------- */
+function renderListen() {
+  var s = state.session;
+  if (!s || !s.ids.length) { view = 'home'; return renderHome(); }
+  var id = s.ids[s.listenIdx];
+  var it = BY_ID[id];
+  if (!it) { view = 'home'; return renderHome(); }
+  var isLast = s.listenIdx === s.ids.length - 1;
+
+  var dots = s.ids.map(function (x, i) {
+    return '<span class="dot' + (i === s.listenIdx ? ' cur' : (i < s.listenIdx ? ' on' : '')) + '"></span>';
+  }).join('');
+
+  return '<div class="listen-top">' +
+    '<div class="tiny">第 ' + (s.listenIdx + 1) + ' / ' + s.ids.length + ' 个故事</div>' +
+    '<div class="dots">' + dots + '</div>' +
+    '</div>' +
+
+    '<div class="card">' +
+    '<div class="word-hero">' +
+    '<div class="word kai">' + esc(it.word) + '</div>' +
+    '<div class="pinyin">' + esc(it.pinyin) + '</div>' +
+    '<span class="badge">难度 L' + it.level + ' · ' + (it.level === 1 ? '启蒙' : it.level === 2 ? '入门' : it.level === 3 ? '进阶' : '挑战') + '</span>' +
+    '</div>' +
+    '<div class="speak-bar">' +
+    '<button class="btn btn-ghost btn-sm" data-act="speakWord">朗读成语</button>' +
+    '<button class="btn btn-ghost btn-sm" data-act="speakStory">听故事</button>' +
+    '<button class="btn btn-ghost btn-sm" data-act="stopSpeak">停止</button>' +
+    '</div>' +
+    knowledgeHTML(it) +
+    '<div class="story-box"><h3>成语故事</h3><p class="story-text">' + esc(it.story) + '</p></div>' +
+    '<div class="lesson-box"><h3>这个故事告诉我们</h3><div class="txt">' + esc(it.lesson) + '</div></div>' +
+    '<div class="nav-btns">' +
+    '<button class="btn btn-ghost" data-act="prevListen"' + (s.listenIdx === 0 ? ' disabled' : '') + '>上一个</button>' +
+    (isLast
+      ? '<button class="btn btn-primary" data-act="startTest">听完了，开始测试</button>'
+      : '<button class="btn btn-primary" data-act="nextListen">下一个故事</button>') +
+    '</div>' +
+    '</div>' +
+    '<div class="tiny center" style="margin-top:2px">听不清可以再点“听故事”，也可以直接读上面的文字。</div>';
+}
+
+/* ---------------- 测试 ---------------- */
+function renderTest() {
+  var s = state.session;
+  if (!s) { view = 'home'; return renderHome(); }
+  var item = s.queue[s.idx];
+  if (!item) { return '<div class="empty">题目走丢了，请返回首页。</div>'; }
+  var it = BY_ID[item.id];
+  var q = it.q[item.qi];
+  var r = s.responses[s.idx];
+  var answered = !!r;
+
+  var typeLabel = s.kind === 'new' ? '新学测试' : (s.kind === 'review' ? '到期复习' : '错题重练');
+  var head = '<div class="test-head"><span>' + typeLabel + ' · ' + it.word + '</span>' +
+    '<span class="mono">第 ' + (s.idx + 1) + ' / ' + s.queue.length + ' 题</span></div>' +
+    '<div class="test-bar"><i style="width:' + pct(s.idx + 1, s.queue.length) + '%"></i></div>';
+
+  var body = '<div class="q-word kai">' + esc(it.word) + '</div>' +
+    '<div class="q-text kai">' + esc(q.q) + '</div>';
+
+  if (q.t === 'choice') {
+    var opts = item.order.map(function (orig, di) {
+      var cls = 'opt';
+      if (answered) {
+        if (orig === q.a) cls += ' right';
+        else if (r.user === orig) cls += ' wrong';
+        else cls += ' dim';
+      }
+      var key = 'ABCD'.charAt(di);
+      return '<button class="' + cls + '" data-act="answerChoice" data-di="' + di + '"' +
+        (answered ? ' disabled' : '') + '><span class="k">' + key + '</span><span>' + esc(q.o[orig]) + '</span></button>';
+    }).join('');
+    body += '<div class="opts">' + opts + '</div>';
+  } else {
+    body += '<div class="input-wrap">' +
+      '<input id="ansInput" class="answer-input" type="text" autocomplete="off" autocorrect="off" ' +
+      'spellcheck="false" enterkeyhint="done" placeholder="在这里输入答案" ' +
+      'value="' + (answered ? esc(r.user) : '') + '"' + (answered ? ' disabled' : '') + '>' +
+      '<div class="input-tip">' + (answered ? '答案已提交' : '写出关键的人名或词语即可，不用加标点') + '</div>' +
+      '<div class="input-row">' +
+      '<button class="btn btn-primary" data-act="submitInput"' + (answered ? ' disabled' : '') + '>提交答案</button>' +
+      '</div></div>';
+  }
+
+  if (answered) {
+    var correctText = q.t === 'choice' ? q.o[q.a] : q.a;
+    body += '<div class="feedback ' + (r.ok ? 'ok' : 'no') + '">' +
+      '<div class="fb-title">' + (r.ok ? '答对啦！' : '答错了，别急') + '</div>' +
+      '<div class="fb-answer">' + (r.ok
+        ? '你答的是：<strong>' + esc(q.t === 'choice' ? q.o[r.user] : r.user) + '</strong>'
+        : '正确答案：<strong>' + esc(correctText) + '</strong>') + '</div>' +
+      '<div class="fb-note">考点提醒：人物是' + esc(it.people) + '，' + esc(it.dynasty) + '，' +
+      (it.official ? '官职 / 身份是' + esc(it.official) + '，' : '') +
+      '地点在' + esc(it.place) + '。' + esc(it.lesson) + '</div>' +
+      '</div>' +
+      '<div class="nav-btns">' +
+      (s.kind !== 'new' ? '<button class="btn btn-ghost" data-act="peek" data-id="' + it.id + '">看一眼故事</button>' : '') +
+      '<button class="btn btn-primary" data-act="nextQuestion">' + (s.idx === s.queue.length - 1 ? '看成绩' : '下一题') + '</button>' +
+      '</div>';
+  } else if (s.kind !== 'new') {
+    body += '<div class="center" style="margin-top:14px">' +
+      '<button class="btn btn-ghost btn-sm" data-act="peek" data-id="' + it.id + '">忘了？看一眼故事</button>' +
+      '</div>';
+  }
+
+  return head + '<div class="card">' + body + '</div>' +
+    (answered ? '' : '<div class="tiny center" style="margin-top:10px">本组共 ' + s.queue.length + ' 题，全部答完就能看到成绩</div>');
+}
+
+
+/* ============ 第 3 部分：结算、成绩曲线、错题本、设置、交互 ============ */
+
+/* ---------------- 结算 ---------------- */
+function renderResult() {
+  var s = state.session;
+  if (!s) return renderHome();
+  var score = s.score == null ? 0 : s.score;
+  var g = gradeOf(score);
+  var ringColor = g === 'great' ? '#bd8a2f' : (g === 'good' ? '#3d7a5b' : '#b5372c');
+  var C = 2 * Math.PI * 52;
+  var offset = C - C * Math.min(100, Math.max(0, score)) / 100;
+  var wrongList = s.wrongDetails || [];
+  var typeText = s.kind === 'new' ? '新学一组' : (s.kind === 'review' ? '到期复习' : '错题重练');
+
+  var title = '', sub = '', extra = '';
+  if (g === 'great') {
+    title = '胡嘉逸你好厉害！';
+    sub = score + ' 分，大拇指送给你！这一组记得很牢。';
+    extra = '<div class="thumb-wrap"><div class="thumb-emoji">👍</div></div><div class="stars">★ ★ ★</div>';
+  } else if (g === 'good') {
+    title = '胡嘉逸，进步啦！';
+    sub = score + ' 分。把下面的错题再看一遍，下次就能冲 90 分以上。';
+  } else {
+    title = '还要再努力一下';
+    sub = '胡嘉逸你还需要再努力，再仔细复习一遍，看你能把能过关，不行就告诉胡先鸽打你屁股！';
+  }
+
+  var wrongHtml = '';
+  if (wrongList.length) {
+    wrongHtml = '<div class="wrong-list">' +
+      '<div class="row between" style="margin-bottom:8px">' +
+      '<h2 class="section" style="margin:0">这一组错在哪儿（' + wrongList.length + ' 个成语）</h2></div>' +
+      wrongList.map(function (w) {
+        var it = BY_ID[w.id];
+        if (!it) return '';
+        var lines = w.items.slice(0, 2).map(function (x) {
+          return '<div class="d">· ' + esc(x.ask) + ' → <strong>' + esc(x.correct) + '</strong></div>';
+        }).join('');
+        var more = w.items.length > 2 ? '<div class="d">· 还有 ' + (w.items.length - 2) + ' 处小错误，复习时会再考。</div>' : '';
+        return '<div class="wrong-item" data-act="peek" data-id="' + it.id + '">' +
+          '<div class="w kai">' + esc(it.word) + '</div>' +
+          '<div style="flex:1">' + lines + more + '</div>' +
+          '</div>';
+      }).join('') +
+      '<div class="tiny">点一下成语可以看故事；错题会自动进入错题本，并按记忆曲线高频出现。</div>' +
+      '</div>';
+  }
+
+  var actions = '';
+  if (g === 'great') {
+    if (pickNewIds(GROUP_SIZE).length) {
+      actions += '<button class="btn btn-primary btn-block" data-act="startNew">继续学下一组（10 个）</button>';
+    } else {
+      actions += '<button class="btn btn-primary btn-block" data-act="startReview">继续复习</button>';
+    }
+    actions += '<button class="btn btn-ghost btn-block" data-act="go" data-view="home">回首页</button>';
+  } else if (g === 'good') {
+    if (wrongList.length) actions += '<button class="btn btn-primary btn-block" data-act="drillWrong">复习这一组的错题（' + wrongList.length + ' 个）</button>';
+    else actions += '<button class="btn btn-gold btn-block" data-act="retrySame">再测一次这一组</button>';
+    actions += '<button class="btn btn-ghost btn-block" data-act="go" data-view="home">回首页</button>';
+  } else {
+    actions += '<button class="btn btn-primary btn-block" data-act="drillWrong">马上复习错题（' + Math.max(1, wrongList.length) + ' 个）</button>';
+    actions += '<button class="btn btn-ghost btn-block" data-act="retrySame">把这一组重新测一遍</button>';
+    actions += '<button class="btn btn-ghost btn-block" data-act="go" data-view="home">先回首页</button>';
+  }
+
+  return '<div class="card result-card">' +
+    '<div class="tiny">' + typeText + ' · ' + fmtMD(s.startedAt || Date.now()) + ' ' + fmtTime(s.startedAt || Date.now()) + '</div>' +
+    '<div class="score-ring"><svg viewBox="0 0 120 120">' +
+    '<circle cx="60" cy="60" r="52" fill="none" stroke="rgba(86,68,45,.10)" stroke-width="10"></circle>' +
+    '<circle cx="60" cy="60" r="52" fill="none" stroke="' + ringColor + '" stroke-width="10" stroke-linecap="round" ' +
+    'stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + offset.toFixed(1) + '" transform="rotate(-90 60 60)"></circle>' +
+    '</svg><div class="score-num"><span>' + score + '<small>分</small></span></div></div>' +
+    '<div class="result-title kai">' + title + '</div>' +
+    '<div class="result-sub' + (g === 'low' ? ' low' : '') + '">' + sub + '</div>' +
+    extra +
+    '<div class="tiny" style="margin-top:10px">答对 ' + s.correct + ' / ' + s.total + ' 题</div>' +
+    wrongHtml +
+    '<div class="nav-btns" style="display:grid;gap:10px">' + actions + '</div>' +
+    '<div class="center" style="margin-top:12px">' +
+    '<button class="btn btn-ghost btn-sm" data-act="go" data-view="curve">看看我的成绩曲线</button>' +
+    '</div>' +
+    '</div>';
+}
+
+/* ---------------- 成绩曲线 ---------------- */
+function chartSVG(records, mini) {
+  var n = records.length;
+  if (!n) return '';
+  var W = mini ? 340 : (n <= 10 ? 330 : Math.max(330, 40 + n * 30));
+  var H = mini ? 104 : 208;
+  var padL = mini ? 26 : 30, padR = mini ? 10 : 14, padT = mini ? 10 : 16, padB = mini ? 16 : 26;
+  var plotW = W - padL - padR, plotH = H - padT - padB;
+  function X(i) { return padL + (n === 1 ? plotW / 2 : i * plotW / (n - 1)); }
+  function Y(v) { return padT + (100 - v) * plotH / 100; }
+
+  var grid = [0, 50, 70, 90, 100].map(function (v) {
+    var y = Y(v).toFixed(1);
+    var isLine = (v === 70 || v === 90);
+    var stroke = v === 90 ? 'rgba(189,138,47,.45)' : (v === 70 ? 'rgba(181,55,44,.35)' : 'rgba(86,68,45,.12)');
+    return '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="' + stroke + '" stroke-width="1" ' +
+      (isLine || v === 0 ? '' : 'stroke-dasharray="3 4"') + '></line>' +
+      (mini ? '' : '<text x="' + (padL - 5) + '" y="' + (Number(y) + 3.5) + '" text-anchor="end" font-size="9" fill="#9c9182">' + v + '</text>');
+  }).join('');
+
+  var pts = records.map(function (r, i) { return X(i).toFixed(1) + ',' + Y(r.score).toFixed(1); }).join(' ');
+  var area = 'M ' + X(0).toFixed(1) + ' ' + Y(0).toFixed(1) + ' L ' + pts.split(' ').join(' L ') + ' L ' + X(n - 1).toFixed(1) + ' ' + Y(0).toFixed(1) + ' Z';
+
+  var dots = records.map(function (r, i) {
+    var color = r.score >= 90 ? '#bd8a2f' : (r.score >= 70 ? '#3d7a5b' : '#b5372c');
+    var rad = mini ? 2.6 : 4;
+    return '<circle cx="' + X(i).toFixed(1) + '" cy="' + Y(r.score).toFixed(1) + '" r="' + rad + '" fill="' + color + '" stroke="#fffdf6" stroke-width="1.2"></circle>' +
+      (mini ? '' : '<text x="' + X(i).toFixed(1) + '" y="' + (H - 6) + '" text-anchor="middle" font-size="9" fill="#9c9182">' + (i + 1) + '</text>');
+  }).join('');
+
+  var lastLabel = mini ? '' :
+    '<text x="' + (W - padR) + '" y="' + (Y(records[n - 1].score) - 8) + '" text-anchor="end" font-size="10" fill="#2e2822" font-weight="700">' + records[n - 1].score + '分</text>';
+
+  return '<svg class="chart" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="成绩曲线">' +
+    grid +
+    '<path d="' + area + '" fill="rgba(189,138,47,.10)" stroke="none"></path>' +
+    '<polyline points="' + pts + '" fill="none" stroke="rgba(86,68,45,.45)" stroke-width="1.6" stroke-linejoin="round"></polyline>' +
+    dots + lastLabel +
+    '</svg>';
+}
+function miniChart(records) {
+  if (!records || !records.length) return '';
+  return '<div class="chart-wrap" style="margin-top:8px">' + chartSVG(records, true) + '</div>';
+}
+
+function renderCurve() {
+  var scores = state.scores || [];
+  if (!scores.length) {
+    return '<div class="card"><h2 class="section">成绩曲线</h2>' +
+      '<div class="empty"><div class="big">📈</div>还没有成绩记录。<br>完成第一组测试后，这里会出现每轮的成绩曲线。</div></div>';
+  }
+  var avg = Math.round(scores.reduce(function (s, r) { return s + r.score; }, 0) / scores.length);
+  var best = scores.reduce(function (m, r) { return Math.max(m, r.score); }, 0);
+  var recent = scores.slice(-5);
+  var recentAvg = Math.round(recent.reduce(function (s, r) { return s + r.score; }, 0) / recent.length);
+  var last = scores[scores.length - 1].score;
+  var trend = scores.length >= 2 ? (last - scores[scores.length - 2].score) : 0;
+
+  var rows = scores.slice().reverse().map(function (r, i) {
+    var no = scores.length - i;
+    var cls = r.score >= 90 ? 'great' : (r.score >= 70 ? 'good' : 'low');
+    var type = r.type === 'new' ? '新学' : (r.type === 'review' ? '复习' : '错题');
+    return '<div class="record"><span class="no">#' + no + '</span>' +
+      '<span class="type">' + type + '</span>' +
+      '<span class="tiny" style="flex:1">' + fmtMD(r.t) + ' ' + fmtTime(r.t) + '</span>' +
+      '<span class="sc ' + cls + '">' + r.score + '</span></div>';
+  }).join('');
+
+  return '<div class="card">' +
+    '<h2 class="section">每轮成绩曲线</h2>' +
+    '<div class="stats" style="margin:0 0 12px">' +
+    '<div class="stat"><div class="stat-num">' + scores.length + '</div><div class="stat-label">总轮次</div></div>' +
+    '<div class="stat"><div class="stat-num">' + avg + '</div><div class="stat-label">平均分</div></div>' +
+    '<div class="stat"><div class="stat-num">' + best + '</div><div class="stat-label">最高分</div></div>' +
+    '</div>' +
+    '<div class="chart-wrap">' + chartSVG(scores, false) + '</div>' +
+    '<div class="legend"><span><i style="background:#bd8a2f"></i>90 分以上</span>' +
+    '<span><i style="background:#3d7a5b"></i>70–89 分</span>' +
+    '<span><i style="background:#b5372c"></i>70 分以下</span>' +
+    '<span>最近 5 次平均 ' + recentAvg + ' 分' + (trend > 0 ? '，比上轮 +' + trend : trend < 0 ? '，比上轮 ' + trend : '') + '</span></div>' +
+    '<div class="tiny" style="margin-top:8px">虚线是 90 分（优秀）和 70 分（及格）参考线。横轴是第几轮测试。</div>' +
+    '</div>' +
+    '<div class="card"><h2 class="section">成绩明细</h2><div class="record-list">' + rows + '</div></div>';
+}
+
+/* ---------------- 错题本 ---------------- */
+function renderWrongBook() {
+  var items = Object.keys(state.wrong).filter(function (id) { return BY_ID[id]; }).map(function (id) {
+    return { id: id, w: state.wrong[id], it: BY_ID[id], p: state.learned[id] || {} };
+  }).sort(function (a, b) {
+    if (b.w.count !== a.w.count) return b.w.count - a.w.count;
+    return (b.w.last || 0) - (a.w.last || 0);
+  });
+
+  if (!items.length) {
+    return '<div class="card"><h2 class="section">错题本</h2>' +
+      '<div class="empty"><div class="big">🌱</div>还没有错题，说明每一组都掌握得不错！<br>如果答错，成语会自动记在这里，并优先安排复习。</div></div>';
+  }
+
+  var list = items.map(function (o) {
+    var cleared = o.w.cleared && (!o.w.last || o.w.cleared >= o.w.last);
+    return '<div class="wb-item">' +
+      '<div class="wb-head"><span class="wb-word kai">' + esc(o.it.word) + '</span>' +
+      '<span class="wb-badge">错 ' + o.w.count + ' 次</span>' +
+      (cleared ? '<span class="tiny" style="color:#3d7a5b">已纠正</span>' : '') +
+      '<span class="spacer"></span>' +
+      (cleared ? '<button class="btn btn-ghost btn-sm" data-act="clearWrong" data-id="' + o.id + '">移出</button>' : '') +
+      '<button class="btn btn-soft btn-sm" data-act="drillOne" data-id="' + o.id + '">重练</button>' +
+      '</div>' +
+      '<div class="wb-meta">L' + o.it.level + ' · ' + esc(o.it.dynasty) + ' · ' +
+      (o.p.stage ? stageLabel(o.p.stage) + ' · ' : '') +
+      (o.p.due ? (o.p.due <= Date.now() ? '现在该复习' : dueText(o.p.due) + '复习') : '还没安排复习') +
+      (o.w.last ? ' · 最近错误 ' + fmtMD(o.w.last) : '') +
+      '</div></div>';
+  }).join('');
+
+  return '<div class="card">' +
+    '<div class="row between"><h2 class="section" style="margin:0">错题本（' + items.length + ' 个）</h2>' +
+    '<button class="btn btn-primary btn-sm" data-act="drillAllWrong">全部重练</button></div>' +
+    '<div class="tiny" style="margin-top:6px">错得越多的成语排得越前，复习时也会优先出现，直到全部答对。</div>' +
+    '<div style="margin-top:6px">' + list + '</div>' +
+    '</div>';
+}
+
+/* ---------------- 设置 ---------------- */
+function renderSettings() {
+  var s = state.settings;
+  var learnedCount = Object.keys(state.learned).length;
+  var scoreCount = state.scores.length;
+
+  function row(title, desc, key) {
+    return '<div class="set-row"><div><div class="t">' + title + '</div><div class="d">' + desc + '</div></div>' +
+      '<button class="switch' + (s[key] ? ' on' : '') + '" data-act="toggle" data-key="' + key + '" aria-label="' + title + '"></button></div>';
+  }
+
+  return '<div class="card">' +
+    '<h2 class="section">朗读与声音</h2>' +
+    row('语音朗读', '用手机自带的中文语音读成语和故事', 'tts') +
+    row('自动朗读故事', '进入每个故事页时自动读一遍', 'autoRead') +
+    row('答对答错音效', '短促的提示音，不影响听力', 'sfx') +
+    '<div class="set-row"><div><div class="t">朗读速度</div><div class="d">孩子听不清时可以调慢</div></div>' +
+    '<div class="seg">' +
+    [0.8, 0.9, 1.0].map(function (r) {
+      return '<button class="' + (Math.abs(s.rate - r) < 0.01 ? 'on' : '') + '" data-act="setRate" data-rate="' + r + '">' + r.toFixed(1) + 'x</button>';
+    }).join('') +
+    '</div></div>' +
+    (ttsOK ? '' : '<div class="hint-strip" style="margin-top:10px">当前浏览器没有语音朗读能力，故事仍会完整显示为文字。</div>') +
+    '</div>' +
+
+    '<div class="card">' +
+    '<h2 class="section">学习数据</h2>' +
+    '<div class="set-row"><div><div class="t">已学成语</div><div class="d">含未到复习时间的</div></div>' +
+    '<div class="mono" style="font-weight:700">' + learnedCount + ' / ' + IDIOMS.length + '</div></div>' +
+    '<div class="set-row"><div><div class="t">成绩记录</div><div class="d">每次测试都会记录</div></div>' +
+    '<div class="mono" style="font-weight:700">' + scoreCount + ' 轮</div></div>' +
+    '<div class="set-row"><div><div class="t">导出记录</div><div class="d">下载 JSON 文件，可备份或换手机</div></div>' +
+    '<button class="btn btn-ghost btn-sm" data-act="exportData">导出</button></div>' +
+    '<div class="set-row"><div><div class="t">清空全部记录</div><div class="d">会删除成绩、错题和复习进度</div></div>' +
+    '<button class="btn btn-soft btn-sm" data-act="resetData">清空</button></div>' +
+    (!storageOK ? '<div class="hint-strip" style="margin-top:10px">当前打开方式限制了本地存储，记录可能无法保存。建议用“局域网本地服务”或部署到网页后在手机浏览器里打开。</div>' : '') +
+    '</div>' +
+
+    '<div class="card">' +
+    '<h2 class="section">关于这个小书院</h2>' +
+    '<div class="tiny" style="line-height:1.9">' +
+    '学习者：' + esc(state.child) + '（家长：' + esc(state.parent) + '）<br>' +
+    '每组 10 个成语：先听故事 → 再做考点题（人物、朝代、官职 / 地点、情节、启发）→ 当场出分。<br>' +
+    '复习按艾宾浩斯曲线安排：学完当天测一次，之后第 1、2、4、7、15、30 天各复习一次；答错退回两轮，10 分钟后再考，直到全对。<br>' +
+    '所有记录只保存在这台设备的浏览器里，不会上传。' +
+    '</div>' +
+    '<div class="tiny" style="margin-top:10px;color:#9c9182">版本 1.0 · 单文件离线版 · 可直接放到手机上使用</div>' +
+    '</div>';
+}
+
+/* ---------------- 弹层 ---------------- */
+function openIdiomModal(id) {
+  var it = BY_ID[id];
+  if (!it) return;
+  var modal = $('#modal');
+  modal.innerHTML = '<div class="modal">' +
+    '<div class="modal-box">' +
+    '<div class="modal-head"><h3 class="kai">' + esc(it.word) + '</h3>' +
+    '<button class="icon-btn" data-act="closeModal">✕</button></div>' +
+    '<div class="tiny" style="margin-bottom:8px">' + esc(it.pinyin) + '</div>' +
+    knowledgeHTML(it) +
+    '<div class="story-box"><h3>成语故事</h3><p class="story-text">' + esc(it.story) + '</p></div>' +
+    '<div class="lesson-box"><h3>这个故事告诉我们</h3><div class="txt">' + esc(it.lesson) + '</div></div>' +
+    '<div class="nav-btns">' +
+    '<button class="btn btn-ghost" data-act="modalSpeak" data-id="' + it.id + '">听故事</button>' +
+    '<button class="btn btn-primary" data-act="closeModal">看完了</button>' +
+    '</div></div></div>';
+  modal.querySelector('.modal').addEventListener('click', function (e) {
+    if (e.target.classList.contains('modal')) closeModal();
+  });
+}
+function closeModal() { $('#modal').innerHTML = ''; }
+
+/* ---------------- 数据导出 / 清空 ---------------- */
+function exportData() {
+  try {
+    var payload = { exportedAt: new Date().toISOString(), app: '成语小书院', state: state };
+    var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = '成语学习记录-' + todayStr() + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 3000);
+    toast('已导出记录文件');
+  } catch (e) {
+    toast('导出失败，可以截图保存成绩页');
+  }
+}
+function resetData() {
+  if (!window.confirm('确定清空全部学习记录吗？成绩、错题和复习进度都会被删除，不能恢复。')) return;
+  state = defaultState();
+  save();
+  view = 'home';
+  render();
+  toast('已清空全部记录');
+}
+
+/* ---------------- 交互 ---------------- */
+function onClick(e) {
+  var t = e.target.closest('[data-act]');
+  if (!t) return;
+  var act = t.getAttribute('data-act');
+  var s = state.session;
+
+  switch (act) {
+    case 'go':
+      view = t.getAttribute('data-view') || 'home';
+      render();
+      break;
+    case 'startNew':
+      startNewGroup();
+      break;
+    case 'startReview':
+      startReview();
+      break;
+    case 'resumeSession':
+      resumeSession();
+      break;
+    case 'exitSession':
+      exitSession();
+      break;
+    case 'prevListen':
+      if (!s) break;
+      stopSpeak();
+      s.listenIdx = Math.max(0, s.listenIdx - 1);
+      save(); render();
+      break;
+    case 'nextListen':
+      if (!s) break;
+      stopSpeak();
+      s.listenIdx = Math.min(s.ids.length - 1, s.listenIdx + 1);
+      save(); render();
+      if (state.settings.autoRead) setTimeout(autoReadCurrent, 300);
+      break;
+    case 'startTest':
+      stopSpeak();
+      if (!s) break;
+      s.phase = 'test';
+      s.idx = 0;
+      view = 'test';
+      save(); render();
+      break;
+    case 'speakWord':
+      if (s) { var itw = BY_ID[s.ids[s.listenIdx]]; if (itw) speak(itw.word); }
+      break;
+    case 'speakStory':
+      if (s) { var its = BY_ID[s.ids[s.listenIdx]]; if (its) speakIdiom(its); }
+      break;
+    case 'stopSpeak':
+      stopSpeak();
+      toast('已停止朗读');
+      break;
+    case 'answerChoice': {
+      if (!s) break;
+      var item = currentItem();
+      if (!item || s.responses[s.idx]) break;
+      var di = Number(t.getAttribute('data-di'));
+      var orig = item.order[di];
+      var q = BY_ID[item.id].q[item.qi];
+      submitAnswer(orig === q.a, orig);
+      break;
+    }
+    case 'submitInput': {
+      if (!s) break;
+      var item2 = currentItem();
+      if (!item2 || s.responses[s.idx]) break;
+      var input = $('#ansInput');
+      var val = input ? input.value : '';
+      var q2 = BY_ID[item2.id].q[item2.qi];
+      submitAnswer(checkInput(q2, val), val.trim());
+      break;
+    }
+    case 'nextQuestion':
+      nextQuestion();
+      break;
+    case 'drillWrong':
+      if (s) startDrill(s.wrongDetails.map(function (w) { return w.id; }));
+      break;
+    case 'retrySame':
+      if (s) {
+        state.session = newSession('wrong', s.ids);
+        view = 'test';
+        save(); render();
+      }
+      break;
+    case 'drillOne':
+      startDrill([t.getAttribute('data-id')]);
+      break;
+    case 'drillAllWrong':
+      startDrill(Object.keys(state.wrong));
+      break;
+    case 'clearWrong':
+      delete state.wrong[t.getAttribute('data-id')];
+      save(); render();
+      break;
+    case 'peek':
+      openIdiomModal(t.getAttribute('data-id'));
+      break;
+    case 'closeModal':
+      closeModal();
+      break;
+    case 'modalSpeak':
+      speakIdiom(BY_ID[t.getAttribute('data-id')]);
+      break;
+    case 'exportData':
+      exportData();
+      break;
+    case 'resetData':
+      resetData();
+      break;
+    case 'toggle':
+      var key = t.getAttribute('data-key');
+      state.settings[key] = !state.settings[key];
+      save(); render();
+      if (key === 'tts' && state.settings.tts) speak('朗读已经打开');
+      break;
+    case 'setRate':
+      state.settings.rate = Number(t.getAttribute('data-rate')) || 0.9;
+      save(); render();
+      speak('这是新的朗读速度');
+      break;
+  }
+}
+
+document.addEventListener('click', onClick);
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' && e.target && e.target.id === 'ansInput') {
+    e.preventDefault();
+    var btn = document.querySelector('[data-act="submitInput"]');
+    if (btn && !btn.disabled) btn.click();
+  }
+});
+
+/* ---------------- 启动 ---------------- */
+render();
+if (!storageOK) setTimeout(function () { toast('当前打开方式限制了本地存储，记录可能无法保存', 4200); }, 800);
+
+})();
+
+</script>
+</body>
+</html>

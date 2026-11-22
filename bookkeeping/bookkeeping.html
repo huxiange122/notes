@@ -72,8 +72,7 @@ input,select{font-family:inherit}
 .stat b{display:block;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* ===== 筛选条 ===== */
-.filters{display:flex;gap:7px;padding:10px 16px;overflow-x:auto;border-bottom:1px solid var(--line2);scrollbar-width:none}
-.filters::-webkit-scrollbar{display:none}
+.filters{display:flex;flex-wrap:wrap;gap:7px;padding:10px 16px;border-bottom:1px solid var(--line2)}
 .f-chip{
   flex:0 0 auto;display:flex;align-items:center;gap:5px;height:32px;padding:0 11px;
   border:1px solid var(--line);border-radius:6px;background:var(--card);font-size:12px;color:var(--ink3);
@@ -140,6 +139,11 @@ input,select{font-family:inherit}
 .tbl td.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:13px;white-space:nowrap;padding-right:10px}
 .tbl th.num{padding-right:10px}
 .tbl td.c-note{color:var(--ink2);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tbl .who{
+  display:inline-block;margin-right:5px;padding:1px 5px;border:1px solid #C8D8CE;border-radius:4px;
+  background:var(--accent2);color:var(--accent);font-size:11px;vertical-align:1px;
+}
+.tbl .who.none{border-style:dashed;border-color:var(--line);background:transparent;color:var(--ink3)}
 .tbl tbody tr{cursor:pointer}
 .tbl tbody tr:active{background:#EBEEE6}
 .tbl tbody tr:last-child td{border-bottom:1px solid var(--line2)}
@@ -254,6 +258,19 @@ input[type="date"]:invalid{color:var(--ink3)}
 .act .arr svg{width:14px;height:14px;color:var(--ink3)}
 .img-preview{width:100%;display:block;border:1px solid var(--line2);border-radius:6px;background:#FFF}
 
+/* ===== 导入预览 ===== */
+.imp-card{border:1px solid var(--line2);border-radius:8px;background:#FFF;padding:6px 12px;margin-bottom:12px}
+.imp-row{
+  display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  padding:7px 0;border-bottom:1px solid var(--line2);font-size:13px;
+}
+.imp-row:last-child{border-bottom:0}
+.imp-row em{flex:0 0 auto;font-style:normal;font-size:12px;color:var(--ink3)}
+.imp-row b{
+  min-width:0;font-weight:500;text-align:right;font-variant-numeric:tabular-nums;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
 /* ===== toast ===== */
 .toast{
   position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));z-index:70;
@@ -346,6 +363,7 @@ body.locked .wrap,body.locked .fab,body.locked .sheet,body.locked .mask,body.loc
   <div class="filters" id="filters">
     <button class="f-chip" data-open="time">时间 <b id="chipTime">本月</b></button>
     <button class="f-chip" data-open="type">类型 <b id="chipType">全部</b></button>
+    <button class="f-chip" data-open="person">花费人 <b id="chipPerson">全部</b></button>
     <button class="f-chip" data-open="amount">金额 <b id="chipAmt">不限</b></button>
     <button class="f-chip" data-open="kw">备注 <b id="chipKw">搜索</b></button>
   </div>
@@ -396,7 +414,7 @@ body.locked .wrap,body.locked .fab,body.locked .sheet,body.locked .mask,body.loc
 
   <div class="foot" id="foot">
     <b>关于数据</b>
-    所有记录只保存在这台设备的浏览器里，不上传任何服务器。换手机、清理浏览器缓存或换浏览器打开都会看不到旧数据，建议每月导出一次 CSV 备份。
+    所有记录只保存在这台设备的浏览器里，不上传任何服务器。换手机、清理浏览器缓存或换浏览器打开都会看不到旧数据，建议每月导出一次备份文件。
   </div>
 </div>
 
@@ -439,6 +457,13 @@ body.locked .wrap,body.locked .fab,body.locked .sheet,body.locked .mask,body.loc
     <div class="field" id="fType">
       <span class="lab">类型（可多选）</span>
       <div class="chips" id="catChips"></div>
+      <p class="tip">要新增类型：在「记一笔」面板的类型下方输入名称点添加，新增的类型会自动出现在这里，也会保存在本机。</p>
+    </div>
+
+    <div class="field" id="fPerson">
+      <span class="lab">花费人（可多选）</span>
+      <div class="chips" id="personChips"></div>
+      <p class="tip">同样可以在「记一笔」里新增花费人；旧记录没填人的会归到「未指定」。</p>
     </div>
 
     <div class="field" id="fAmt">
@@ -490,10 +515,20 @@ body.locked .wrap,body.locked .fab,body.locked .sheet,body.locked .mask,body.loc
         <input class="inp" id="eNewCat" placeholder="没有合适的？输入新类型" maxlength="6">
         <button id="btnAddCat">添加</button>
       </div>
+      <p class="tip">最多 6 个字。添加后会一直保留，并出现在筛选里。</p>
     </div>
     <div class="field">
       <label for="eAmt">金额</label>
       <div class="amount-wrap"><i>¥</i><input class="inp" id="eAmt" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
+    </div>
+    <div class="field">
+      <span class="lab">花费人</span>
+      <div class="chips" id="ePeople"></div>
+      <div class="newcat">
+        <input class="inp" id="eNewPerson" placeholder="没有合适的？输入新的花费人" maxlength="6">
+        <button id="btnAddPerson">添加</button>
+      </div>
+      <p class="tip">最多 6 个字，可留空（留空显示为「未指定」）。</p>
     </div>
     <div class="field">
       <label for="eNote">详细信息</label>
@@ -514,9 +549,18 @@ body.locked .wrap,body.locked .fab,body.locked .sheet,body.locked .mask,body.loc
   </div>
   <div class="sheet-b">
     <button class="act" id="btnCsv">
-      <div>导出当前筛选为 CSV<small>可用 Excel / WPS 直接打开，含合计行</small></div>
+      <div>导出当前筛选为 CSV<small>用 Excel / WPS 查看表格；换设备迁移请用下面的备份文件</small></div>
       <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
     </button>
+    <button class="act" id="btnBkup">
+      <div>导出备份文件<small>含全部记录与类型，换手机/换电脑用它带走（不含密码）</small></div>
+      <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </button>
+    <button class="act" id="btnBkin">
+      <div>从备份文件导入<small>选一份 .json 备份，可与本机记录合并</small></div>
+      <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
+    </button>
+    <input type="file" id="bkFile" accept=".json,application/json" class="visually-hidden">
     <button class="act" id="btnPng">
       <div>导出类型占比图<small>生成图片，可长按保存到相册</small></div>
       <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
@@ -526,10 +570,10 @@ body.locked .wrap,body.locked .fab,body.locked .sheet,body.locked .mask,body.loc
       <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
     </button>
     <button class="act" id="btnWipe" style="color:var(--warm)">
-      <div>清空本机全部记录<small id="wipeHint">删除后不可恢复，建议先导出 CSV</small></div>
+      <div>清空本机全部记录<small id="wipeHint">删除后不可恢复，建议先导出备份</small></div>
       <span class="arr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></span>
     </button>
-    <p class="tip" id="storeNote">数据保存在本机浏览器（localStorage），关闭页面不会丢失。</p>
+    <p class="tip" id="storeNote">数据只存在这台设备的这个浏览器里（localStorage），关闭页面不会丢；换手机或换浏览器，请用上面的备份导出 / 导入搬过去。</p>
   </div>
   <div class="sheet-f">
     <button class="btn-primary" data-close>完成</button>
@@ -548,6 +592,29 @@ body.locked .wrap,body.locked .fab,body.locked .sheet,body.locked .mask,body.loc
   </div>
   <div class="sheet-f">
     <button class="btn-primary" id="btnImgSave">下载图片</button>
+  </div>
+</section>
+
+<!-- ===== 面板：确认导入 ===== -->
+<section class="sheet" id="sheetImp" aria-hidden="true">
+  <div class="sheet-h">
+    <h3>确认导入</h3>
+    <button class="close-x" data-close aria-label="关闭">×</button>
+  </div>
+  <div class="sheet-b">
+    <div class="imp-card">
+      <div class="imp-row"><em>备份文件</em><b id="impName">—</b></div>
+      <div class="imp-row"><em>记录条数</em><b id="impCount">—</b></div>
+      <div class="imp-row"><em>时间范围</em><b id="impRange">—</b></div>
+      <div class="imp-row"><em>金额合计</em><b id="impTotal">—</b></div>
+      <div class="imp-row"><em>与本机重复</em><b id="impDup">—</b></div>
+      <div class="imp-row"><em>本机现有</em><b id="impHave">—</b></div>
+    </div>
+    <p class="tip" id="impTip"></p>
+  </div>
+  <div class="sheet-f">
+    <button class="btn-danger" id="btnImpReplace">覆盖</button>
+    <button class="btn-primary" id="btnImpMerge">合并导入</button>
   </div>
 </section>
 
@@ -591,6 +658,10 @@ const STORE_KEY = 'jz_expense_v1';
 const OTHER = '其他';
 const PALETTE = ['#0F5C4A', '#3C7D66', '#8FA893', '#C79A3E', '#B56A48', '#66707A'];
 const PRESET_CATS = ['餐饮', '交通', '购物', '居住', '娱乐', '医疗', '教育', '通讯', '人情', '其他'];
+// 花费人：默认几个人名，可在「记一笔」里自行增删改；空串表示未填，展示为「未指定」
+const PRESET_PEOPLE = ['我', '爱人', '孩子', '老人', '全家'];
+const PERSON_NONE = '未指定';
+const PERSON_MAX = 6;
 const DAY_MS = 86400000;
 
 function pad2(n) { return String(n).padStart(2, '0'); }
@@ -693,10 +764,12 @@ function filterItems(items, f, today) {
   const amt = resolveAmount(f);
   const kw = String(f.kw || '').trim().toLowerCase();
   const cats = f.cats || [];
+  const ppl = f.people || [];
   return items.filter(function (it) {
     if (range.from && it.d < range.from) return false;
     if (range.to && it.d > range.to) return false;
     if (cats.length && cats.indexOf(it.c) < 0) return false;
+    if (ppl.length && ppl.indexOf(it.p || '') < 0) return false;
     if (amt) {
       if (amt.eq !== undefined && amt.eq !== null) {
         if (it.a !== amt.eq) return false;
@@ -706,7 +779,7 @@ function filterItems(items, f, today) {
       }
     }
     if (kw) {
-      const hay = (it.n || '') + ' ' + (it.c || '');
+      const hay = (it.n || '') + ' ' + (it.c || '') + ' ' + (it.p || '');
       if (hay.toLowerCase().indexOf(kw) < 0) return false;
     }
     return true;
@@ -805,12 +878,12 @@ function csvCell(v) {
 }
 
 function buildCSV(items, totalCents) {
-  const lines = ['时间,类型,金额（元）,详细信息'];
+  const lines = ['时间,类型,金额（元）,花费人,详细信息'];
   for (const it of items) {
-    lines.push([it.d, csvCell(it.c), (it.a / 100).toFixed(2), csvCell(it.n)].join(','));
+    lines.push([it.d, csvCell(it.c), (it.a / 100).toFixed(2), csvCell(it.p || ''), csvCell(it.n)].join(','));
   }
   lines.push('');
-  lines.push(['合计', '', (totalCents / 100).toFixed(2), items.length + ' 笔'].join(','));
+  lines.push(['合计', '', (totalCents / 100).toFixed(2), '', items.length + ' 笔'].join(','));
   return '\ufeff' + lines.join('\r\n');
 }
 
@@ -923,6 +996,81 @@ function pieLabelLayout(slices, opt) {
   return items;
 }
 
+/* ---------- 备份文件（换设备迁移） ---------- */
+const BK_VERSION = 2;
+const BK_MAX_ITEMS = 20000;
+
+// 去重指纹：日期 + 类型 + 金额(分) + 备注 + 花费人
+function bkSignature(it) {
+  return it.d + '\u0001' + it.c + '\u0001' + it.a + '\u0001' + (it.n || '') + '\u0001' + (it.p || '');
+}
+
+// 校验备份对象；返回 {ok, error, items, cats, people, bad, count, total}
+function validateBackup(obj) {
+  if (!obj || typeof obj !== 'object') return { ok: false, error: '文件内容不是有效的备份' };
+  const raw = Array.isArray(obj) ? obj : obj.items;
+  if (!Array.isArray(raw)) return { ok: false, error: '备份里没有 items 记录列表' };
+  if (raw.length > BK_MAX_ITEMS) return { ok: false, error: '备份记录过多（上限 ' + BK_MAX_ITEMS + ' 条）' };
+  const items = [];
+  let bad = 0;
+  raw.forEach(function (x) {
+    if (!x || typeof x !== 'object' || !isValidDate(x.d)) { bad++; return; }
+    const a = Number(x.a);
+    if (!Number.isInteger(a) || a <= 0 || a > 999999999) { bad++; return; }
+    const c = String(x.c === undefined ? '' : x.c).trim();
+    if (!c || c.length > 10) { bad++; return; }
+    const p = String(x.p === undefined || x.p === null ? '' : x.p).trim().slice(0, PERSON_MAX);
+    items.push({ id: 0, d: x.d, c: c, a: a, n: String(x.n === undefined ? '' : x.n).slice(0, 80), p: p });
+  });
+  const cats = [];
+  (Array.isArray(obj.cats) ? obj.cats : []).forEach(function (c) {
+    if (typeof c !== 'string') return;
+    const t = c.trim();
+    if (t && t.length <= 10 && cats.indexOf(t) < 0) cats.push(t);
+  });
+  items.forEach(function (x) { if (cats.indexOf(x.c) < 0) cats.push(x.c); });
+  const people = [];
+  (Array.isArray(obj.people) ? obj.people : []).forEach(function (p) {
+    if (typeof p !== 'string') return;
+    const t = p.trim().slice(0, PERSON_MAX);
+    if (t && people.indexOf(t) < 0) people.push(t);
+  });
+  items.forEach(function (x) { if (x.p && people.indexOf(x.p) < 0) people.push(x.p); });
+  if (!items.length) {
+    return { ok: false, error: bad ? '备份里 ' + bad + ' 条记录全部无效（日期或金额格式不对）' : '备份里没有可导入的记录' };
+  }
+  return {
+    ok: true, items: items, cats: cats, people: people, bad: bad, count: items.length,
+    total: items.reduce(function (s, x) { return s + x.a; }, 0),
+  };
+}
+
+// 合并：同指纹先抵消已有记录（同一天两笔一样的支出仍会保留一次），其余追加并分配新 id
+function mergeBackup(existing, incoming, startId) {
+  const have = new Map();
+  existing.forEach(function (it) {
+    const k = bkSignature(it);
+    have.set(k, (have.get(k) || 0) + 1);
+  });
+  const items = existing.slice();
+  let id = startId || 1, added = 0, skipped = 0;
+  incoming.forEach(function (it) {
+    const k = bkSignature(it);
+    const n = have.get(k) || 0;
+    if (n > 0) { have.set(k, n - 1); skipped++; return; }
+    items.push({ id: id++, d: it.d, c: it.c, a: it.a, n: it.n || '', p: it.p || '' });
+    added++;
+  });
+  return { items: items, added: added, skipped: skipped, nextId: id };
+}
+
+function bkDateRange(items) {
+  if (!items.length) return '—';
+  let a = items[0].d, b = items[0].d;
+  items.forEach(function (x) { if (x.d < a) a = x.d; if (x.d > b) b = x.d; });
+  return a === b ? a : a + ' ~ ' + b;
+}
+
 /*__BOOT__*/
 /* ============================================================
    状态
@@ -930,14 +1078,17 @@ function pieLabelLayout(slices, opt) {
 const state = {
   items: [],
   cats: PRESET_CATS.slice(),
+  people: PRESET_PEOPLE.slice(),
   nextId: 1,
   lastCat: '',
+  lastP: '',
   filter: {
     mode: 'month',
     month: todayISO().slice(0, 7),
     from: '',
     to: '',
     cats: [],
+    people: [],
     amtOp: 'none',
     amt1: '',
     amt2: '',
@@ -947,6 +1098,7 @@ const state = {
   limit: 200,
   editingId: null,
   editCat: '',
+  editP: '',
   png: ''
 };
 
@@ -990,6 +1142,7 @@ function load() {
   try { raw = localStorage.getItem(STORE_KEY); } catch (e) { return; }
   state.items = [];
   state.cats = PRESET_CATS.slice();
+  state.people = PRESET_PEOPLE.slice();
   state.nextId = 1;
   if (!raw) return;
   try {
@@ -1005,7 +1158,11 @@ function load() {
       let id = (Number.isInteger(x.id) && x.id > 0) ? x.id : 0;
       if (id && seen[id]) id = 0;
       if (id) { seen[id] = 1; if (id > maxId) maxId = id; }
-      items.push({ id: id, d: x.d, c: String(x.c).slice(0, 10), a: a, n: String(x.n || '').slice(0, 80) });
+      items.push({
+        id: id, d: x.d, c: String(x.c).slice(0, 10), a: a,
+        n: String(x.n || '').slice(0, 80),
+        p: typeof x.p === 'string' ? x.p.slice(0, PERSON_MAX) : ''
+      });
     }
     for (const x of items) { if (!x.id) { x.id = ++maxId; } }
     state.items = items;
@@ -1017,13 +1174,23 @@ function load() {
     items.forEach(function (x) { if (cats.indexOf(x.c) < 0) cats.push(x.c); });
     state.cats = cats;
     if (typeof d.lastCat === 'string') state.lastCat = d.lastCat;
+    const ppl = PRESET_PEOPLE.slice();
+    (Array.isArray(d.people) ? d.people : []).forEach(function (p) {
+      if (typeof p !== 'string') return;
+      const t = p.trim().slice(0, PERSON_MAX);
+      if (t && ppl.indexOf(t) < 0) ppl.push(t);
+    });
+    items.forEach(function (x) { if (x.p && ppl.indexOf(x.p) < 0) ppl.push(x.p); });
+    state.people = ppl;
+    if (typeof d.lastP === 'string') state.lastP = d.lastP;
   } catch (e) { /* 数据损坏时保持空账本，不阻塞页面 */ }
 }
 
 function save() {
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify({
-      v: 1, nextId: state.nextId, items: state.items, cats: state.cats, lastCat: state.lastCat
+      v: 2, nextId: state.nextId, items: state.items, cats: state.cats, lastCat: state.lastCat,
+      people: state.people, lastP: state.lastP
     }));
   } catch (e) {
     toast('本机存储不可用，这次改动可能丢失');
@@ -1105,6 +1272,10 @@ function renderChips() {
   setChip('#chipTime', t, f.mode !== 'all');
   const n = f.cats.length;
   setChip('#chipType', n ? (n === 1 ? f.cats[0] : '已选 ' + n + ' 项') : '全部', n > 0);
+  const np = (f.people || []).length;
+  setChip('#chipPerson', np
+    ? (np === 1 ? (f.people[0] || PERSON_NONE) : '已选 ' + np + ' 人')
+    : '全部', np > 0);
   setChip('#chipAmt', amtText(), f.amtOp !== 'none');
   const kw = String(f.kw || '').trim();
   setChip('#chipKw', kw ? '“' + kw + '”' : '搜索', !!kw);
@@ -1222,7 +1393,9 @@ function renderTable(v) {
       '<td class="c-date">' + it.d + '</td>' +
       '<td class="c-cat">' + esc(it.c) + '</td>' +
       '<td class="num">' + fmtCents(it.a) + '</td>' +
-      '<td class="c-note">' + esc(it.n || '—') + '</td>' +
+      '<td class="c-note">' + (it.p
+        ? '<span class="who">' + esc(it.p) + '</span>'
+        : '<span class="who none">' + PERSON_NONE + '</span>') + esc(it.n || '—') + '</td>' +
       '</tr>';
   }).join('');
   el('#listHint').textContent = total ? '共 ' + total + ' 笔' : '';
@@ -1282,7 +1455,7 @@ function closeAll() {
 function openFilter(field) {
   syncFilterUI();
   openSheet('sheetFilter');
-  const map = { time: '#fTime', type: '#fType', amount: '#fAmt', kw: '#fKw' };
+  const map = { time: '#fTime', type: '#fType', person: '#fPerson', amount: '#fAmt', kw: '#fKw' };
   const target = map[field];
   if (target) {
     setTimeout(function () {
@@ -1306,6 +1479,7 @@ function syncFilterUI() {
   el('#amtRow2').classList.toggle('hide', f.amtOp !== 'between');
   el('#inKw').value = f.kw || '';
   renderCatChips();
+  renderPersonChips();
 }
 
 function renderCatChips() {
@@ -1330,6 +1504,32 @@ function renderCatChips() {
   });
 }
 
+function renderPersonChips() {
+  const wrap = el('#personChips');
+  if (!wrap) return;
+  const f = state.filter;
+  const sel = f.people || [];
+  const hasNone = state.items.some(function (x) { return !x.p; });
+  wrap.innerHTML = '<button class="chip"' + (sel.length ? '' : ' on') + '>全部</button>' +
+    state.people.map(function (p) {
+      return '<button class="chip' + (sel.indexOf(p) >= 0 ? ' on' : '') + '" data-p="' + esc(p) + '">' + esc(p) + '</button>';
+    }).join('') +
+    (hasNone ? '<button class="chip' + (sel.indexOf('') >= 0 ? ' on' : '') + '" data-p="">' + PERSON_NONE + '</button>' : '');
+  els('.chip', wrap).forEach(function (b) {
+    b.onclick = function () {
+      if (b.dataset.p === undefined) {
+        f.people = [];
+      } else {
+        const p = b.dataset.p;
+        const i = f.people.indexOf(p);
+        if (i >= 0) f.people.splice(i, 1); else f.people.push(p);
+      }
+      onFilterChange();
+      renderPersonChips();
+    };
+  });
+}
+
 function resetFilter() {
   state.filter = {
     mode: 'month',
@@ -1337,6 +1537,7 @@ function resetFilter() {
     from: '',
     to: '',
     cats: [],
+    people: [],
     amtOp: 'none',
     amt1: '',
     amt2: '',
@@ -1371,16 +1572,34 @@ function renderEditCats() {
   });
 }
 
+function renderEditPeople() {
+  const wrap = el('#ePeople');
+  const cur = state.editP || '';
+  wrap.innerHTML = '<button class="chip' + (cur ? '' : ' on') + '" data-p="">' + PERSON_NONE + '</button>' +
+    state.people.map(function (p) {
+      return '<button class="chip' + (p === cur ? ' on' : '') + '" data-p="' + esc(p) + '">' + esc(p) + '</button>';
+    }).join('');
+  els('.chip', wrap).forEach(function (b) {
+    b.onclick = function () {
+      state.editP = b.dataset.p || '';
+      renderEditPeople();
+    };
+  });
+}
+
 function openEdit(id) {
   const item = (typeof id === 'number') ? state.items.find(function (x) { return x.id === id; }) : null;
   state.editingId = item ? item.id : null;
   state.editCat = item ? item.c
     : (state.lastCat && state.cats.indexOf(state.lastCat) >= 0 ? state.lastCat : '餐饮');
+  state.editP = item ? (item.p || '')
+    : (state.lastP && state.people.indexOf(state.lastP) >= 0 ? state.lastP : '');
   el('#editTitle').textContent = item ? '编辑记录' : '记一笔';
   el('#eDate').value = item ? item.d : defaultDate();
   el('#eAmt').value = item ? (item.a / 100).toFixed(2) : '';
   el('#eNote').value = item ? item.n : '';
   el('#eNewCat').value = '';
+  el('#eNewPerson').value = '';
   const del = el('#btnDel');
   del.style.display = item ? 'block' : 'none';
   del.textContent = '删除';
@@ -1388,6 +1607,7 @@ function openEdit(id) {
   delArmed = false;
   clearTimeout(delTimer);
   renderEditCats();
+  renderEditPeople();
   openSheet('sheetEdit');
 }
 
@@ -1402,16 +1622,18 @@ function saveEdit() {
   if (a === 0) { toast('金额需大于 0'); return; }
   if (a > 999999900) { toast('金额过大'); return; }
   const note = el('#eNote').value.trim().slice(0, 60);
+  const p = state.editP || '';
 
   if (isEdit) {
     const it = state.items.find(function (x) { return x.id === state.editingId; });
     if (!it) { toast('记录不存在，可能已被删除'); return; }
-    it.d = d; it.c = c; it.a = a; it.n = note;
+    it.d = d; it.c = c; it.a = a; it.n = note; it.p = p;
   } else {
     const id = state.nextId++;
-    state.items.push({ id: id, d: d, c: c, a: a, n: note });
+    state.items.push({ id: id, d: d, c: c, a: a, n: note, p: p });
   }
   state.lastCat = c;
+  state.lastP = p;
   save();
   refreshData();
   closeAll();
@@ -1455,6 +1677,19 @@ function addCat() {
   save();
   renderEditCats();
   toast('已加入类型「' + v + '」');
+}
+
+function addPerson() {
+  const v = el('#eNewPerson').value.trim();
+  if (!v) { toast('请输入花费人名称'); return; }
+  if (v.length > PERSON_MAX) { toast('最多 ' + PERSON_MAX + ' 个字'); return; }
+  if (v === PERSON_NONE) { toast('这个名字被「未指定」占用了'); return; }
+  if (state.people.indexOf(v) < 0) state.people.push(v);
+  state.editP = v;
+  el('#eNewPerson').value = '';
+  save();
+  renderEditPeople();
+  toast('已加入花费人「' + v + '」');
 }
 
 /* ============================================================
@@ -1633,6 +1868,119 @@ function doWipe() {
 /* ============================================================
    示例数据
    ============================================================ */
+/* ============================================================
+   备份文件：导出 / 导入
+   ============================================================ */
+let pendingImport = null;
+let replaceArmed = false;
+let replaceTimer = null;
+
+function doBackupOut() {
+  if (!state.items.length) { toast('本机还没有记录，不需要备份'); return; }
+  const payload = {
+    app: '记账分析', v: BK_VERSION, exportedAt: new Date().toISOString(),
+    count: state.items.length, total: sumItems(state.items),
+    cats: state.cats.slice(), people: state.people.slice(), nextId: state.nextId,
+    items: state.items.map(function (it) {
+      return { id: it.id, d: it.d, c: it.c, a: it.a, n: it.n, p: it.p || '' };
+    }),
+  };
+  download('记账备份_' + todayISO() + '.json', JSON.stringify(payload, null, 2), 'application/json');
+}
+
+function settleReplaceBtn() {
+  replaceArmed = false;
+  clearTimeout(replaceTimer);
+  const b = el('#btnImpReplace');
+  if (b) b.textContent = '覆盖';
+}
+
+function renderImportPreview() {
+  const p = pendingImport;
+  if (!p) return;
+  el('#impName').textContent = p.name;
+  el('#impCount').textContent = p.count + ' 条' + (p.bad ? '（另有 ' + p.bad + ' 条格式无效已跳过）' : '');
+  el('#impRange').textContent = p.range;
+  el('#impTotal').textContent = '¥' + fmtCents(p.total);
+  el('#impDup').textContent = p.dup ? p.dup + ' 条' : '无';
+  el('#impHave').textContent = state.items.length + ' 条';
+  el('#impTip').textContent = '「合并导入」把 ' + (p.count - p.dup) + ' 条新记录追加到现有记录之后，与本机重复的不会重复记账；' +
+    '「覆盖」用备份替换本机全部记录与类型。备份文件不含解锁密码，本机密码不变。';
+  settleReplaceBtn();
+}
+
+function onBackupFile(e) {
+  const input = e.target;
+  const f = input.files && input.files[0];
+  try { input.value = ''; } catch (err) { /* 忽略 */ }
+  if (!f) return;
+  if (f.size > 8 * 1024 * 1024) { toast('备份文件过大（超过 8MB）'); return; }
+  const rd = new FileReader();
+  rd.onerror = function () { toast('读取备份文件失败'); };
+  rd.onload = function () {
+    let obj = null;
+    try { obj = JSON.parse(String(rd.result)); } catch (err) { toast('这不是有效的备份文件，请选择导出的 .json'); return; }
+    const res = validateBackup(obj);
+    if (!res.ok) { toast(res.error); return; }
+    const merged = mergeBackup(state.items, res.items, state.nextId);
+    pendingImport = {
+      name: f.name, items: res.items, cats: res.cats, people: res.people, count: res.count,
+      total: res.total, bad: res.bad, dup: merged.skipped, range: bkDateRange(res.items),
+    };
+    renderImportPreview();
+    openSheet('sheetImp');
+  };
+  rd.readAsText(f, 'utf-8');
+}
+
+function applyImport(items, nextId, added, skipped, cats, replaced, people) {
+  state.items = items;
+  state.nextId = nextId;
+  if (cats && cats.length) {
+    const list = state.cats.slice();
+    cats.forEach(function (c) { if (list.indexOf(c) < 0) list.push(c); });
+    state.cats = list;
+  }
+  if (people && people.length) {
+    const list = state.people.slice();
+    people.forEach(function (p) { if (list.indexOf(p) < 0) list.push(p); });
+    state.people = list;
+  }
+  state.limit = 200;
+  pendingImport = null;
+  save();
+  refreshData();
+  syncFilterUI();
+  closeAll();
+  toast(replaced
+    ? '已用备份覆盖，现有 ' + state.items.length + ' 条'
+    : '导入完成：新增 ' + added + ' 条' + (skipped ? '，跳过重复 ' + skipped + ' 条' : '') + '，现有 ' + state.items.length + ' 条');
+}
+
+function doImportMerge() {
+  const p = pendingImport;
+  if (!p) { toast('还没有选择备份文件'); return; }
+  const m = mergeBackup(state.items, p.items, state.nextId);
+  applyImport(m.items, m.nextId, m.added, m.skipped, p.cats, false, p.people);
+}
+
+function doImportReplace() {
+  const p = pendingImport;
+  if (!p) { toast('还没有选择备份文件'); return; }
+  if (!replaceArmed) {
+    replaceArmed = true;
+    el('#btnImpReplace').textContent = '再点一次即覆盖';
+    clearTimeout(replaceTimer);
+    replaceTimer = setTimeout(settleReplaceBtn, 3000);
+    return;
+  }
+  let id = 1;
+  const items = p.items.map(function (it) {
+    return { id: id++, d: it.d, c: it.c, a: it.a, n: it.n || '', p: it.p || '' };
+  });
+  applyImport(items, id, items.length, 0, p.cats, true, p.people);
+}
+
 /* ============================================================
    锁屏：6 位数字密码
    ============================================================ */
@@ -1837,22 +2185,22 @@ function seedDemo() {
     ? state.filter.month : todayISO().slice(0, 7);
   const days = +monthRange(ym).to.slice(8);
   const rows = [
-    ['居住', '房租', 120000, 1],
-    ['餐饮', '超市买菜', 15640, 2],
-    ['交通', '地铁通勤', 600, 2],
-    ['餐饮', '公司楼下午饭', 3200, 3],
-    ['购物', '洗衣液和纸巾', 8990, 4],
-    ['通讯', '手机话费', 5900, 5],
-    ['餐饮', '外卖晚餐', 4200, 6],
-    ['娱乐', '电影票', 4500, 8],
-    ['交通', '加班打车', 3850, 9],
-    ['餐饮', '咖啡', 2200, 10],
-    ['医疗', '药店', 6800, 12],
-    ['教育', '网课订阅', 26000, 13],
-    ['购物', '秋衣', 19900, 15],
-    ['人情', '同事份子钱', 20000, 18],
-    ['餐饮', '周末聚餐', 28800, 20],
-    ['其他', '快递费', 1200, 22]
+    ['居住', '房租', 120000, 1, '爱人'],
+    ['餐饮', '超市买菜', 15640, 2, '爱人'],
+    ['交通', '地铁通勤', 600, 2, '我'],
+    ['餐饮', '公司楼下午饭', 3200, 3, '我'],
+    ['购物', '洗衣液和纸巾', 8990, 4, '爱人'],
+    ['通讯', '手机话费', 5900, 5, '我'],
+    ['餐饮', '外卖晚餐', 4200, 6, '我'],
+    ['娱乐', '电影票', 4500, 8, '全家'],
+    ['交通', '加班打车', 3850, 9, '我'],
+    ['餐饮', '咖啡', 2200, 10, '我'],
+    ['医疗', '药店', 6800, 12, '孩子'],
+    ['教育', '网课订阅', 26000, 13, '孩子'],
+    ['购物', '秋衣', 19900, 15, '孩子'],
+    ['人情', '同事份子钱', 20000, 18, '我'],
+    ['餐饮', '周末聚餐', 28800, 20, '全家'],
+    ['其他', '快递费', 1200, 22, '我']
   ];
   for (const r of rows) {
     const day = Math.min(r[3], days);
@@ -1861,7 +2209,8 @@ function seedDemo() {
       d: ym + '-' + pad2(day),
       c: r[0],
       a: r[2],
-      n: r[1]
+      n: r[1],
+      p: r[4]
     });
   }
   save();
@@ -1941,11 +2290,20 @@ function wire() {
   el('#eNewCat').onkeydown = function (e) {
     if (e.key === 'Enter') { e.preventDefault(); addCat(); }
   };
+  el('#btnAddPerson').onclick = addPerson;
+  el('#eNewPerson').onkeydown = function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); addPerson(); }
+  };
 
   el('#btnCsv').onclick = doCSV;
   el('#btnPng').onclick = doPNG;
   el('#btnImgSave').onclick = doImgSave;
   el('#btnWipe').onclick = doWipe;
+  el('#btnBkup').onclick = doBackupOut;
+  el('#btnBkin').onclick = function () { el('#bkFile').click(); };
+  el('#bkFile').onchange = onBackupFile;
+  el('#btnImpMerge').onclick = doImportMerge;
+  el('#btnImpReplace').onclick = doImportReplace;
 
   // 锁屏
   els('#keypad .k').forEach(function (b) {

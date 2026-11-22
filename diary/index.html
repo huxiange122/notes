@@ -23,6 +23,7 @@
   --c-success:#57703F;
   --c-lesson:#8A5F42;
   --c-idea:#6B4A77;
+  --c-memo:#2E5A55;
   --danger:#A2402F;
   --serif:"Songti SC","Noto Serif SC","Source Han Serif SC","SimSun","STSong",serif;
   --sans:system-ui,-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
@@ -43,6 +44,7 @@
   --c-success:#9BB47C;
   --c-lesson:#C4936F;
   --c-idea:#AF8EBA;
+  --c-memo:#8FBEB4;
   --danger:#D0846F;
 }
 @media (prefers-color-scheme: dark){
@@ -50,7 +52,7 @@
     --bg:#131714; --surface:#1A1E1B; --surface-2:#232823;
     --ink:#E7E9E3; --ink-dim:#A6AEA6; --ink-faint:#7C847C;
     --line:#2B322C; --line-strong:#3B433C; --accent:#8FBEB4; --on-accent:#0F1310;
-    --c-diary:#8AA7C6; --c-success:#9BB47C; --c-lesson:#C4936F; --c-idea:#AF8EBA; --danger:#D0846F;
+    --c-diary:#8AA7C6; --c-success:#9BB47C; --c-lesson:#C4936F; --c-idea:#AF8EBA; --c-memo:#8FBEB4; --danger:#D0846F;
   }
 }
 
@@ -152,6 +154,26 @@ main{padding:0 0 96px}
 .link-btn{background:none;border:0;color:var(--accent);font-size:13px;min-height:44px;padding:0 10px;border-radius:8px}
 .link-btn:hover{background:color-mix(in srgb,var(--accent) 10%,transparent)}
 .link-btn.danger{color:var(--danger)}
+
+/* ============ 台账表 ============ */
+.memo-head{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) 22px;align-items:center}
+.memo-name{font-size:15px;line-height:1.5;font-weight:500;word-break:break-word}
+.memo-group{display:inline-block;font-size:10.5px;line-height:16px;padding:0 5px;margin-right:6px;
+  border:1px solid var(--line-strong);border-radius:4px;color:var(--ink-faint);vertical-align:1px;
+  font-variant-numeric:tabular-nums;max-width:7em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.memo-val{font-size:14px;line-height:1.5;color:var(--ink-dim);word-break:break-all;
+  font-variant-numeric:tabular-nums;padding-top:1px}
+.memo-val.num{color:var(--ink);font-weight:600}
+.memo-val.empty{color:var(--ink-faint)}
+.memo-note-preview{display:none;font-size:12.5px;line-height:1.5;color:var(--ink-faint);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-top:3px}
+.memo-cols{grid-template-columns:1.15fr 1fr 1fr 22px}
+.gchips{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 12px}
+.chip.on{border-color:var(--accent);color:var(--ink);background:color-mix(in srgb,var(--accent) 9%,transparent)}
+@media (min-width:768px){
+  .memo-head{grid-template-columns:1.05fr 1.05fr 1fr 22px}
+  .memo-note-preview{display:block}
+}
 
 /* ============ 空态 ============ */
 .empty{padding:44px 24px 54px;text-align:center}
@@ -435,19 +457,21 @@ function fallbackCopy(text, okMsg){
 
 /* ==================== 数据层 ==================== */
 function blankDB(){
-  return { v: 1, entries: [], cats: [], meta: { lastExport: 0, theme: 'auto', sort: 'desc' } };
+  return { v: 1, entries: [], cats: [], rows: [], meta: { lastExport: 0, theme: 'auto', sort: 'desc' } };
 }
 function normalize(raw){
   var d = (raw && typeof raw === 'object') ? raw : {};
   d.v = 1;
   if (!Array.isArray(d.entries)) d.entries = [];
   if (!Array.isArray(d.cats)) d.cats = [];
+  if (!Array.isArray(d.rows)) d.rows = [];
   if (!d.meta || typeof d.meta !== 'object') d.meta = {};
   if (d.meta.theme !== 'light' && d.meta.theme !== 'dark') d.meta.theme = 'auto';
   d.meta.sort = (d.meta.sort === 'asc') ? 'asc' : 'desc';
   if (typeof d.meta.lastExport !== 'number') d.meta.lastExport = 0;
   if (typeof d.meta.pin !== 'string') d.meta.pin = '';
   if (typeof d.meta.lockIdle !== 'number') d.meta.lockIdle = 0;
+  if (d.meta.memoSort !== 'name' && d.meta.memoSort !== 'group') d.meta.memoSort = 'recent';
 
   d.entries = d.entries.map(function(e){
     e = (e && typeof e === 'object') ? e : {};
@@ -483,6 +507,19 @@ function normalize(raw){
     });
     return c;
   });
+
+  d.rows = d.rows.map(function(r){
+    r = (r && typeof r === 'object') ? r : {};
+    if (!r.id) r.id = uid();
+    r.group = String(r.group || '');
+    r.name = String(r.name || '');
+    r.content = String(r.content || '');
+    r.note = String(r.note || '');
+    r.c = typeof r.c === 'number' ? r.c : Date.now();
+    r.u = typeof r.u === 'number' ? r.u : r.c;
+    return r;
+  });
+
   return d;
 }
 function readDB(){
@@ -533,6 +570,7 @@ var S = {
   expanded: {},
   path: { cat: null, sub: null },
   filterTag: null,
+  memoGroup: null,
   sheet: null,
   reviewId: null,
   query: ''
@@ -762,6 +800,7 @@ function renderTabs(){
       + t.short + '<span class="n">' + n + '</span></button>';
   });
   h += '<button class="tab' + (S.tab === 'idea' ? ' active' : '') + '" data-act="tab" data-tab="idea" style="--c:var(--c-idea)">灵感<span class="n">' + countIdeas() + '</span></button>';
+  h += '<button class="tab' + (S.tab === 'memo' ? ' active' : '') + '" data-act="tab" data-tab="memo" style="--c:var(--c-memo)">台账<span class="n">' + db.rows.length + '</span></button>';
   document.getElementById('tabs').innerHTML = h;
 }
 
@@ -950,10 +989,190 @@ function ideaView(){
   return catsPage();
 }
 
+/* ==================== 渲染：台账（表格式备忘） ==================== */
+function isUrl(s){
+  var t = String(s || '').trim();
+  if (!t) return false;
+  if (/^(https?:\/\/|www\.)/i.test(t)) return true;
+  return /^[\w-]+(\.[\w-]+)+(:\d+)?(\/\S*)?$/.test(t)
+    && /\.(com|cn|org|net|io|gov|edu|top|me|co|app|xyz|cc|tv|link|site|shop|info)(\/|$|:)/i.test(t);
+}
+
+function memoUrl(s){
+  var t = String(s || '').trim();
+  if (!/^https?:\/\//i.test(t)) t = 'https://' + t.replace(/^www\./i, '');
+  return t;
+}
+
+function memoRows(){
+  var arr = db.rows.filter(function(r){
+    return !S.memoGroup || String(r.group || '') === S.memoGroup;
+  });
+  var mode = db.meta.memoSort || 'recent';
+  arr.sort(function(a, b){
+    if (mode === 'name') return String(a.name || '').localeCompare(String(b.name || ''), 'zh-Hans-CN');
+    if (mode === 'group') {
+      var g = String(a.group || '').localeCompare(String(b.group || ''), 'zh-Hans-CN');
+      if (g) return g;
+      return String(a.name || '').localeCompare(String(b.name || ''), 'zh-Hans-CN');
+    }
+    return (b.u || b.c || 0) - (a.u || a.c || 0);
+  });
+  return arr;
+}
+
+function memoGroups(){
+  var gs = [];
+  db.rows.forEach(function(r){
+    var g = String(r.group || '').trim();
+    if (g && gs.indexOf(g) < 0) gs.push(g);
+  });
+  return gs;
+}
+
+function memoRow(r){
+  var open = !!S.expanded[r.id];
+  var url = isUrl(r.content);
+  var num = /^-?\d+(\.\d+)?%?$/.test(String(r.content || '').trim());
+  var h = '<article class="row memo' + (open ? ' open' : '') + '" data-id="' + r.id + '">';
+  h += '<button class="row-head memo-head" data-act="toggle" aria-expanded="' + (open ? 'true' : 'false') + '">';
+  h += '<span class="memo-name">' + (r.group ? '<span class="memo-group">' + esc(r.group) + '</span>' : '')
+    + esc(r.name || '（未命名）') + '</span>';
+  h += '<span class="memo-val' + (num ? ' num' : (r.content ? '' : ' empty')) + '">' + esc(r.content || '—') + '</span>';
+  h += '<span class="memo-note-preview">' + esc(r.note || '') + '</span>';
+  h += '<span class="row-chev">' + SVG.chev + '</span>';
+  h += '</button>';
+  h += '<div class="row-detail"><div class="inner"><div class="detail-wrap">';
+  h += r.note
+    ? ('<div class="detail-text">' + esc(r.note) + '</div>')
+    : '<div class="detail-text muted">没有备注。可以写「在哪个 App 里」「哪天到期」「当时为什么记下来」。</div>';
+  h += '<div class="row-meta"><span>更新 ' + timeOf(r.u || r.c) + '</span><span>创建 ' + timeOf(r.c) + '</span></div>';
+  h += '<div class="row-actions">';
+  if (url) h += '<button class="link-btn" data-act="openMemo" data-id="' + r.id + '">打开链接</button>';
+  h += '<button class="link-btn" data-act="copyMemo" data-id="' + r.id + '">复制内容</button>';
+  h += '<button class="link-btn" data-act="editMemo" data-id="' + r.id + '">编辑</button>';
+  h += '<button class="link-btn danger" data-act="delMemo" data-id="' + r.id + '">删除</button>';
+  h += '</div></div></div></div></article>';
+  return h;
+}
+
+function sheetsView(){
+  var list = memoRows();
+  var mode = db.meta.memoSort || 'recent';
+  var modeLabel = mode === 'name' ? '按名称' : (mode === 'group' ? '按分组' : '最近更新');
+  var h = '';
+  h += '<div class="bar"><div class="bar-l"><h2>台账</h2><span class="cnt">共 ' + list.length + ' 条</span></div>';
+  h += '<div class="bar-r"><button class="tool" data-act="sortMemo">排序 · ' + modeLabel + '</button></div></div>';
+
+  var gs = memoGroups();
+  if (gs.length) {
+    h += '<div class="gchips">';
+    h += '<button class="chip' + (S.memoGroup ? '' : ' on') + '" data-act="memoGroup" data-g="">全部</button>';
+    gs.forEach(function(g){
+      h += '<button class="chip' + (S.memoGroup === g ? ' on' : '') + '" data-act="memoGroup" data-g="' + esc(g) + '">' + esc(g) + '</button>';
+    });
+    h += '</div>';
+  }
+
+  h += '<div class="cols memo-cols"><span>名称</span><span>内容</span><span>备注</span><span></span></div>';
+
+  if (!list.length) {
+    return h + emptyBlock(
+      S.memoGroup ? ('「' + S.memoGroup + '」还是空的') : '台账还空着',
+      '记那些过几天就会忘的事：宽带账号、家里尺寸、保单号、常用网址、体检数值，一行就够。',
+      '记一条', 'newMemo');
+  }
+  list.forEach(function(r){ h += memoRow(r); });
+  return h;
+}
+
+function openMemoSheet(id){
+  var r = id ? (db.rows.filter(function(x){ return x.id === id; })[0] || null) : null;
+  var gs = memoGroups();
+  var body = '';
+  body += '<label class="field"><span class="flabel">分组 · 可留空，也可复用已有</span>'
+    + '<input class="inp" type="text" id="f-group" list="g-list" autocomplete="off" placeholder="例如：家里 / 账号 / 健康 / 网址" value="'
+    + esc(r ? r.group : '') + '"></label>';
+  body += '<datalist id="g-list">'
+    + gs.map(function(g){ return '<option value="' + esc(g) + '"></option>'; }).join('')
+    + '</datalist>';
+  body += '<label class="field"><span class="flabel">名称 · 这是什么</span>'
+    + '<input class="inp" type="text" id="f-name" autocomplete="off" placeholder="例如：家里宽带账号" value="'
+    + esc(r ? r.name : '') + '"></label>';
+  body += '<label class="field"><span class="flabel">内容 · 数字 / 网址 / 一串字符</span>'
+    + '<input class="inp" type="text" id="f-val" autocomplete="off" spellcheck="false" placeholder="例如：021-12345678 或 https://example.com" value="'
+    + esc(r ? r.content : '') + '"></label>';
+  body += '<label class="field"><span class="flabel">备注 · 点开才显示</span>'
+    + '<textarea class="inp" id="f-note" style="min-height:22vh" placeholder="例如：在电信 App 里，户主是本人，2027 年 3 月到期">'
+    + esc(r ? r.note : '') + '</textarea></label>';
+  body += '<div class="hintline">内容填成网址会多出「打开链接」；纯数字用等宽数字对齐，扫一眼就能核对。</div>';
+  showPanel((r ? '编辑' : '新增') + ' · 台账', body,
+    '<button class="btn" data-act="close">取消</button><button class="btn primary" data-act="saveMemo">保存</button>', '');
+  S.sheet = { kind: 'memo', id: id || null };
+  focusSel('#f-name');
+}
+
+function saveMemo(){
+  if (!S.sheet || S.sheet.kind !== 'memo') return;
+  var gEl = document.getElementById('f-group');
+  var nEl = document.getElementById('f-name');
+  var vEl = document.getElementById('f-val');
+  var tEl = document.getElementById('f-note');
+  if (!nEl || !vEl) return;
+  var group = (gEl ? gEl.value : '').trim();
+  var name = nEl.value.trim();
+  var content = vEl.value.trim();
+  var note = (tEl ? tEl.value : '').replace(/\s+$/, '');
+  if (!name && !content) { toast('名称和内容至少填一项'); try { nEl.focus(); } catch (e) {} return; }
+  if (!name) name = firstLine(content);
+
+  var old = S.sheet.id ? (db.rows.filter(function(x){ return x.id === S.sheet.id; })[0] || null) : null;
+  var nid = null;
+  if (old) {
+    old.group = group; old.name = name; old.content = content; old.note = note; old.u = Date.now();
+    nid = old.id;
+  } else {
+    nid = uid();
+    var now = Date.now();
+    db.rows.push({ id: nid, group: group, name: name, content: content, note: note, c: now, u: now });
+  }
+  persist();
+  closeOv();
+  S.expanded[nid] = true;
+  render();
+  toast('已保存');
+}
+
+function copyMemo(id){
+  var r = db.rows.filter(function(x){ return x.id === id; })[0];
+  if (!r) return;
+  copyText(r.content || r.name, '内容已复制');
+}
+
+function openMemoUrl(id){
+  var r = db.rows.filter(function(x){ return x.id === id; })[0];
+  if (!r) return;
+  try { window.open(memoUrl(r.content), '_blank', 'noopener'); }
+  catch (e) { toast('打开失败，可以先复制链接'); }
+}
+
+function deleteMemo(id){
+  var r = db.rows.filter(function(x){ return x.id === id; })[0];
+  if (!r) return;
+  if (!confirm('删除台账「' + (r.name || r.content) + '」？')) return;
+  db.rows = db.rows.filter(function(x){ return x.id !== id; });
+  delete S.expanded[id];
+  persist();
+  render();
+  toast('已删除');
+}
+
 /* ==================== 渲染：主入口 ==================== */
 function renderMain(){
   var h = backupNotice();
-  h += (S.tab === 'idea') ? ideaView() : entriesView();
+  if (S.tab === 'memo') h += sheetsView();
+  else if (S.tab === 'idea') h += ideaView();
+  else h += entriesView();
   document.getElementById('main').innerHTML = h;
 }
 
@@ -962,7 +1181,10 @@ function updateFab(){
   if (!b) return;
   var label = '写一条';
   var act = 'new';
-  if (S.tab === 'idea') {
+  if (S.tab === 'memo') {
+    act = 'newMemo';
+    label = '记一条';
+  } else if (S.tab === 'idea') {
     act = 'newBranch';
     if (S.path.sub) label = '添加想法';
     else if (S.path.cat) label = '添加细分';
@@ -1270,7 +1492,13 @@ function runSearch(){
     });
   });
 
-  if (!hits.length) { box.innerHTML = '<div class="sr-empty">没有匹配的内容，换个词试试。</div>'; return; }
+  var memos = [];
+  db.rows.forEach(function(r){
+    var hay = ((r.group || '') + ' ' + r.name + ' ' + r.content + ' ' + r.note).toLowerCase();
+    if (hay.indexOf(q) >= 0) memos.push(r);
+  });
+
+  if (!hits.length && !memos.length) { box.innerHTML = '<div class="sr-empty">没有匹配的内容，换个词试试。</div>'; return; }
 
   var h = '';
   TYPES.forEach(function(t){
@@ -1294,6 +1522,14 @@ function runSearch(){
         + '<div class="s">' + esc(x.cat.name) + ' / ' + esc(x.sub.name) + '</div></button>';
     });
   }
+  if (memos.length) {
+    h += '<div class="sr-group">台账 · ' + memos.length + '</div>';
+    memos.forEach(function(r){
+      h += '<button class="sr-item" data-act="jump" data-kind="memo" data-id="' + r.id + '">'
+        + '<div class="t">' + esc(r.name || '（未命名）') + '</div>'
+        + '<div class="s">' + esc(r.content || '') + (r.group ? ' · ' + esc(r.group) : '') + '</div></button>';
+    });
+  }
   box.innerHTML = h;
 }
 
@@ -1302,7 +1538,11 @@ function jumpTo(el){
   var id = el.getAttribute('data-id');
   closeOv();
   S.expanded = {};
-  if (kind === 'entry') {
+  if (kind === 'memo') {
+    S.tab = 'memo';
+    S.memoGroup = null;
+    S.expanded[id] = true;
+  } else if (kind === 'entry') {
     S.tab = el.getAttribute('data-type');
     S.filterTag = null;
     S.path = { cat: null, sub: null };
@@ -1390,6 +1630,9 @@ function exportCSV(){
       });
     });
   });
+  db.rows.forEach(function(r){
+    rows.push(['台账' + (r.group ? ' · ' + r.group : ''), '', r.name, (r.content || '') + (r.note ? '\n备注：' + r.note : ''), '', dateTimeOf(r.u || r.c)]);
+  });
   var text = '\uFEFF' + rows.map(function(r){ return r.map(csvCell).join(','); }).join('\r\n');
   download('四簿导出-' + stamp() + '.csv', text, 'text/csv;charset=utf-8');
 }
@@ -1422,6 +1665,13 @@ function exportMD(){
       md += '\n';
     });
   });
+  md += '\n## 台账\n\n';
+  if (!db.rows.length) md += '（暂无）\n\n';
+  db.rows.forEach(function(r){
+    md += '- **' + (r.name || '（未命名）') + '**' + (r.group ? '（' + r.group + '）' : '') + '：' + (r.content || '') + '\n';
+    if (r.note) md += '  ' + String(r.note).replace(/\n/g, '\n  ') + '\n';
+  });
+
   download('四簿导出-' + stamp() + '.md', md, 'text/markdown;charset=utf-8');
 }
 
@@ -1547,6 +1797,11 @@ function mergeDB(base, incoming){
       });
     });
   });
+  var seenRow = {};
+  base.rows.forEach(function(r){ seenRow[r.id] = 1; });
+  incoming.rows.forEach(function(r){
+    if (!seenRow[r.id]) { base.rows.push(r); seenRow[r.id] = 1; }
+  });
   return base;
 }
 
@@ -1650,7 +1905,7 @@ function openSettings(){
   }
 
   body += '<div class="set-row"><div><div class="k">数据量</div><div class="d">'
-    + db.entries.length + ' 条记录 · ' + countIdeas() + ' 条想法 · 约 ' + size + '</div></div></div>';
+    + db.entries.length + ' 条记录 · ' + countIdeas() + ' 条想法 · ' + db.rows.length + ' 条台账 · 约 ' + size + '</div></div></div>';
   body += '<div class="set-row"><div><div class="k">上次备份</div><div class="d">' + esc(last) + '</div></div></div>';
 
   body += '<div class="set-actions">'
@@ -1753,6 +2008,7 @@ function toggleRow(el){
 }
 
 function newBranch(){
+  if (S.tab === 'memo') { openMemoSheet(null); return; }
   if (S.tab !== 'idea') { openEntrySheet(S.tab, null); return; }
   if (S.path.sub) openIdeaSheet(null);
   else if (S.path.cat) openNodeSheet('sub', null);
@@ -1811,6 +2067,19 @@ function handle(act, el){
       db.meta.sort = S.sort;
       persist();
       openSettings();
+      render();
+      break;
+    case 'newMemo': openMemoSheet(null); break;
+    case 'editMemo': openMemoSheet(id); break;
+    case 'saveMemo': saveMemo(); break;
+    case 'copyMemo': copyMemo(id); break;
+    case 'openMemo': openMemoUrl(id); break;
+    case 'delMemo': deleteMemo(id); break;
+    case 'memoGroup': S.memoGroup = el.getAttribute('data-g') || null; render(); break;
+    case 'sortMemo':
+      var mm = db.meta.memoSort || 'recent';
+      db.meta.memoSort = mm === 'recent' ? 'name' : (mm === 'name' ? 'group' : 'recent');
+      persist();
       render();
       break;
     case 'pinSet': openPinSheet('set'); break;

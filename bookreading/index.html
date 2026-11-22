@@ -392,6 +392,7 @@ var ICON_SEARCH='<svg width="21" height="21" viewBox="0 0 24 24" fill="none" str
 var ICON_PLUS='<svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 var ICON_BOLT='<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3L5 13h6l-1 8 8-10h-6z"/></svg>';
 var ICON_CHEV='<svg class="chev" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>';
+var ICON_GEAR='<svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="3.1"/><path d="M12 3.6v2.1M12 18.3v2.1M4.9 7.4l1.5 1.5M17.6 15.1l1.5 1.5M3.6 12h2.1M18.3 12h2.1M4.9 16.6l1.5-1.5M17.6 8.9l1.5-1.5"/></svg>';
 
 /* ============ 5. 渲染：目录 ============ */
 function headerHTML(){
@@ -423,6 +424,7 @@ function headerHTML(){
       '<div class="sp"></div>'+
       '<button class="iconbtn" data-act="search" aria-label="搜索">'+ICON_SEARCH+'</button>'+
       (cur?'<button class="iconbtn more" data-act="more" aria-label="当前层级的操作">···</button>':'')+
+      '<button class="iconbtn" data-act="settings" aria-label="设置与备份">'+ICON_GEAR+'</button>'+
     '</div>'+
     '<div class="crumbs">'+cr+'</div>'+
     '<div class="head"><h1 class="h1">'+esc(title)+'</h1><div class="headmeta">'+meta+'</div></div>'+
@@ -952,7 +954,7 @@ function sheetSettings(){
       '<button class="oitem" data-act="export-json">导出 JSON<small>完整结构，可原样恢复</small></button>'+
       '<button class="oitem" data-act="export-md">导出 Markdown<small>可读文本，能导入 Obsidian 等</small></button>'+
       '<button class="oitem" data-act="copy-json">复制 JSON 到剪贴板<small>微信里打不开文件时用这个</small></button>'+
-      '<button class="oitem" data-act="import-open">从 JSON 导入<small>会覆盖当前全部数据</small></button>'+
+      '<button class="oitem" data-act="import-open">从 JSON 导入<small>可选合并或覆盖，换设备迁数据用这里</small></button>'+
       '<button class="oitem" data-act="reseed">恢复示例数据<small>覆盖当前数据</small></button>'+
       '<button class="oitem danger" data-act="clear-all">清空全部<small>数据不可恢复，先导出备份</small></button>'+
     '</div>'+
@@ -1019,10 +1021,12 @@ function exportMD(){
 
 function sheetImport(){
   openSheet('<p class="stitle">从 JSON 恢复</p>'+
-    '<p class="sdesc">导入会覆盖当前全部数据。若只是想看看，请先取消并导出一份当前备份。</p>'+
+    '<p class="sdesc">合并：只把备份里新的内容补进来，现有笔记全部保留；覆盖：用备份替换当前全部数据。</p>'+
     '<div class="fld"><label for="f-json">粘贴 JSON 内容</label>'+
     '<textarea id="f-json" class="ta tall" placeholder="{\"version\":1,\"nodes\":[…]}"></textarea></div>'+
     '<input class="filein" id="f-file" type="file" accept=".json,application/json">'+
+    '<p class="hint" style="text-align:left;padding:0 0 12px">选择文件后内容会填进上面的框，确认无误再点下面按钮。</p>'+
+    '<div class="btn-row" style="margin-bottom:8px"><button class="btn btn-ghost btn-block" data-act="import-merge">合并导入（推荐，不动现有数据）</button></div>'+
     '<div class="btn-row"><button class="btn btn-ghost" data-act="close">取消</button>'+
     '<button class="btn btn-primary" data-act="import-do">覆盖导入</button></div>');
   setTimeout(function(){
@@ -1032,25 +1036,97 @@ function sheetImport(){
       var r=new FileReader();
       r.onload=function(){
         var ta=document.getElementById('f-json');
-        if(ta){ ta.value=String(r.result); toast('已读取文件，点「覆盖导入」生效'); }
+        if(ta){ ta.value=String(r.result); toast('已读取文件，确认后再点导入'); }
       };
       r.readAsText(file,'utf-8');
     });
   },60);
 }
-function doImport(){
+
+function readImport(){
   var txt=v('f-json').trim();
-  if(!txt){ toast('先粘贴或选择 JSON 文件'); return; }
+  if(!txt){ toast('先粘贴或选择 JSON 文件'); return null; }
   var o=null;
   try{ o=JSON.parse(txt); }catch(e){}
   if(!o||!o.nodes||typeof o.nodes.length!=='number'){
     toast('JSON 格式不对，需要包含 nodes 数组');
-    return;
+    return null;
   }
-  db={version:1,nodes:o.nodes};
+  var src=[];
+  for(var i=0;i<o.nodes.length;i++){
+    var n=o.nodes[i];
+    if(!n||typeof n.title!=='string'||!n.title) continue;
+    if(n.level!==1&&n.level!==2&&n.level!==3&&n.level!==4) continue;
+    src.push(n);
+  }
+  if(!src.length){ toast('备份里没有可用的节点'); return null; }
+  if(src.length<o.nodes.length){ toast('已忽略 '+(o.nodes.length-src.length)+' 条无效节点'); }
+  return src;
+}
+
+function doImport(){
+  var src=readImport(); if(!src) return;
+  var seen={}, nodes=[];
+  for(var i=0;i<src.length;i++){
+    var n=src[i];
+    if(seen[n.id]) continue;
+    seen[n.id]=1;
+    nodes.push({id:n.id,pid:n.pid||null,level:n.level,title:String(n.title).slice(0,200),
+      order:(typeof n.order==='number'&&isFinite(n.order))?n.order:0,
+      excerpt:n.excerpt||'',insight:n.insight||'',action:n.action||'',page:n.page||'',
+      tags:Array.isArray(n.tags)?n.tags.slice(0,10):[],
+      status:(n.status==='review'||n.status==='mastered')?n.status:'new',
+      created:n.created||now(),updated:n.updated||now()});
+  }
+  var ids={}; nodes.forEach(function(n){ ids[n.id]=1; });
+  nodes.forEach(function(n){
+    if(!n.pid) return;
+    var p=null;
+    for(var i=0;i<nodes.length;i++){ if(nodes[i].id===n.pid){ p=nodes[i]; break; } }
+    if(!p||p.level!==n.level-1){ n.pid=null; }
+  });
+  db={version:1,nodes:nodes};
   saveDB(); closeSheet();
   ui.path=[]; ui.noteId=null; ui.search=false; ui.q='';
-  render(); toast('已导入 '+db.nodes.length+' 条记录');
+  render(); toast('已覆盖导入 '+db.nodes.length+' 个节点');
+}
+
+function doImportMerge(){
+  var src=readImport(); if(!src) return;
+  var im={}, ich={};
+  src.forEach(function(n){ im[n.id]=n; });
+  src.forEach(function(n){
+    var p=(n.pid&&im[n.pid])?n.pid:null;
+    if(p&&im[p].level!==n.level-1) p=null;
+    (ich[p]=ich[p]||[]).push(n);
+  });
+  var added=0, kept=0;
+  function step(pidLocal,pidImp){
+    (ich[pidImp]||[]).forEach(function(n){
+      var local=null;
+      db.nodes.forEach(function(x){
+        if(!local&&(x.pid||null)===pidLocal&&x.level===n.level&&x.title===n.title) local=x;
+      });
+      var target;
+      if(local){ kept++; target=local; }
+      else{
+        target=mkNode(pidLocal,n.level,String(n.title).slice(0,200),kids(pidLocal).length);
+        target.excerpt=n.excerpt||''; target.insight=n.insight||''; target.action=n.action||'';
+        target.page=n.page||''; target.tags=Array.isArray(n.tags)?n.tags.slice(0,10):[];
+        target.status=(n.status==='review'||n.status==='mastered')?n.status:'new';
+        if(n.created) target.created=n.created;
+        if(n.updated) target.updated=n.updated;
+        db.nodes.push(target); added++;
+      }
+      step(target.id,n.id);
+    });
+  }
+  step(null,null);
+  if(!added&&!kept){ toast('备份里没有可用节点'); return; }
+  saveDB(); closeSheet();
+  ui.path=[]; ui.noteId=null; ui.search=false; ui.q='';
+  render();
+  toast('合并完成：新增 '+added+' 个节点，已有 '+kept+' 个未动');
 }
 function doClearAll(){
   openSheet('<p class="stitle">清空全部数据？</p>'+
@@ -1158,6 +1234,7 @@ document.addEventListener('click',function(e){
     case 'copy-json': copyText(JSON.stringify(db,null,2)); break;
     case 'import-open': sheetImport(); break;
     case 'import-do': doImport(); break;
+    case 'import-merge': doImportMerge(); break;
     case 'clear-all': doClearAll(); break;
     case 'clear-confirm':
       db={version:1,nodes:[]}; saveDB();
